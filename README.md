@@ -24,10 +24,3 @@ Results on the MNIST dataset.
 Implementation of the Deep Convolutional Generative Adversarial Network.
 
 Reference: https://arxiv.org/abs/1511.06434
-
-<p align="center">
-    <img src="http://eriklindernoren.se/images/dcgan.png" width="640"\>
-</p>
-<p align="center">
-    Figure: Results on the MNIST dataset.
-</p>
