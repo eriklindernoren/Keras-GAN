@@ -33,20 +33,22 @@ class ACGAN():
         self.generator.compile(loss=['binary_crossentropy'], 
             optimizer=optimizer)
 
-        # The generator takes noise as input and generated imgs
+        # The generator takes noise and the target label as input
+        # and generates the corresponding digit of that label
         noise = Input(shape=(100,))
-        labels = Input(shape=(1,))
-        img = self.generator([noise, labels])
+        label = Input(shape=(1,))
+        img = self.generator([noise, label])
 
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
 
-        # The valid takes generated images as input and determines validity
-        valid, op = self.discriminator(img)
+        # The discriminator takes generated image as input and determines validity
+        # and the label of that image
+        valid, target_label = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator) takes
         # noise as input => generates images => determines validity 
-        self.combined = Model([noise, labels], [valid, op])
+        self.combined = Model([noise, label], [valid, target_label])
         self.combined.compile(loss=losses, 
             optimizer=optimizer)
 
@@ -71,6 +73,7 @@ class ACGAN():
         model.summary()
 
         noise = Input(shape=(100,))
+        # Intended digit to generate
         label = Input(shape=(1,), dtype='int32')
 
         label_embedding = Flatten()(Embedding(self.num_classes, 100)(label))
@@ -110,7 +113,7 @@ class ACGAN():
         img = Input(shape=img_shape)
 
         features = model(img)
-        # Prediction of wether the image is valid or fake
+        # Prediction of whether the image is valid or fake
         valid = Dense(1, activation="sigmoid")(features)
         # Prediction of the digit (0-9 or if image is fake)
         label = Dense(self.num_classes+1, activation="softmax")(features)
@@ -140,6 +143,8 @@ class ACGAN():
             imgs = X_train[idx]
             
             noise = np.random.normal(0, 1, (half_batch, 100))
+            # The labels of the digits that the generator tries to create and
+            # image representation of
             sampled_labels = np.random.randint(0, 10, half_batch).reshape(-1, 1)
 
             # Generate a half batch of new images
@@ -192,6 +197,7 @@ class ACGAN():
 
         gen_imgs = self.generator.predict([noise, sampled_labels])
 
+        # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 1
 
         fig, axs = plt.subplots(r, c)

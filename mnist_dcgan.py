@@ -90,18 +90,18 @@ class DCGAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
 
-        model.add(Conv2D(256, kernel_size=4, strides=2, padding="same"))
+        model.add(Conv2D(256, kernel_size=4, strides=1, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
 
         model.add(Flatten())
-        model.add(Dense(1024))
 
         model.summary()
 
         img = Input(shape=img_shape)
 
         features = model(img)
+        # Binary output of whether the image is fake (generated) or valid
         valid = Dense(1, activation="sigmoid")(features)
 
         return Model(img, valid)
@@ -163,14 +163,15 @@ class DCGAN():
                 self.save_imgs(epoch)
 
     def save_imgs(self, epoch):
-        r, c = 4, 4
+        r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, 100))
         gen_imgs = self.generator.predict(noise)
 
+        # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 1
 
         fig, axs = plt.subplots(r, c)
-        fig.suptitle("DCGAN: Generated digits", fontsize=12)
+        #fig.suptitle("DCGAN: Generated digits", fontsize=12)
         cnt = 0
         for i in range(r):
             for j in range(c):
@@ -183,7 +184,7 @@ class DCGAN():
 
 if __name__ == '__main__':
     dcgan = DCGAN()
-    dcgan.train(epochs=2000, batch_size=32, save_interval=50)
+    dcgan.train(epochs=4000, batch_size=32, save_interval=50)
 
 
 
