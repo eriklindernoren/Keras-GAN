@@ -28,3 +28,8 @@ Reference: https://arxiv.org/abs/1511.06434
 <p align="center">
     Figure: Generated handwritten digits.
 </p>
+
+### WGAN
+Implementation of Wasserstein GAN (with DCGAN generator and discriminator).
+
+Reference: https://arxiv.org/abs/1701.07875
