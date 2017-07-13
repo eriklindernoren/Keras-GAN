@@ -29,13 +29,13 @@ class WGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=self.modified_binary_crossentropy, 
+        self.discriminator.compile(loss=self.wasserstein_loss, 
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=self.modified_binary_crossentropy, optimizer=optimizer)
+        self.generator.compile(loss=self.wasserstein_loss, optimizer=optimizer)
 
         # The generator takes noise as input and generated imgs
         z = Input(shape=(100,))
@@ -44,18 +44,17 @@ class WGAN():
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
 
-        # The valid takes generated images as input and determines validity
+        # The discriminator takes generated images as input and determines validity
         valid = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator) takes
         # noise as input => generates images => determines validity 
         self.combined = Model(z, valid)
-        self.combined.compile(loss=self.modified_binary_crossentropy, 
+        self.combined.compile(loss=self.wasserstein_loss, 
             optimizer=optimizer,
             metrics=['accuracy'])
 
-    # The loss function of Wasserstein GAN
-    def modified_binary_crossentropy(self, y_true, y_pred):
+    def wasserstein_loss(self, y_true, y_pred):
         return K.mean(y_true * y_pred)
 
     def build_generator(self):
@@ -170,7 +169,7 @@ class WGAN():
             g_loss = self.combined.train_on_batch(noise, -np.ones((batch_size, 1)))
 
             # Plot the progress
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f, acc: %.2f%%]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], 100*g_loss[1]))
+            print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1 - d_loss[0], 1 - g_loss[0]))
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
@@ -185,7 +184,6 @@ class WGAN():
         gen_imgs = 0.5 * gen_imgs + 1
 
         fig, axs = plt.subplots(r, c)
-        #fig.suptitle("WGAN: Generated digits", fontsize=12)
         cnt = 0
         for i in range(r):
             for j in range(c):
