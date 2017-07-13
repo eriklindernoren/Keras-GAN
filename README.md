@@ -4,7 +4,16 @@
 Keras implementations of Generative Adversarial Network (GAN) models. Since I'm running these models from my Macbook Pro
 they will be limited in their complexity and short training sessions will be prioritized.
 
-## Implementations 
+## Table of Contents
+- [Keras-GAN](#keras-gan)
+  * [About](#about)
+  * [Table of Contents](#table-of-contents)
+  * [Implementations](#implementations)
+    + [Auxiliary Classifier GAN](#acgan)
+    + [Deep Convolutional GAN](#dcgan)
+    + [Wasserstein GAN](#dcgan)
+ 
+## Implementations   
 ### ACGAN
 Implementation of the Auxiliary Classifier Generative Adversarial Network.
 
