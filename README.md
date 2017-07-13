@@ -11,7 +11,7 @@ they will be limited in their complexity and short training sessions will be pri
   * [Implementations](#implementations)
     + [Auxiliary Classifier GAN](#acgan)
     + [Deep Convolutional GAN](#dcgan)
-    + [Wasserstein GAN](#dcgan)
+    + [Wasserstein GAN](#wgan)
  
 ## Implementations   
 ### ACGAN
