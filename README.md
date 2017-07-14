@@ -15,8 +15,9 @@ they will be limited in their complexity (and therefore generated image quality)
     + [Semi-Supervised GAN](#sgan)
     + [Wasserstein GAN](#wgan)
  
+
 ## Implementations   
-### AC-GAN
+### ACGAN
 Implementation of the Auxiliary Classifier Generative Adversarial Network.
 
 Reference: https://arxiv.org/abs/1610.09585
