@@ -18,7 +18,7 @@ import numpy as np
 
 class WGAN():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
 
