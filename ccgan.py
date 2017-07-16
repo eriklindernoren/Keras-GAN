@@ -130,7 +130,7 @@ class CCGAN():
 
         return Model(img, [img, valid, label])
 
-    def crop_randomly(self, imgs):
+    def mask_randomly(self, imgs):
         y1 = np.random.randint(0, self.img_rows - self.mask_height, imgs.shape[0])
         y2 = y1 + self.mask_height
         x1 = np.random.randint(0, self.img_rows - self.mask_width, imgs.shape[0])
@@ -189,7 +189,7 @@ class CCGAN():
             imgs = X_train[idx]
             labels = y_train[idx]
 
-            masked_imgs = self.crop_randomly(imgs)
+            masked_imgs = self.mask_randomly(imgs)
             
             # Generate a half batch of new images
             gen_imgs = self.generator.predict(masked_imgs)
@@ -217,7 +217,7 @@ class CCGAN():
             imgs = X_train[idx]
             labels = y_train[idx]
 
-            masked_imgs = self.crop_randomly(imgs)
+            masked_imgs = self.mask_randomly(imgs)
 
             # Generator wants the discriminator to label the generated images as valid
             valid_y = np.ones((batch_size, 1))
@@ -240,7 +240,7 @@ class CCGAN():
     def save_imgs(self, epoch, imgs):
         r, c = 3, 6
         
-        masked_imgs = self.crop_randomly(imgs)
+        masked_imgs = self.mask_randomly(imgs)
         gen_imgs = self.generator.predict(masked_imgs)
 
         imgs = 0.5 * imgs + 0.5
@@ -276,7 +276,6 @@ class CCGAN():
 if __name__ == '__main__':
     ccgan = CCGAN()
     ccgan.train(epochs=20000, batch_size=64, save_interval=50)
-
 
 
 
