@@ -56,9 +56,13 @@ class DCGAN():
         model.add(Dense(128 * 7 * 7, activation="relu", input_shape=noise_shape))
         model.add(Reshape((7, 7, 128)))
 
+        model.add(BatchNormalization(momentum=0.8))   
+
         model.add(UpSampling2D())
         model.add(Conv2D(64, kernel_size=5, padding="same"))
         model.add(Activation("relu"))
+
+        model.add(BatchNormalization(momentum=0.8))
 
         model.add(UpSampling2D())
         model.add(Conv2D(1, kernel_size=5, padding="same"))
@@ -86,25 +90,27 @@ class DCGAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
 
+        model.add(BatchNormalization(momentum=0.8))
+
         model.add(Conv2D(128, kernel_size=4, strides=2, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
+
+        model.add(BatchNormalization(momentum=0.8))
 
         model.add(Conv2D(256, kernel_size=4, strides=1, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
 
         model.add(Flatten())
+        model.add(Dense(1, activation='sigmoid'))
 
         model.summary()
 
         img = Input(shape=img_shape)
+        validity = model(img)
 
-        features = model(img)
-        # Binary output of whether the image is fake (generated) or valid
-        valid = Dense(1, activation="sigmoid")(features)
-
-        return Model(img, valid)
+        return Model(img, validity)
 
     def train(self, epochs, batch_size=128, save_interval=50):
 
@@ -127,20 +133,14 @@ class DCGAN():
             idx = np.random.randint(0, X_train.shape[0], half_batch)
             imgs = X_train[idx]
 
+            # Sample noise and generate a half batch of new images
             noise = np.random.normal(0, 1, (half_batch, 100))
-
-            # Generate a half batch of new images
             gen_imgs = self.generator.predict(noise)
 
-            # Concatenate the true and generated samples
-            imgs_x = np.concatenate((imgs, gen_imgs), axis=0)
-
-            # The discriminator wants to label the true samples as valid (ones) and
-            # the generated images as fake (zeros)
-            valid_y = np.array([1] * half_batch + [0] * half_batch)
-
-            # Train the discriminator
-            d_loss = self.discriminator.train_on_batch(imgs_x, valid_y)
+            # Train the discriminator (real classified as ones and generated as zeros)
+            d_loss_real = self.discriminator.train_on_batch(imgs, np.ones((half_batch, 1)))
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, np.zeros((half_batch, 1)))
+            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
             # ---------------------
             #  Train Generator
@@ -148,12 +148,8 @@ class DCGAN():
 
             noise = np.random.normal(0, 1, (batch_size, 100))
 
-            # The generator wants the discriminator to label the generated samples
-            # as valid (ones)
-            valid_y = np.array([1] * batch_size)
-
-            # Train the generator
-            g_loss = self.combined.train_on_batch(noise, valid_y)
+            # Train the generator (wants discriminator to mistake images as real)
+            g_loss = self.combined.train_on_batch(noise, np.ones((batch_size, 1)))
 
             # Plot the progress
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
@@ -168,7 +164,7 @@ class DCGAN():
         gen_imgs = self.generator.predict(noise)
 
         # Rescale images 0 - 1
-        gen_imgs = 0.5 * gen_imgs + 1
+        gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
         #fig.suptitle("DCGAN: Generated digits", fontsize=12)

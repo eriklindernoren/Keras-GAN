@@ -86,9 +86,9 @@ class GAN():
 
         img = Input(shape=img_shape)
 
-        valid = model(img)
+        validity = model(img)
 
-        return Model(img, valid)
+        return Model(img, validity)
 
     def train(self, epochs, batch_size=128, save_interval=50):
 
@@ -152,7 +152,7 @@ class GAN():
         gen_imgs = self.generator.predict(noise)
 
         # Rescale images 0 - 1
-        gen_imgs = 0.5 * gen_imgs + 1
+        gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
         cnt = 0
@@ -167,7 +167,7 @@ class GAN():
 
 if __name__ == '__main__':
     gan = GAN()
-    gan.train(epochs=20000, batch_size=64, save_interval=50)
+    gan.train(epochs=30000, batch_size=64, save_interval=200)
 
 
 

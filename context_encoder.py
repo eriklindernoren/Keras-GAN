@@ -114,9 +114,9 @@ class ContextEncoder():
         img = Input(shape=self.missing_shape)
         features = model(img)
 
-        valid = Dense(1, activation="sigmoid")(features)
+        validity = Dense(1, activation="sigmoid")(features)
 
-        return Model(img, [img, valid])
+        return Model(img, [img, validity])
 
     def mask_randomly(self, imgs):
         y1 = np.random.randint(0, self.img_rows - self.mask_height, imgs.shape[0])

@@ -66,13 +66,19 @@ class WGAN():
         model.add(Dense(128 * 7 * 7, activation="relu", input_shape=noise_shape))
         model.add(Reshape((7, 7, 128)))
 
+        model.add(BatchNormalization(momentum=0.8))
+
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=4, padding="same"))
         model.add(Activation("relu"))
 
+        model.add(BatchNormalization(momentum=0.8))
+
         model.add(UpSampling2D())
         model.add(Conv2D(64, kernel_size=4, padding="same"))
         model.add(Activation("relu"))
+
+        model.add(BatchNormalization(momentum=0.8))
 
         model.add(Conv2D(1, kernel_size=4, padding="same"))
         model.add(Activation("tanh"))
@@ -99,9 +105,13 @@ class WGAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
 
+        model.add(BatchNormalization(momentum=0.8))
+
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
+
+        model.add(BatchNormalization(momentum=0.8))
 
         model.add(Conv2D(128, kernel_size=3, strides=1, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
@@ -148,8 +158,6 @@ class WGAN():
                 # Train the discriminator
                 d_loss_real = self.discriminator.train_on_batch(imgs, -np.ones((half_batch, 1)))
                 d_loss_fake = self.discriminator.train_on_batch(gen_imgs, np.ones((half_batch, 1)))
-
-                # Register the average loss
                 d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
 
                 # Clip discriminator weights

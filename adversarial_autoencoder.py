@@ -62,8 +62,10 @@ class AdversarialAutoencoder():
         encoder.add(Flatten(input_shape=self.img_shape))
         encoder.add(Dense(512))
         encoder.add(LeakyReLU(alpha=0.2))
+        encoder.add(BatchNormalization(momentum=0.8))
         encoder.add(Dense(512))
         encoder.add(LeakyReLU(alpha=0.2))
+        encoder.add(BatchNormalization(momentum=0.8))
         encoder.add(Dense(self.encoded_dim))
 
         encoder.summary()
@@ -76,8 +78,10 @@ class AdversarialAutoencoder():
 
         decoder.add(Dense(512, input_dim=self.encoded_dim))
         decoder.add(LeakyReLU(alpha=0.2))
+        decoder.add(BatchNormalization(momentum=0.8))
         decoder.add(Dense(512))
         decoder.add(LeakyReLU(alpha=0.2))
+        decoder.add(BatchNormalization(momentum=0.8))
         decoder.add(Dense(np.prod(self.img_shape), activation='tanh'))
         decoder.add(Reshape(self.img_shape))
 
@@ -93,17 +97,19 @@ class AdversarialAutoencoder():
 
         model.add(Dense(512, input_dim=self.encoded_dim))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(512))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(1, activation="sigmoid"))
         model.summary()
 
         encoded_repr = Input(shape=(self.encoded_dim, ))
         img = Input(shape=self.img_shape)
 
-        valid = model(encoded_repr)
+        validity = model(encoded_repr)
 
-        return Model([encoded_repr, img], [img, valid])
+        return Model([encoded_repr, img], [img, validity])
 
     def train(self, epochs, batch_size=128, save_interval=50):
 
@@ -132,15 +138,13 @@ class AdversarialAutoencoder():
 
             latent_real = np.random.normal(size=(half_batch, self.encoded_dim))
 
-            # Concatenate the true and generated samples
-            imgs_x = np.vstack((imgs, gen_imgs))
-            encoded_x = np.concatenate((latent_real, latent_fake))
-
-            # First half are valid and second are fake
-            valid_y = np.array([1] * half_batch + [0] * half_batch).reshape(-1, 1)
+            valid = np.ones((half_batch, 1))
+            fake = np.zeros((half_batch, 1))
 
             # Train the discriminator
-            d_loss = self.discriminator.train_on_batch([encoded_x, imgs_x], [imgs_x, valid_y])
+            d_loss_real = self.discriminator.train_on_batch([latent_real, imgs], [imgs, valid])
+            d_loss_fake = self.discriminator.train_on_batch([latent_fake, gen_imgs], [gen_imgs, fake])
+            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
 
             # ---------------------
