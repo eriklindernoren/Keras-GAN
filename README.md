@@ -9,6 +9,7 @@ Keras implementations of Generative Adversarial Network (GAN) models suggested i
   * [Table of Contents](#table-of-contents)
   * [Implementations](#implementations)
     + [Auxiliary Classifier GAN](#ac-gan)
+    + [Adversarial Autoencoder](#adversarial-autoencoder)
     + [Context-Conditional GAN](#cc-gan)
     + [Context Encoder](#context-encoder)
     + [Deep Convolutional GAN](#dcgan)
@@ -25,8 +26,15 @@ Implementation of a Auxiliary Classifier Generative Adversarial Network.
 
 Reference: https://arxiv.org/abs/1610.09585
 
+### Adversarial Autoencoder
+Implementation of a Adversarial Autoencoder.
+
+[Code](adversarial_autoencoder.py)
+
+Reference: https://arxiv.org/abs/1511.05644
+
 <p align="center">
-    <img src="http://eriklindernoren.se/images/acgan2.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/aae.png" width="640"\>
 </p>
 
 ### CC-GAN
