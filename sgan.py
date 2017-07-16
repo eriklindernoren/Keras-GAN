@@ -218,7 +218,7 @@ class SGAN():
 
 if __name__ == '__main__':
     sgan = SGAN()
-    sgan.train(epochs=6000, batch_size=32, save_interval=50)
+    sgan.train(epochs=20000, batch_size=32, save_interval=50)
 
 
 
