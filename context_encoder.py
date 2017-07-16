@@ -27,17 +27,8 @@ class ContextEncoder():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.missing_shape = (self.mask_height, self.mask_width, self.channels)
 
-        # Used to calculate a separate mse for the border of the generated
-        # images
-        self.border_mask = np.ones(self.missing_shape)
-        self.border_mask[:1,:] = 10
-        self.border_mask[:,:1] = 10
-        self.border_mask[-1:,:] = 10
-        self.border_mask[:,-1:] = 10
-        self.border_mask = K.constant(value=self.border_mask)
-
         optimizer = Adam(0.0002, 0.5)
-        losses = [self.border_mse, 'binary_crossentropy']
+        losses = ['mse', 'binary_crossentropy']
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
@@ -69,12 +60,6 @@ class ContextEncoder():
         self.combined.compile(loss=losses,
             loss_weights=[0.999, 0.001],
             optimizer=optimizer)
-
-    def border_mse(self, y_true, y_pred):
-        # 10 times larger error for borders
-        _y_true = self.border_mask * y_true
-        _y_pred = self.border_mask * y_pred
-        return losses.mean_squared_error(_y_true, _y_pred)
 
     def build_generator(self):
 
