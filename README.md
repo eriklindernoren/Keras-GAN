@@ -26,6 +26,10 @@ Implementation of a Auxiliary Classifier Generative Adversarial Network.
 
 Reference: https://arxiv.org/abs/1610.09585
 
+<p align="center">
+    <img src="http://eriklindernoren.se/images/acgan2.png" width="640"\>
+</p>
+
 ### Adversarial Autoencoder
 Implementation of a Adversarial Autoencoder.
 
