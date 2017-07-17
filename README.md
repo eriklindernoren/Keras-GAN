@@ -10,6 +10,7 @@ Keras implementations of Generative Adversarial Network (GAN) models suggested i
   * [Implementations](#implementations)
     + [Auxiliary Classifier GAN](#ac-gan)
     + [Adversarial Autoencoder](#adversarial-autoencoder)
+    + [Bidirectional GAN](#bigan)
     + [Context-Conditional GAN](#cc-gan)
     + [Context Encoder](#context-encoder)
     + [Deep Convolutional GAN](#dcgan)
@@ -24,7 +25,7 @@ Implementation of Auxiliary Classifier Generative Adversarial Network.
 
 [Code](acgan.py)
 
-Reference: https://arxiv.org/abs/1610.09585
+Paper: https://arxiv.org/abs/1610.09585
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/acgan2.png" width="640"\>
@@ -35,11 +36,18 @@ Implementation of Adversarial Autoencoder.
 
 [Code](adversarial_autoencoder.py)
 
-Reference: https://arxiv.org/abs/1511.05644
+Paper: https://arxiv.org/abs/1511.05644
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/aae.png" width="640"\>
 </p>
+
+### BiGAN
+Implementation of Bidirectional Generative Adversarial Network.
+
+[Code](bigan.py)
+
+Paper: https://arxiv.org/abs/1605.09782
 
 ### CC-GAN
 Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
@@ -53,7 +61,7 @@ in their paper [Context Encoders: Feature Learning by Inpainting](https://arxiv.
 
 [Code](ccgan.py)
 
-Reference: https://arxiv.org/abs/1611.06430
+Paper: https://arxiv.org/abs/1611.06430
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/ccgan.png" width="640"\>
@@ -64,7 +72,7 @@ Implementation of Context Encoders: Feature Learning by Inpainting.
 
 [Code](context_encoder.py)
 
-Reference: https://arxiv.org/abs/1604.07379
+Paper: https://arxiv.org/abs/1604.07379
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/context_encoder.png" width="640"\>
@@ -75,7 +83,7 @@ Implementation of Deep Convolutional Generative Adversarial Network.
 
 [Code](dcgan.py)
 
-Reference: https://arxiv.org/abs/1511.06434
+Paper: https://arxiv.org/abs/1511.06434
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/dcgan2.png" width="640"\>
@@ -86,7 +94,7 @@ Implementation of Generative Adversarial Network with a MLP generator and discri
 
 [Code](gan.py)
 
-Reference: https://arxiv.org/abs/1406.2661
+Paper: https://arxiv.org/abs/1406.2661
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/gan.png" width="640"\>
@@ -97,7 +105,7 @@ Implementation of Semi-Supervised Generative Adversarial Network.
 
 [Code](sgan.py)
 
-Reference: https://arxiv.org/abs/1606.01583
+Paper: https://arxiv.org/abs/1606.01583
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/sgan.png" width="640"\>
@@ -108,7 +116,7 @@ Implementation of Wasserstein GAN (with DCGAN generator and discriminator).
 
 [Code](wgan.py)
 
-Reference: https://arxiv.org/abs/1701.07875
+Paper: https://arxiv.org/abs/1701.07875
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/wgan2.png" width="640"\>
