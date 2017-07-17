@@ -28,12 +28,10 @@ class ContextEncoder():
         self.missing_shape = (self.mask_height, self.mask_width, self.channels)
 
         optimizer = Adam(0.0002, 0.5)
-        losses = ['mse', 'binary_crossentropy']
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=losses, 
-            loss_weights=[0, 1],
+        self.discriminator.compile(loss='binary_crossentropy', 
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -52,12 +50,12 @@ class ContextEncoder():
 
         # The discriminator takes generated images as input and determines
         # if it is generated or if it is a real image
-        missing, valid = self.discriminator(gen_missing)
+        valid = self.discriminator(gen_missing)
 
         # The combined model  (stacked generator and discriminator) takes
         # masked_img as input => generates missing image => determines validity 
-        self.combined = Model(masked_img , [missing, valid])
-        self.combined.compile(loss=losses,
+        self.combined = Model(masked_img , [gen_missing, valid])
+        self.combined.compile(loss=['mse', 'binary_crossentropy'],
             loss_weights=[0.999, 0.001],
             optimizer=optimizer)
 
@@ -69,10 +67,13 @@ class ContextEncoder():
         # Encoder
         model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
 
         model.add(Conv2D(512, kernel_size=1, strides=2, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
@@ -81,9 +82,12 @@ class ContextEncoder():
         # Decoder
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=3, padding="same"))
+        model.add(Activation('relu'))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
         model.add(Conv2D(64, kernel_size=3, padding="same"))
         model.add(Activation('relu'))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Conv2D(self.channels, kernel_size=3, padding="same"))
         model.add(Activation('tanh'))
 
@@ -98,25 +102,23 @@ class ContextEncoder():
         
         model = Sequential()
 
-        model.add(Conv2D(64, kernel_size=3, input_shape=self.missing_shape, padding="same"))
+        model.add(Conv2D(64, kernel_size=3, strides=2, input_shape=self.missing_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(MaxPooling2D())
-        model.add(Conv2D(128, kernel_size=3, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(MaxPooling2D())
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Conv2D(256, kernel_size=3, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
-
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Flatten())
-
+        model.add(Dense(1, activation='sigmoid'))
         model.summary()
 
         img = Input(shape=self.missing_shape)
-        features = model(img)
+        validity = model(img)
 
-        validity = Dense(1, activation="sigmoid")(features)
-
-        return Model(img, [img, validity])
+        return Model(img, validity)
 
     def mask_randomly(self, imgs):
         y1 = np.random.randint(0, self.img_rows - self.mask_height, imgs.shape[0])
@@ -168,20 +170,18 @@ class ContextEncoder():
             idx = np.random.randint(0, X_train.shape[0], half_batch)
             imgs = X_train[idx]
 
-            masked_imgs, missing_parts, _ = self.mask_randomly(imgs)
+            masked_imgs, missing, _ = self.mask_randomly(imgs)
             
             # Generate a half batch of new images
-            generated_missing_parts = self.generator.predict(masked_imgs)
+            gen_missing = self.generator.predict(masked_imgs)
 
-            # Concatenate the true and generated samples
-            imgs_x = np.vstack((missing_parts, generated_missing_parts))
-
-            # First half are valid and second are fake
-            valid_y = np.array([1] * half_batch + [0] * half_batch).reshape(-1, 1)
+            valid = np.ones((half_batch, 1))
+            fake = np.zeros((half_batch, 1))
 
             # Train the discriminator
-            d_loss = self.discriminator.train_on_batch(imgs_x, [imgs_x, valid_y])
-
+            d_loss_real = self.discriminator.train_on_batch(missing, valid)
+            d_loss_fake = self.discriminator.train_on_batch(gen_missing, fake)
+            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
             # ---------------------
             #  Train Generator
@@ -194,13 +194,13 @@ class ContextEncoder():
             masked_imgs, missing_parts, _ = self.mask_randomly(imgs)
 
             # Generator wants the discriminator to label the generated images as valid
-            valid_y = np.ones((batch_size, 1))
+            valid = np.ones((batch_size, 1))
 
             # Train the generator
-            g_loss = self.combined.train_on_batch(masked_imgs, [missing_parts, valid_y])
+            g_loss = self.combined.train_on_batch(masked_imgs, [missing_parts, valid])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[4], g_loss[0], g_loss[1]))
+            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
@@ -249,7 +249,7 @@ class ContextEncoder():
 
 if __name__ == '__main__':
     context_encoder = ContextEncoder()
-    context_encoder.train(epochs=20000, batch_size=64, save_interval=50)
+    context_encoder.train(epochs=30000, batch_size=64, save_interval=50)
 
 
 

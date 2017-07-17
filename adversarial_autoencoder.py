@@ -25,18 +25,16 @@ class AdversarialAutoencoder():
         self.encoded_dim = 100
 
         optimizer = Adam(0.0002, 0.5)
-        losses = ['mse', 'binary_crossentropy']
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=losses, 
-            loss_weights=[0, 1],
+        self.discriminator.compile(loss='binary_crossentropy', 
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=losses, 
+        self.generator.compile(loss=['mse', 'binary_crossentropy'], 
             optimizer=optimizer)
 
         img = Input(shape=self.img_shape)
@@ -45,12 +43,12 @@ class AdversarialAutoencoder():
         # For the adversarial_autoencoder model we will only train the generator
         self.discriminator.trainable = False
 
-        _img, valid = self.discriminator([encoded_repr, reconstructed_img])
+        validity = self.discriminator(encoded_repr)
 
         # The adversarial_autoencoder model  (stacked generator and discriminator) takes
         # img as input => generates encoded represenation and reconstructed image => determines validity 
-        self.adversarial_autoencoder = Model(img, [_img, valid])
-        self.adversarial_autoencoder.compile(loss=losses,
+        self.adversarial_autoencoder = Model(img, [reconstructed_img, validity])
+        self.adversarial_autoencoder.compile(loss=['mse', 'binary_crossentropy'],
             loss_weights=[0.999, 0.001],
             optimizer=optimizer)
 
@@ -105,11 +103,9 @@ class AdversarialAutoencoder():
         model.summary()
 
         encoded_repr = Input(shape=(self.encoded_dim, ))
-        img = Input(shape=self.img_shape)
-
         validity = model(encoded_repr)
 
-        return Model([encoded_repr, img], [img, validity])
+        return Model(encoded_repr, validity)
 
     def train(self, epochs, batch_size=128, save_interval=50):
 
@@ -142,8 +138,8 @@ class AdversarialAutoencoder():
             fake = np.zeros((half_batch, 1))
 
             # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch([latent_real, imgs], [imgs, valid])
-            d_loss_fake = self.discriminator.train_on_batch([latent_fake, gen_imgs], [gen_imgs, fake])
+            d_loss_real = self.discriminator.train_on_batch(latent_real, valid)
+            d_loss_fake = self.discriminator.train_on_batch(latent_fake, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
 
@@ -162,7 +158,7 @@ class AdversarialAutoencoder():
             g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid_y])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[4], g_loss[0], g_loss[1]))
+            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
@@ -205,7 +201,7 @@ class AdversarialAutoencoder():
 
 if __name__ == '__main__':
     aae = AdversarialAutoencoder()
-    aae.train(epochs=20000, batch_size=64, save_interval=200)
+    aae.train(epochs=20000, batch_size=32, save_interval=200)
 
 
 

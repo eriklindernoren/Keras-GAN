@@ -56,10 +56,13 @@ class GAN():
 
         model.add(Dense(256, input_shape=noise_shape))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(512))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(1024))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(np.prod(self.img_shape), activation='tanh'))
         model.add(Reshape(self.img_shape))
 
@@ -85,7 +88,6 @@ class GAN():
         model.summary()
 
         img = Input(shape=img_shape)
-
         validity = model(img)
 
         return Model(img, validity)
@@ -116,15 +118,11 @@ class GAN():
             # Generate a half batch of new images
             gen_imgs = self.generator.predict(noise)
 
-            # Concatenate the true and generated samples
-            imgs_x = np.concatenate((imgs, gen_imgs), axis=0)
-
-            # The discriminator wants to label the true samples as valid (ones) and
-            # the generated images as fake (zeros)
-            valid_y = np.array([1] * half_batch + [0] * half_batch).reshape(-1, 1)
-
             # Train the discriminator
-            d_loss = self.discriminator.train_on_batch(imgs_x, valid_y)
+            d_loss_real = self.discriminator.train_on_batch(imgs, np.ones((half_batch, 1)))
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, np.zeros((half_batch, 1)))
+            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+
 
             # ---------------------
             #  Train Generator
@@ -167,7 +165,7 @@ class GAN():
 
 if __name__ == '__main__':
     gan = GAN()
-    gan.train(epochs=30000, batch_size=64, save_interval=200)
+    gan.train(epochs=30000, batch_size=32, save_interval=200)
 
 
 

@@ -71,7 +71,7 @@ Reference: https://arxiv.org/abs/1604.07379
 </p>
 
 ### DCGAN
-Implementation of a Deep Convolutional Generative Adversarial Network.
+Implementation of Deep Convolutional Generative Adversarial Network.
 
 [Code](dcgan.py)
 
@@ -82,7 +82,7 @@ Reference: https://arxiv.org/abs/1511.06434
 </p>
 
 ### GAN
-Implementation of a Generative Adversarial Network with a MLP generator and discriminator.
+Implementation of Generative Adversarial Network with a MLP generator and discriminator.
 
 [Code](gan.py)
 
@@ -93,7 +93,7 @@ Reference: https://arxiv.org/abs/1406.2661
 </p>
 
 ### SGAN
-Implementation of a Semi-Supervised Generative Adversarial Network.
+Implementation of Semi-Supervised Generative Adversarial Network.
 
 [Code](sgan.py)
 

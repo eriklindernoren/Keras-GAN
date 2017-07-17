@@ -61,17 +61,16 @@ class SGAN():
 
         model.add(Dense(128 * 7 * 7, activation="relu", input_dim=100))
         model.add(Reshape((7, 7, 128)))
-
         model.add(BatchNormalization(momentum=0.8))
-
         model.add(UpSampling2D())
-        model.add(Conv2D(64, kernel_size=4, padding="same"))
+        model.add(Conv2D(128, kernel_size=3, padding="same"))
         model.add(Activation("relu"))
-
         model.add(BatchNormalization(momentum=0.8))
-
         model.add(UpSampling2D())
-        model.add(Conv2D(1, kernel_size=4, padding="same"))
+        model.add(Conv2D(64, kernel_size=3, padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(Conv2D(1, kernel_size=3, padding="same"))
         model.add(Activation("tanh"))
 
         model.summary()
@@ -90,20 +89,15 @@ class SGAN():
         model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
         model.add(ZeroPadding2D(padding=((0,1),(0,1))))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-
         model.add(BatchNormalization(momentum=0.8))
-
         model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-
         model.add(BatchNormalization(momentum=0.8))
-
         model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))

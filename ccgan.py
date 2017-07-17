@@ -27,12 +27,11 @@ class CCGAN():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         optimizer = Adam(0.0002, 0.5)
-        losses = ['mse', 'binary_crossentropy', 'categorical_crossentropy']
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=losses, 
-            loss_weights=[0, 0.5, 0.5],
+        self.discriminator.compile(loss=['binary_crossentropy', 'categorical_crossentropy'], 
+            loss_weights=[0.5, 0.5],
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -49,12 +48,12 @@ class CCGAN():
         self.discriminator.trainable = False
 
         # The valid takes generated images as input and determines validity
-        img, valid, label = self.discriminator(gen_img)
+        valid, label = self.discriminator(gen_img)
 
         # The combined model  (stacked generator and discriminator) takes
         # masked_img as input => generates images => determines validity 
-        self.combined = Model(masked_img , [img, valid, label])
-        self.combined.compile(loss=losses,
+        self.combined = Model(masked_img , [gen_img, valid, label])
+        self.combined.compile(loss=['mse', 'binary_crossentropy', 'categorical_crossentropy'],
             loss_weights=[0.999, 0.001, 0],
             optimizer=optimizer)
 
@@ -128,7 +127,7 @@ class CCGAN():
         valid = Dense(1, activation="sigmoid")(features)
         label = Dense(self.num_classes+1, activation="softmax")(features)
 
-        return Model(img, [img, valid, label])
+        return Model(img, [valid, label])
 
     def mask_randomly(self, imgs):
         y1 = np.random.randint(0, self.img_rows - self.mask_height, imgs.shape[0])
@@ -175,7 +174,14 @@ class CCGAN():
 
         half_batch = int(batch_size / 2)
 
-        noise_until = epochs
+        # Class weights:
+        # To balance the difference in occurences of digit class labels. 
+        # 50% of labels that the discriminator trains on are 'fake'.
+        # Weight = 1 / frequency
+        cw1 = {0: 1, 1: 1}
+        cw2 = {i: self.num_classes / half_batch for i in range(self.num_classes)}
+        cw2[self.num_classes] = 1 / half_batch
+        class_weights = [cw1, cw2]
 
         for epoch in range(epochs):
 
@@ -194,18 +200,16 @@ class CCGAN():
             # Generate a half batch of new images
             gen_imgs = self.generator.predict(masked_imgs)
 
-            # Concatenate the true and generated samples
-            imgs_x = np.vstack((imgs, gen_imgs))
+            valid = np.ones((half_batch, 1))
+            fake = np.zeros((half_batch, 1))
 
-            # First half are valid and second are fake
-            valid_y = np.array([1] * half_batch + [0] * half_batch).reshape(-1, 1)
-
-            # Labels: First half are the animal classes and second are fake labels.
-            label_y = np.vstack((labels, np.full((half_batch, 1), self.num_classes)))
-            label_y = to_categorical(label_y, num_classes=self.num_classes+1)
+            labels = to_categorical(labels, num_classes=self.num_classes+1)
+            fake_labels = to_categorical(np.full((half_batch, 1), self.num_classes), num_classes=self.num_classes+1)
 
             # Train the discriminator
-            d_loss = self.discriminator.train_on_batch(imgs_x, [imgs_x, valid_y, label_y])
+            d_loss_real = self.discriminator.train_on_batch(imgs, [valid, labels], class_weight=class_weights)
+            d_loss_fake = self.discriminator.train_on_batch(imgs, [valid, fake_labels], class_weight=class_weights)
+            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
 
             # ---------------------
@@ -220,14 +224,14 @@ class CCGAN():
             masked_imgs = self.mask_randomly(imgs)
 
             # Generator wants the discriminator to label the generated images as valid
-            valid_y = np.ones((batch_size, 1))
-            label_y = to_categorical(labels, num_classes=self.num_classes+1)
+            valid = np.ones((batch_size, 1))
+            labels = to_categorical(labels, num_classes=self.num_classes+1)
 
             # Train the generator
-            g_loss = self.combined.train_on_batch(masked_imgs, [imgs, valid_y, label_y])
+            g_loss = self.combined.train_on_batch(masked_imgs, [imgs, valid, labels])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[5], 100*d_loss[6], g_loss[0], g_loss[1]))
+            print ("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[3], 100*d_loss[4], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
