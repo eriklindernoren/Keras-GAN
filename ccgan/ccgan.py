@@ -257,14 +257,14 @@ class CCGAN():
             axs[1,i].axis('off')
             axs[2,i].imshow(gen_imgs[i, :,:])
             axs[2,i].axis('off')
-        fig.savefig("images/cifar_%d.png" % epoch)
+        fig.savefig("ccgan/images/cifar_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "./saved_model/%s.json" % model_name
-            weights_path = "./saved_model/%s_weights.hdf5" % model_name
+            model_path = "ccgan/saved_model/%s.json" % model_name
+            weights_path = "ccgan/saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path, 
                         "file_weight": weights_path}
             json_string = model.to_json()

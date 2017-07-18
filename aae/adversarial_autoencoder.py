@@ -181,14 +181,14 @@ class AdversarialAutoencoder():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/mnist_%d.png" % epoch)
+        fig.savefig("aae/images/mnist_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "./saved_model/%s.json" % model_name
-            weights_path = "./saved_model/%s_weights.hdf5" % model_name
+            model_path = "aae/saved_model/%s.json" % model_name
+            weights_path = "aae/saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path, 
                         "file_weight": weights_path}
             json_string = model.to_json()

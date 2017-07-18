@@ -1,7 +1,7 @@
 # Keras-GAN
 
 ## About
-Keras implementations of Generative Adversarial Network (GAN) models suggested in research papers. Since I'm running these models from my Macbook Pro they will be limited in their complexity (and therefore the quality of the generated images) compared to the implementations suggested in the papers. Short training sessions are prioritized.
+Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. Since I'm training these models on my Macbook Pro they will be limited in their complexity (and therefore the quality of the generated images) compared to the implementations suggested in the papers. Short training sessions are prioritized.
 
 ## Table of Contents
 - [Keras-GAN](#keras-gan)
@@ -15,6 +15,7 @@ Keras implementations of Generative Adversarial Network (GAN) models suggested i
     + [Context Encoder](#context-encoder)
     + [Deep Convolutional GAN](#dcgan)
     + [Generative Adversarial Network](#gan)
+    + [InfoGAN](#infogan)
     + [Semi-Supervised GAN](#sgan)
     + [Wasserstein GAN](#wgan)
  
@@ -99,6 +100,14 @@ Paper: https://arxiv.org/abs/1406.2661
 <p align="center">
     <img src="http://eriklindernoren.se/images/gan.png" width="640"\>
 </p>
+
+### InfoGAN
+Implementation of InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets.
+
+[Code](infogan/infogan.py)
+
+Paper: https://arxiv.org/abs/1606.03657
+
 
 ### SGAN
 Implementation of Semi-Supervised Generative Adversarial Network.
