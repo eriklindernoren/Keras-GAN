@@ -23,7 +23,7 @@ Keras implementations of Generative Adversarial Network (GAN) models suggested i
 ### AC-GAN
 Implementation of Auxiliary Classifier Generative Adversarial Network.
 
-[Code](acgan.py)
+[Code](acgan/acgan.py)
 
 Paper: https://arxiv.org/abs/1610.09585
 
@@ -34,7 +34,7 @@ Paper: https://arxiv.org/abs/1610.09585
 ### Adversarial Autoencoder
 Implementation of Adversarial Autoencoder.
 
-[Code](adversarial_autoencoder.py)
+[Code](aae/adversarial_autoencoder.py)
 
 Paper: https://arxiv.org/abs/1511.05644
 
@@ -45,7 +45,7 @@ Paper: https://arxiv.org/abs/1511.05644
 ### BiGAN
 Implementation of Bidirectional Generative Adversarial Network.
 
-[Code](bigan.py)
+[Code](bigan/bigan.py)
 
 Paper: https://arxiv.org/abs/1605.09782
 
@@ -59,7 +59,7 @@ also decided to combine the adversarial loss with an l2 loss which measures the 
 images. These losses are weighted similar to the approach described by Pathak et al. (2016)  
 in their paper [Context Encoders: Feature Learning by Inpainting](https://arxiv.org/abs/1604.07379).
 
-[Code](ccgan.py)
+[Code](ccgan/ccgan.py)
 
 Paper: https://arxiv.org/abs/1611.06430
 
@@ -70,7 +70,7 @@ Paper: https://arxiv.org/abs/1611.06430
 ### Context Encoder
 Implementation of Context Encoders: Feature Learning by Inpainting.
 
-[Code](context_encoder.py)
+[Code](context_encoder/context_encoder.py)
 
 Paper: https://arxiv.org/abs/1604.07379
 
@@ -81,7 +81,7 @@ Paper: https://arxiv.org/abs/1604.07379
 ### DCGAN
 Implementation of Deep Convolutional Generative Adversarial Network.
 
-[Code](dcgan.py)
+[Code](dcgan/dcgan.py)
 
 Paper: https://arxiv.org/abs/1511.06434
 
@@ -92,7 +92,7 @@ Paper: https://arxiv.org/abs/1511.06434
 ### GAN
 Implementation of Generative Adversarial Network with a MLP generator and discriminator.
 
-[Code](gan.py)
+[Code](gan/gan.py)
 
 Paper: https://arxiv.org/abs/1406.2661
 
@@ -103,7 +103,7 @@ Paper: https://arxiv.org/abs/1406.2661
 ### SGAN
 Implementation of Semi-Supervised Generative Adversarial Network.
 
-[Code](sgan.py)
+[Code](sgan/sgan.py)
 
 Paper: https://arxiv.org/abs/1606.01583
 
@@ -114,7 +114,7 @@ Paper: https://arxiv.org/abs/1606.01583
 ### WGAN
 Implementation of Wasserstein GAN (with DCGAN generator and discriminator).
 
-[Code](wgan.py)
+[Code](wgan/wgan.py)
 
 Paper: https://arxiv.org/abs/1701.07875
 

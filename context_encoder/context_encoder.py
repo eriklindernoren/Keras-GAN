@@ -229,14 +229,14 @@ class ContextEncoder():
             filled_in[y1[i]:y2[i], x1[i]:x2[i], :] = gen_missing[i]
             axs[2,i].imshow(filled_in)
             axs[2,i].axis('off')
-        fig.savefig("images/context_encoder/ce_%d.png" % epoch)
+        fig.savefig("images/cifar_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "./models/%s.json" % model_name
-            weights_path = "./models/%s_weights.hdf5" % model_name
+            model_path = "./saved_model/%s.json" % model_name
+            weights_path = "./saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path, 
                         "file_weight": weights_path}
             json_string = model.to_json()

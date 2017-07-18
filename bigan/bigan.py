@@ -107,10 +107,15 @@ class BIGAN():
         img = Input(shape=self.img_shape)
         d_in = concatenate([z, Flatten()(img)])
         
-        model = Dense(512)(d_in)
+        model = Dense(1024)(d_in)
         model = LeakyReLU(alpha=0.2)(model)
-        model = Dense(512)(model)
+        model = Dropout(0.5)(model)
+        model = Dense(1024)(model)
         model = LeakyReLU(alpha=0.2)(model)
+        model = Dropout(0.5)(model)
+        model = Dense(1024)(model)
+        model = LeakyReLU(alpha=0.2)(model)
+        model = Dropout(0.5)(model)
         validity = Dense(1, activation="sigmoid")(model)
 
         return Model([z, img], validity)
@@ -164,7 +169,7 @@ class BIGAN():
             valid = np.ones((batch_size, 1))
             fake = np.zeros((batch_size, 1))
 
-            # Train the generator (z -> img is valid and img -> z is fake)
+            # Train the generator (z -> img is valid and img -> z is is invalid)
             g_loss = self.bigan_generator.train_on_batch([z, imgs], [valid, fake])
 
             # Plot the progress
@@ -189,13 +194,13 @@ class BIGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/bigan/mnist_%d.png" % epoch)
+        fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
 
 if __name__ == '__main__':
     bigan = BIGAN()
-    bigan.train(epochs=20000, batch_size=32, save_interval=200)
+    bigan.train(epochs=40000, batch_size=32, save_interval=400)
 
 
 

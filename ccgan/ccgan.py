@@ -48,13 +48,13 @@ class CCGAN():
         self.discriminator.trainable = False
 
         # The valid takes generated images as input and determines validity
-        valid, label = self.discriminator(gen_img)
+        valid, _ = self.discriminator(gen_img)
 
         # The combined model  (stacked generator and discriminator) takes
         # masked_img as input => generates images => determines validity 
-        self.combined = Model(masked_img , [gen_img, valid, label])
-        self.combined.compile(loss=['mse', 'binary_crossentropy', 'categorical_crossentropy'],
-            loss_weights=[0.999, 0.001, 0],
+        self.combined = Model(masked_img , [gen_img, valid])
+        self.combined.compile(loss=['mse', 'binary_crossentropy'],
+            loss_weights=[0.999, 0.001],
             optimizer=optimizer)
 
 
@@ -219,16 +219,14 @@ class CCGAN():
             # Select a random half batch of images
             idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
-            labels = y_train[idx]
-
+            
             masked_imgs = self.mask_randomly(imgs)
 
             # Generator wants the discriminator to label the generated images as valid
             valid = np.ones((batch_size, 1))
-            labels = to_categorical(labels, num_classes=self.num_classes+1)
-
+            
             # Train the generator
-            g_loss = self.combined.train_on_batch(masked_imgs, [imgs, valid, labels])
+            g_loss = self.combined.train_on_batch(masked_imgs, [imgs, valid])
 
             # Plot the progress
             print ("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[3], 100*d_loss[4], g_loss[0], g_loss[1]))
@@ -259,14 +257,14 @@ class CCGAN():
             axs[1,i].axis('off')
             axs[2,i].imshow(gen_imgs[i, :,:])
             axs[2,i].axis('off')
-        fig.savefig("images/ccgan/cifar_%d.png" % epoch)
+        fig.savefig("images/cifar_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "./models/%s.json" % model_name
-            weights_path = "./models/%s_weights.hdf5" % model_name
+            model_path = "./saved_model/%s.json" % model_name
+            weights_path = "./saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path, 
                         "file_weight": weights_path}
             json_string = model.to_json()
