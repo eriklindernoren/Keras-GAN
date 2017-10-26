@@ -61,14 +61,12 @@ class INFOGAN():
 
         mean = y_pred[0]
         log_stddev = y_pred[1]
-
         y_true = y_true[0]
 
         epsilon = (y_true - mean) / (K.exp(log_stddev) + K.epsilon())
         loss = (log_stddev + 0.5 * K.square(epsilon))
-        loss = K.mean(loss)
 
-        return loss
+        return K.mean(loss)
 
     def build_generator(self):
 
@@ -124,13 +122,14 @@ class INFOGAN():
         def linmax_shape(input_shape):
             return input_shape
 
-        label_model = Dense(128)(features)
-        label_model = LeakyReLU(alpha=0.2)(label_model)
-        label_model = BatchNormalization(momentum=0.8)(label_model)
+        c_model = Dense(128)(features)
+        c_model = LeakyReLU(alpha=0.2)(c_model)
+        c_model = BatchNormalization(momentum=0.8)(c_model)
 
-        label = Dense(self.num_classes, activation="softmax")(label_model)
-        mean = Dense(1, activation="linear")(label_model)
-        log_stddev = Dense(1)(label_model)
+        label = Dense(self.num_classes, activation="softmax")(c_model)
+
+        mean = Dense(1, activation="linear")(c_model)
+        log_stddev = Dense(1)(c_model)
         log_stddev = Lambda(linmax, output_shape=linmax_shape)(log_stddev)
 
         cont = concatenate([mean, log_stddev], axis=1)
@@ -188,11 +187,7 @@ class INFOGAN():
 
             valid = np.ones((batch_size, 1))
 
-            # Generator inputs
-            sampled_noise = np.random.normal(0, 1, (batch_size, 62))
-            sampled_labels = np.random.randint(0, 10, batch_size).reshape(-1, 1)
-            sampled_labels = to_categorical(sampled_labels, num_classes=self.num_classes)
-            sampled_cont = np.random.uniform(-1, 1, size=(batch_size, 2))
+            sampled_noise, sampled_labels, sampled_cont = self.sample_generator_input(batch_size)
             gen_input = np.concatenate((sampled_noise, sampled_labels, sampled_cont), axis=1)
 
             # Train the generator
@@ -210,10 +205,7 @@ class INFOGAN():
 
         fig, axs = plt.subplots(r, c)
         for i in range(r):
-            sampled_noise = np.random.normal(0, 1, (c, 62))
-            sampled_labels = np.arange(0, 10).reshape(-1, 1)
-            sampled_labels = to_categorical(sampled_labels, num_classes=self.num_classes)
-            sampled_cont = np.repeat(np.expand_dims(np.linspace(-1, 1, num=c), axis=1), 2, axis=1)
+            sampled_noise, sampled_labels, sampled_cont = self.sample_generator_input(c)
             gen_input = np.concatenate((sampled_noise, sampled_labels, sampled_cont), axis=1)
             gen_imgs = self.generator.predict(gen_input)
             gen_imgs = 0.5 * gen_imgs + 0.5

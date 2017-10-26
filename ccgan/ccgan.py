@@ -208,7 +208,7 @@ class CCGAN():
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(imgs, [valid, labels], class_weight=class_weights)
-            d_loss_fake = self.discriminator.train_on_batch(imgs, [valid, fake_labels], class_weight=class_weights)
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels], class_weight=class_weights)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
 
