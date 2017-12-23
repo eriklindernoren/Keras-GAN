@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, concatenate
