@@ -11,6 +11,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Auxiliary Classifier GAN](#ac-gan)
     + [Adversarial Autoencoder](#adversarial-autoencoder)
     + [Bidirectional GAN](#bigan)
+    + [Boundary-Seeking GAN](#bgan)
     + [Context-Conditional GAN](#cc-gan)
     + [Context Encoder](#context-encoder)
     + [Deep Convolutional GAN](#dcgan)
@@ -50,6 +51,13 @@ Implementation of Bidirectional Generative Adversarial Network.
 [Code](bigan/bigan.py)
 
 Paper: https://arxiv.org/abs/1605.09782
+
+### BGAN
+Implementation of Boundary-Seeking Generative Adversarial Networks.
+
+[Code](bgan/bgan.py)
+
+Paper: https://arxiv.org/abs/1702.08431
 
 ### CC-GAN
 Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
