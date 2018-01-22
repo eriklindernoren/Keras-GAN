@@ -16,6 +16,7 @@ import sys
 import numpy as np
 
 class BGAN():
+    """Reference: https://wiseodd.github.io/techblog/2017/03/07/boundary-seeking-gan/"""
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
