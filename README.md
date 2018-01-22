@@ -108,7 +108,7 @@ Paper: https://arxiv.org/abs/1511.06434
     <img src="http://eriklindernoren.se/images/dcgan2.png" width="640"\>
 </p>
 
-### DCGAN
+### DualGAN
 Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Translation.
 
 [Code](dualgan/dualgan.py)
