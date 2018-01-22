@@ -16,9 +16,10 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Deep Convolutional GAN](#dcgan)
     + [Generative Adversarial Network](#gan)
     + [InfoGAN](#infogan)
+    + [LSGAN](#lsgan)
     + [Semi-Supervised GAN](#sgan)
     + [Wasserstein GAN](#wgan)
- 
+
 
 ## Implementations   
 ### AC-GAN
@@ -108,6 +109,12 @@ Implementation of InfoGAN: Interpretable Representation Learning by Information 
 
 Paper: https://arxiv.org/abs/1606.03657
 
+### LSGAN
+Implementation of Least Squares Generative Adversarial Networks.
+
+[Code](lsgan/lsgan.py)
+
+Paper: https://arxiv.org/abs/1611.04076
 
 ### SGAN
 Implementation of Semi-Supervised Generative Adversarial Network.
