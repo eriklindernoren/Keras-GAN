@@ -21,22 +21,28 @@ class INFOGAN():
         self.channels = 1
         self.num_classes = 10
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.latent_dim = 74
+        self.latent_dim = 72
         
 
         optimizer = Adam(0.0002, 0.5)
-        losses = ['binary_crossentropy', 'categorical_crossentropy', self.gaussian_loss]
-
-        # Build and compile the discriminator
-        self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=losses, 
-            optimizer=optimizer,
-            metrics=['accuracy'])
+        losses = ['binary_crossentropy', self.mutual_info_loss]
 
         # Build and compile the generator
         self.generator = self.build_generator()
         self.generator.compile(loss=['binary_crossentropy'], 
             optimizer=optimizer)
+
+        # Build and compile the discriminator
+        self.discriminator = self.build_discriminator()
+        self.discriminator.compile(loss=['binary_crossentropy'], 
+            optimizer=optimizer,
+            metrics=['accuracy'])
+
+        # Build and compile the recognition network Q
+        self.auxilliary = self.build_q_network()
+        self.auxilliary.compile(loss=[self.mutual_info_loss], 
+            optimizer=optimizer,
+            metrics=['accuracy'])
 
         # The generator takes noise and the target label as input
         # and generates the corresponding digit of that label
@@ -47,102 +53,101 @@ class INFOGAN():
         self.discriminator.trainable = False
 
         # The discriminator takes generated image as input and determines validity
-        # and the label of that image
-        valid, target_label, target_cont = self.discriminator(img)
+        valid = self.discriminator(img)
+        # The recognition network produces the label
+        target_label = self.auxilliary(img)
 
         # The combined model  (stacked generator and discriminator) takes
         # noise as input => generates images => determines validity 
-        self.combined = Model(gen_input, [valid, target_label, target_cont])
+        self.combined = Model(gen_input, [valid, target_label])
         self.combined.compile(loss=losses, 
             optimizer=optimizer)
 
-    # Reference: https://github.com/tdeboissiere/DeepLearningImplementations/blob/master/InfoGAN/
-    def gaussian_loss(self, y_true, y_pred):
-
-        mean = y_pred[0]
-        log_stddev = y_pred[1]
-        y_true = y_true[0]
-
-        epsilon = (y_true - mean) / (K.exp(log_stddev) + K.epsilon())
-        loss = (log_stddev + 0.5 * K.square(epsilon))
-
-        return K.mean(loss)
 
     def build_generator(self):
 
         model = Sequential()
 
-        model.add(Dense(1024, activation='relu', input_dim=self.latent_dim))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(128 * 7 * 7, activation="relu"))
-        model.add(BatchNormalization(momentum=0.8))
+        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
         model.add(Reshape((7, 7, 128)))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
-        model.add(Conv2D(64, kernel_size=4, padding="same"))
+        model.add(Conv2D(128, kernel_size=3, padding="same"))
         model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
-        model.add(Conv2D(self.channels, kernel_size=4, padding='same'))
+        model.add(Conv2D(64, kernel_size=3, padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(Conv2D(self.channels, kernel_size=3, padding='same'))
         model.add(Activation("tanh"))
-
-        model.summary()
 
         gen_input = Input(shape=(self.latent_dim,))
         img = model(gen_input)
 
+        model.summary()
+
         return Model(gen_input, img)
+
 
     def build_discriminator(self):
 
         model = Sequential()
 
-        model.add(Conv2D(64, kernel_size=4, strides=2, input_shape=self.img_shape, padding="same"))
+        model.add(Conv2D(64, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-        model.add(Conv2D(128, kernel_size=4, strides=2, padding="same"))
+        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
+        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
+        model.add(Conv2D(256, kernel_size=3, strides=2, padding="same"))
+        model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Flatten())
-        model.add(Dense(1024))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
+        model.add(Dense(1, activation='sigmoid'))
+
+        img = Input(shape=self.img_shape)
+        validity = model(img)
 
         model.summary()
 
+        return Model(img, validity)
+
+
+    def build_q_network(self):
+
+        model = Sequential()
+
+        model.add(Flatten(input_shape=self.img_shape))
+        model.add(Dense(128, activation='relu'))
+        model.add(Dense(self.num_classes, activation='softmax'))
+
+        # The Q network takes as input the image and produces a label prediction
         img = Input(shape=self.img_shape)
+        c_given_x = model(img)
 
-        features = model(img)
+        model.summary()
 
-        validity = Dense(1, activation="sigmoid")(features)
+        return Model(img, c_given_x)
 
-        def linmax(x):
-            return K.maximum(x, -16)
+    def mutual_info_loss(self, c, c_given_x):
+        """The mutual information metric we aim to minimize"""
+        eps = 1e-8
+        conditional_entropy = K.mean(- K.sum(K.log(c_given_x + eps) * c, axis=1))
+        entropy = K.mean(- K.sum(K.log(c + eps) * c, axis=1))
 
-        def linmax_shape(input_shape):
-            return input_shape
-
-        c_model = Dense(128)(features)
-        c_model = LeakyReLU(alpha=0.2)(c_model)
-        c_model = BatchNormalization(momentum=0.8)(c_model)
-
-        label = Dense(self.num_classes, activation="softmax")(c_model)
-
-        mean = Dense(1, activation="linear")(c_model)
-        log_stddev = Dense(1)(c_model)
-        log_stddev = Lambda(linmax, output_shape=linmax_shape)(log_stddev)
-
-        cont = concatenate([mean, log_stddev], axis=1)
-
-        return Model(img, [validity, label, cont])
+        return conditional_entropy + entropy
 
     def sample_generator_input(self, batch_size):
-            # Generator inputs
-            sampled_noise = np.random.normal(0, 1, (batch_size, 62))
-            sampled_labels = np.random.randint(0, 10, batch_size).reshape(-1, 1)
-            sampled_labels = to_categorical(sampled_labels, num_classes=self.num_classes)
-            sampled_cont = np.random.uniform(-1, 1, size=(batch_size, 2))
-            return sampled_noise, sampled_labels, sampled_cont
+        # Generator inputs
+        sampled_noise = np.random.normal(0, 1, (batch_size, 62))
+        sampled_labels = np.random.randint(0, self.num_classes, batch_size).reshape(-1, 1)
+        sampled_labels = to_categorical(sampled_labels, num_classes=self.num_classes)
+
+        return sampled_noise, sampled_labels
 
     def train(self, epochs, batch_size=128, save_interval=50):
 
@@ -161,40 +166,43 @@ class INFOGAN():
             # ---------------------
             #  Train Discriminator
             # ---------------------
-            
-            # Train discriminator on generator output
-            sampled_noise, sampled_labels, sampled_cont = self.sample_generator_input(half_batch)
-            gen_input = np.concatenate((sampled_noise, sampled_labels, sampled_cont), axis=1)
-            # Generate a half batch of new images
-            gen_imgs = self.generator.predict(gen_input)
-            fake = np.zeros((half_batch, 1))
-            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, sampled_labels, sampled_cont])
 
-            # Train discriminator on real data
             # Select a random half batch of images
             idx = np.random.randint(0, X_train.shape[0], half_batch)
             imgs = X_train[idx]
-            labels = to_categorical(y_train[idx], num_classes=self.num_classes)
+            
+            # Sample noise and categorical labels
+            sampled_noise, sampled_labels = self.sample_generator_input(half_batch)
+            gen_input = np.concatenate((sampled_noise, sampled_labels), axis=1)
+            # Generate a half batch of new images
+            gen_imgs = self.generator.predict(gen_input)
+            
             valid = np.ones((half_batch, 1))
-            d_loss_real = self.discriminator.train_on_batch(imgs, [valid, labels, sampled_cont])
+            fake = np.zeros((half_batch, 1))
+
+            # Train on real and generated data
+            d_loss_real = self.discriminator.train_on_batch(imgs, valid)
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, fake)
             
             # Avg. loss
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
             # ---------------------
-            #  Train Generator
+            #  Train Generator and Q-network
             # ---------------------
 
+            # Generator wants to fool the discriminator into believing that the generated
+            # samples are real
             valid = np.ones((batch_size, 1))
-
-            sampled_noise, sampled_labels, sampled_cont = self.sample_generator_input(batch_size)
-            gen_input = np.concatenate((sampled_noise, sampled_labels, sampled_cont), axis=1)
+            # Sample noise and categorical labels
+            sampled_noise, sampled_labels = self.sample_generator_input(batch_size)
+            gen_input = np.concatenate((sampled_noise, sampled_labels), axis=1)
 
             # Train the generator
-            g_loss = self.combined.train_on_batch(gen_input, [valid, sampled_labels, sampled_cont])
+            g_loss = self.combined.train_on_batch(gen_input, [valid, sampled_labels])
 
             # Plot the progress
-            print ("%d [D loss: %.2f, acc.: %.2f%%, label_acc: %.2f%%] [G loss: %.2f]" % (epoch, d_loss[0], 100*d_loss[4], 100*d_loss[5], g_loss[0]))
+            print ("%d [D loss: %.2f, acc.: %.2f%%] [Q loss: %.2f] [G loss: %.2f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[1], g_loss[2]))
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
@@ -204,14 +212,15 @@ class INFOGAN():
         r, c = 10, 10
 
         fig, axs = plt.subplots(r, c)
-        for i in range(r):
-            sampled_noise, sampled_labels, sampled_cont = self.sample_generator_input(c)
-            gen_input = np.concatenate((sampled_noise, sampled_labels, sampled_cont), axis=1)
+        for i in range(c):
+            sampled_noise, _ = self.sample_generator_input(c)
+            label = to_categorical(np.full(fill_value=i, shape=(r,1)), num_classes=self.num_classes)
+            gen_input = np.concatenate((sampled_noise, label), axis=1)
             gen_imgs = self.generator.predict(gen_input)
             gen_imgs = 0.5 * gen_imgs + 0.5
-            for j in range(c):
-                axs[i,j].imshow(gen_imgs[j,:,:,0], cmap='gray')
-                axs[i,j].axis('off')
+            for j in range(r):
+                axs[j,i].imshow(gen_imgs[j,:,:,0], cmap='gray')
+                axs[j,i].axis('off')
         fig.savefig("./infogan/images/mnist_%d.png" % epoch)
         plt.close()
 
