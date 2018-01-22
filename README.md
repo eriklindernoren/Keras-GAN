@@ -16,6 +16,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Context Encoder](#context-encoder)
     + [Coupled GANs](#cogan)
     + [Deep Convolutional GAN](#dcgan)
+    + [DualGAN](#dualgan)
     + [Generative Adversarial Network](#gan)
     + [InfoGAN](#infogan)
     + [LSGAN](#lsgan)
@@ -106,6 +107,13 @@ Paper: https://arxiv.org/abs/1511.06434
 <p align="center">
     <img src="http://eriklindernoren.se/images/dcgan2.png" width="640"\>
 </p>
+
+### DCGAN
+Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Translation.
+
+[Code](dualgan/dualgan.py)
+
+Paper: https://arxiv.org/abs/1704.02510
 
 ### GAN
 Implementation of Generative Adversarial Network with a MLP generator and discriminator.

@@ -32,14 +32,15 @@ class INFOGAN():
         self.generator.compile(loss=['binary_crossentropy'], 
             optimizer=optimizer)
 
-        # Build and compile the discriminator
-        self.discriminator = self.build_discriminator()
+        # Build and the discriminator and recognition network
+        self.discriminator, self.auxilliary = self.build_disk_and_q_net()
+
+
         self.discriminator.compile(loss=['binary_crossentropy'], 
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the recognition network Q
-        self.auxilliary = self.build_q_network()
         self.auxilliary.compile(loss=[self.mutual_info_loss], 
             optimizer=optimizer,
             metrics=['accuracy'])
@@ -90,10 +91,12 @@ class INFOGAN():
         return Model(gen_input, img)
 
 
-    def build_discriminator(self):
+    def build_disk_and_q_net(self):
 
+        img = Input(shape=self.img_shape)
+
+        # Shared layers between discriminator and recognition network
         model = Sequential()
-
         model.add(Conv2D(64, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
@@ -106,32 +109,24 @@ class INFOGAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
+        model.add(Conv2D(512, kernel_size=3, strides=2, padding="same"))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Flatten())
-        model.add(Dense(1, activation='sigmoid'))
 
-        img = Input(shape=self.img_shape)
-        validity = model(img)
+        img_embedding = model(img)
 
-        model.summary()
+        # Discriminator
+        validity = Dense(1, activation='sigmoid')(img_embedding)
 
-        return Model(img, validity)
+        # Recognition
+        q_net = Dense(128, activation='relu')(img_embedding)
+        label = Dense(self.num_classes, activation='softmax')(q_net)
 
+        # Return discriminator and recognition network
+        return Model(img, validity), Model(img, label)
 
-    def build_q_network(self):
-
-        model = Sequential()
-
-        model.add(Flatten(input_shape=self.img_shape))
-        model.add(Dense(128, activation='relu'))
-        model.add(Dense(self.num_classes, activation='softmax'))
-
-        # The Q network takes as input the image and produces a label prediction
-        img = Input(shape=self.img_shape)
-        c_given_x = model(img)
-
-        model.summary()
-
-        return Model(img, c_given_x)
 
     def mutual_info_loss(self, c, c_given_x):
         """The mutual information metric we aim to minimize"""
@@ -242,7 +237,7 @@ class INFOGAN():
 
 if __name__ == '__main__':
     infogan = INFOGAN()
-    infogan.train(epochs=6000, batch_size=32, save_interval=50)
+    infogan.train(epochs=50000, batch_size=128, save_interval=50)
 
 
 
