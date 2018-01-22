@@ -14,6 +14,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Boundary-Seeking GAN](#bgan)
     + [Context-Conditional GAN](#cc-gan)
     + [Context Encoder](#context-encoder)
+    + [Coupled GANs](#cogan)
     + [Deep Convolutional GAN](#dcgan)
     + [Generative Adversarial Network](#gan)
     + [InfoGAN](#infogan)
@@ -87,6 +88,13 @@ Paper: https://arxiv.org/abs/1604.07379
 <p align="center">
     <img src="http://eriklindernoren.se/images/context_encoder.png" width="640"\>
 </p>
+
+### CoGAN
+Implementation of Coupled generative adversarial networks.
+
+[Code](cogan/cogan.py)
+
+Paper: https://arxiv.org/abs/1606.07536
 
 ### DCGAN
 Implementation of Deep Convolutional Generative Adversarial Network.
