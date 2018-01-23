@@ -125,9 +125,9 @@ class COGAN():
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
         X_train = np.expand_dims(X_train, axis=3)
 
+        # Images in domain A and B (rotated)
         X1 = X_train[:int(X_train.shape[0]/2)]
         X2 = X_train[int(X_train.shape[0]/2):]
-        # Rotate the images in the second dataset 90 degrees
         X2 = scipy.ndimage.interpolation.rotate(X2, 90, axes=(1, 2))
 
         half_batch = int(batch_size / 2)

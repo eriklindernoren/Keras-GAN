@@ -35,7 +35,6 @@ class INFOGAN():
         # Build and the discriminator and recognition network
         self.discriminator, self.auxilliary = self.build_disk_and_q_net()
 
-
         self.discriminator.compile(loss=['binary_crossentropy'],
             optimizer=optimizer,
             metrics=['accuracy'])
