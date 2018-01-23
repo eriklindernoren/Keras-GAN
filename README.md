@@ -1,7 +1,7 @@
 # Keras-GAN
 
 ## About
-Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. Since I'm training these models on my Macbook Pro they will be limited in their complexity (and therefore the quality of the generated images) compared to the implementations suggested in the papers. Short training sessions are prioritized.
+Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. If dense layers gets the job done for a model I will often prefer them over conv layers to enable people without GPUs to test these implementations out. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
 
 ## Table of Contents
 - [Keras-GAN](#keras-gan)
