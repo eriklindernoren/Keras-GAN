@@ -27,22 +27,18 @@ class DUALGAN():
         optimizer = Adam(0.0002, 0.5)
 
         # Build and compile the discriminators
-
         self.d1 = self.build_discriminator()
         self.d1.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
             metrics=['accuracy'])
-
         self.d2 = self.build_discriminator()
         self.d2.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the generators
-
         self.g1 = self.build_generator()
         self.g1.compile(loss='binary_crossentropy', optimizer=optimizer)
-
         self.g2 = self.build_generator()
         self.g2.compile(loss='binary_crossentropy', optimizer=optimizer)
 
@@ -53,7 +49,7 @@ class DUALGAN():
         # The generator takes noise as input and generated imgs
         X1 = Input(shape=(self.img_dim,))
         X2 = Input(shape=(self.img_dim,))
-        
+
         # Translate from current domain to the other
         X1_translated = self.g1(X1)
         X2_translated = self.g2(X2)
@@ -66,8 +62,7 @@ class DUALGAN():
         X1_recon = self.g2(X1_translated)
         X2_recon = self.g1(X2_translated)
 
-        # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity
+        # The combined model  (stacked generator and discriminator)
         self.combined = Model([X1, X2], [valid1, valid2, X1_recon, X2_recon])
         self.combined.compile(loss=[self.wasserstein_loss, self.wasserstein_loss, 'mae', 'mae'],
                                     optimizer=optimizer,
@@ -130,7 +125,7 @@ class DUALGAN():
         # Rescale -1 to 1
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
-        # Domain A and B (rotated MNIST)
+        # Domain A and B (rotated)
         X1 = X_train[:int(X_train.shape[0]/2)]
         X2 = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 90, axes=(1, 2))
 
@@ -153,10 +148,11 @@ class DUALGAN():
                 imgs1 = self.sample_generator_input(X1, half_batch)
                 imgs2 = self.sample_generator_input(X2, half_batch)
 
-                # Generate a half batch of new images
+                # Translate images to their opposite domain
                 X1_translated = self.g1.predict(imgs1)
                 X2_translated = self.g2.predict(imgs2)
 
+                # Retranslate images to their original domain
                 X1_recon = self.g2.predict(X1_translated)
                 X2_recon = self.g1.predict(X2_translated)
 
@@ -206,10 +202,11 @@ class DUALGAN():
     def save_imgs(self, epoch, X):
         r, c = 3, 4
 
+        # Original images
         imgs = self.sample_generator_input(X, c)
-
-        # Generate a half batch of new images
+        # Images translated to their opposite domain
         X_translated = self.g1.predict(imgs)
+        # Images translated back to their original domain
         X_recon = self.g2.predict(X_translated)
 
         gen_imgs = np.concatenate([imgs, X_translated, X_recon])

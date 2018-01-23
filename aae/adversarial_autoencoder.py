@@ -18,7 +18,7 @@ import numpy as np
 
 class AdversarialAutoencoder():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
@@ -28,32 +28,39 @@ class AdversarialAutoencoder():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy', 
+        self.discriminator.compile(loss='binary_crossentropy',
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
-        self.generator = self.build_generator()
-        self.generator.compile(loss=['mse', 'binary_crossentropy'], 
+        # Build and compile the encoder / decoder
+        self.encoder = self.build_encoder()
+        self.encoder.compile(loss=['binary_crossentropy'],
+            optimizer=optimizer)
+
+        self.decoder = self.build_decoder()
+        self.decoder.compile(loss=['mse'],
             optimizer=optimizer)
 
         img = Input(shape=self.img_shape)
-        encoded_repr, reconstructed_img = self.generator(img)
+        # The generator takes the image, encodes it and reconstructs it
+        # from the encoding
+        encoded_repr = self.encoder(img)
+        reconstructed_img = self.decoder(encoded_repr)
 
         # For the adversarial_autoencoder model we will only train the generator
         self.discriminator.trainable = False
 
+        # The discriminator determines validity of the encoding
         validity = self.discriminator(encoded_repr)
 
-        # The adversarial_autoencoder model  (stacked generator and discriminator) takes
-        # img as input => generates encoded represenation and reconstructed image => determines validity 
+        # The adversarial_autoencoder model  (stacked generator and discriminator)
         self.adversarial_autoencoder = Model(img, [reconstructed_img, validity])
         self.adversarial_autoencoder.compile(loss=['mse', 'binary_crossentropy'],
             loss_weights=[0.999, 0.001],
             optimizer=optimizer)
 
 
-    def build_generator(self):
+    def build_encoder(self):
         # Encoder
         encoder = Sequential()
 
@@ -71,6 +78,9 @@ class AdversarialAutoencoder():
         img = Input(shape=self.img_shape)
         encoded_repr = encoder(img)
 
+        return Model(img, encoded_repr)
+
+    def build_decoder(self):
         # Decoder
         decoder = Sequential()
 
@@ -85,12 +95,13 @@ class AdversarialAutoencoder():
 
         decoder.summary()
 
+        encoded_repr = Input(shape=(self.encoded_dim,))
         gen_img = decoder(encoded_repr)
 
-        return Model(img, [encoded_repr, gen_img])
+        return Model(encoded_repr, gen_img)
 
     def build_discriminator(self):
-        
+
         model = Sequential()
 
         model.add(Dense(512, input_dim=self.encoded_dim))
@@ -129,8 +140,8 @@ class AdversarialAutoencoder():
             idx = np.random.randint(0, X_train.shape[0], half_batch)
             imgs = X_train[idx]
 
-            # Generate a half batch of new images
-            latent_fake, gen_imgs = self.generator.predict(imgs)
+            # Generate a half batch of embedded images
+            latent_fake = self.encoder.predict(imgs)
 
             latent_real = np.random.normal(size=(half_batch, self.encoded_dim))
 
@@ -170,7 +181,8 @@ class AdversarialAutoencoder():
     def save_imgs(self, epoch, imgs):
         r, c = 5, 5
 
-        _, gen_imgs = self.generator.predict(imgs)
+        encoded_imgs = self.encoder.predict(imgs)
+        gen_imgs = self.decoder.predict(encoded_imgs)
 
         gen_imgs = 0.5 * gen_imgs + 0.5
 
@@ -189,7 +201,7 @@ class AdversarialAutoencoder():
         def save(model, model_name):
             model_path = "aae/saved_model/%s.json" % model_name
             weights_path = "aae/saved_model/%s_weights.hdf5" % model_name
-            options = {"file_arch": model_path, 
+            options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
@@ -202,9 +214,3 @@ class AdversarialAutoencoder():
 if __name__ == '__main__':
     aae = AdversarialAutoencoder()
     aae.train(epochs=20000, batch_size=32, save_interval=200)
-
-
-
-
-
-

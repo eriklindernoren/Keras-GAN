@@ -46,6 +46,7 @@ class LSGAN():
         # The combined model  (stacked generator and discriminator) takes
         # noise as input => generates images => determines validity
         self.combined = Model(z, valid)
+        # (!!!) Optimize w.r.t. MSE loss instead of crossentropy
         self.combined.compile(loss='mse', optimizer=optimizer)
 
     def build_generator(self):
@@ -84,6 +85,7 @@ class LSGAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(256))
         model.add(LeakyReLU(alpha=0.2))
+        # (!!!) No softmax
         model.add(Dense(1))
         model.summary()
 

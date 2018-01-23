@@ -16,32 +16,32 @@ import numpy as np
 
 class INFOGAN():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.num_classes = 10
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 72
-        
+
 
         optimizer = Adam(0.0002, 0.5)
         losses = ['binary_crossentropy', self.mutual_info_loss]
 
         # Build and compile the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'], 
+        self.generator.compile(loss=['binary_crossentropy'],
             optimizer=optimizer)
 
         # Build and the discriminator and recognition network
         self.discriminator, self.auxilliary = self.build_disk_and_q_net()
 
 
-        self.discriminator.compile(loss=['binary_crossentropy'], 
+        self.discriminator.compile(loss=['binary_crossentropy'],
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the recognition network Q
-        self.auxilliary.compile(loss=[self.mutual_info_loss], 
+        self.auxilliary.compile(loss=[self.mutual_info_loss],
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -58,10 +58,9 @@ class INFOGAN():
         # The recognition network produces the label
         target_label = self.auxilliary(img)
 
-        # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity 
+        # The combined model  (stacked generator and discriminator)
         self.combined = Model(gen_input, [valid, target_label])
-        self.combined.compile(loss=losses, 
+        self.combined.compile(loss=losses,
             optimizer=optimizer)
 
 
@@ -165,20 +164,20 @@ class INFOGAN():
             # Select a random half batch of images
             idx = np.random.randint(0, X_train.shape[0], half_batch)
             imgs = X_train[idx]
-            
+
             # Sample noise and categorical labels
             sampled_noise, sampled_labels = self.sample_generator_input(half_batch)
             gen_input = np.concatenate((sampled_noise, sampled_labels), axis=1)
             # Generate a half batch of new images
             gen_imgs = self.generator.predict(gen_input)
-            
+
             valid = np.ones((half_batch, 1))
             fake = np.zeros((half_batch, 1))
 
             # Train on real and generated data
             d_loss_real = self.discriminator.train_on_batch(imgs, valid)
             d_loss_fake = self.discriminator.train_on_batch(gen_imgs, fake)
-            
+
             # Avg. loss
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
@@ -224,7 +223,7 @@ class INFOGAN():
         def save(model, model_name):
             model_path = "infogan/saved_model/%s.json" % model_name
             weights_path = "infogan/saved_model/%s_weights.hdf5" % model_name
-            options = {"file_arch": model_path, 
+            options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
@@ -238,9 +237,3 @@ class INFOGAN():
 if __name__ == '__main__':
     infogan = INFOGAN()
     infogan.train(epochs=50000, batch_size=128, save_interval=50)
-
-
-
-
-
-

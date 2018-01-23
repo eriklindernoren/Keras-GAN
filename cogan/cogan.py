@@ -44,7 +44,7 @@ class COGAN():
         img1 = self.g1(z)
         img2 = self.g2(z)
 
-        # For the combined model we will only train the generator
+        # For the combined model we will only train the generators
         self.d1.trainable = False
         self.d2.trainable = False
 
@@ -52,7 +52,7 @@ class COGAN():
         valid1 = self.d1(img1)
         valid2 = self.d2(img2)
 
-        # The combined model  (stacked generator and discriminator) takes
+        # The combined model  (stacked generators and discriminators) takes
         # noise as input => generates images => determines validity
         self.combined = Model(z, [valid1, valid2])
         self.combined.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
