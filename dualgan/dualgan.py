@@ -46,11 +46,11 @@ class DUALGAN():
         self.d1.trainable = False
         self.d2.trainable = False
 
-        # The generator takes noise as input and generated imgs
+        # The generator takes images from their respective domains as inputs
         X1 = Input(shape=(self.img_dim,))
         X2 = Input(shape=(self.img_dim,))
 
-        # Translate from current domain to the other
+        # Generators translates the images to the opposite domain
         X1_translated = self.g1(X1)
         X2_translated = self.g2(X2)
 
@@ -58,11 +58,11 @@ class DUALGAN():
         valid1 = self.d1(X2_translated)
         valid2 = self.d2(X1_translated)
 
-        # Translate the images back to their original domain
+        # Generators translate the images back to their original domain
         X1_recon = self.g2(X1_translated)
         X2_recon = self.g1(X2_translated)
 
-        # The combined model  (stacked generator and discriminator)
+        # The combined model  (stacked generators and discriminators)
         self.combined = Model([X1, X2], [valid1, valid2, X1_recon, X2_recon])
         self.combined.compile(loss=[self.wasserstein_loss, self.wasserstein_loss, 'mae', 'mae'],
                                     optimizer=optimizer,
@@ -108,10 +108,8 @@ class DUALGAN():
         return Model(img, validity)
 
     def sample_generator_input(self, X, batch_size):
-        # Generator inputs
-        # Select a random half batch of images
+        # Sample random batch of images from X
         idx = np.random.randint(0, X.shape[0], batch_size)
-
         return X[idx]
 
     def wasserstein_loss(self, y_true, y_pred):
@@ -138,6 +136,7 @@ class DUALGAN():
 
         for epoch in range(epochs):
 
+            # Train the discriminator for n_critic iterations
             for _ in range(n_critic):
 
                 # ----------------------
@@ -180,7 +179,7 @@ class DUALGAN():
             #  Train Generators
             # ------------------
 
-            # Sample generator inputs
+            # Sample generator inputs from each domain
             imgs1 = self.sample_generator_input(X1, batch_size)
             imgs2 = self.sample_generator_input(X2, batch_size)
 
