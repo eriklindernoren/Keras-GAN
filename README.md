@@ -105,6 +105,10 @@ Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adv
 
 Paper: https://arxiv.org/abs/1703.10593
 
+<p align="center">
+    <img src="http://eriklindernoren.se/images/cyclegan.png" width="640"\>
+</p>
+
 ### DCGAN
 Implementation of Deep Convolutional Generative Adversarial Network.
 
