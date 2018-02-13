@@ -2,17 +2,14 @@ from __future__ import print_function, division
 import scipy
 
 from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout
+from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
-
 import datetime
-
 import matplotlib.pyplot as plt
-
 import sys
 
 import numpy as np
@@ -23,8 +20,6 @@ class CycleGAN():
         self.img_cols = 32
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-
-        self.conv_dim = 64
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -51,7 +46,7 @@ class CycleGAN():
         # Translate images to the other domain
         fake_B = self.g_AB(img_A)
         fake_A = self.g_BA(img_B)
-        # Reconstruct images to original domain
+        # Translate images back to original domain
         reconstr_A = self.g_BA(fake_B)
         reconstr_B = self.g_AB(fake_A)
 
@@ -69,31 +64,46 @@ class CycleGAN():
                                     optimizer=optimizer)
 
     def build_generator(self):
-
-        # U-Net Generator
+        """U-Net Generator"""
 
         input_img = Input(shape=self.img_shape)
 
-        # Downsampling
-        d1 = Conv2D(self.conv_dim, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape)(input_img)
+        # (32 x 32 x 1)
+        d1 = Conv2D(32, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape)(input_img)
         d1 = LeakyReLU(alpha=0.2)(d1)
         d1 = BatchNormalization(momentum=0.8)(d1)
-        d2 = Conv2D(self.conv_dim*2, kernel_size=4, strides=2, padding='same')(d1)
+        # (16 x 16 x 32)
+        d2 = Conv2D(64, kernel_size=4, strides=2, padding='same')(d1)
         d2 = LeakyReLU(alpha=0.2)(d2)
         d2 = BatchNormalization(momentum=0.8)(d2)
-
-        # Residual
-        r1 = Conv2D(self.conv_dim*2, kernel_size=3, strides=1, padding='same')(d2)
-        r1 = LeakyReLU(alpha=0.2)(r1)
-        r2 = Conv2D(self.conv_dim*2, kernel_size=3, strides=1, padding='same')(r1)
-        r2 = LeakyReLU(alpha=0.2)(r2)
-
-        # Upsampling
-        u1 = UpSampling2D(2)(r2)
-        u1 = Conv2D(self.conv_dim, kernel_size=4, strides=1, padding='same')(u1)
+        # (8 x 8 x 64)
+        d3 = Conv2D(128, kernel_size=4, strides=2, padding='same')(d2)
+        d3 = LeakyReLU(alpha=0.2)(d3)
+        d3 = BatchNormalization(momentum=0.8)(d3)
+        # (4 x 4 x 128)
+        d4 = Conv2D(256, kernel_size=4, strides=2, padding='same')(d3)
+        d4 = LeakyReLU(alpha=0.2)(d4)
+        d4 = BatchNormalization(momentum=0.8)(d4)
+        # (2 x 2 x 256)
+        u1 = UpSampling2D(size=2)(d4)
+        u1 = Conv2D(128, kernel_size=4, strides=1, padding='same')(u1)
         u1 = LeakyReLU(alpha=0.2)(u1)
         u1 = BatchNormalization(momentum=0.8)(u1)
-        u2 = UpSampling2D(2)(u1)
+        u1 = Concatenate()([u1, d3])
+        # (4 x 4 x 256)
+        u2 = UpSampling2D(size=2)(u1)
+        u2 = Conv2D(64, kernel_size=4, strides=1, padding='same')(u2)
+        u2 = LeakyReLU(alpha=0.2)(u2)
+        u2 = BatchNormalization(momentum=0.8)(u2)
+        u2 = Concatenate()([u2, d2])
+        # (8 x 8 x 128)
+        u3 = UpSampling2D(size=2)(u2)
+        u3 = Conv2D(32, kernel_size=4, strides=1, padding='same')(u3)
+        u3 = LeakyReLU(alpha=0.2)(u3)
+        u3 = BatchNormalization(momentum=0.8)(u3)
+        u3 = Concatenate()([u3, d1])
+        # (16 x 16 x 64)
+        u2 = UpSampling2D(size=2)(u3)
         output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u2)
 
         return Model(input_img, output_img)
@@ -102,18 +112,16 @@ class CycleGAN():
 
         img = Input(shape=self.img_shape)
 
-        # Shared discriminator layers
         model = Sequential()
-        model.add(Conv2D(self.conv_dim, kernel_size=4, strides=2, input_shape=self.img_shape))
+        model.add(Conv2D(64, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape))
         model.add(LeakyReLU(alpha=0.8))
-        model.add(Conv2D(self.conv_dim*2, kernel_size=4, strides=2))
+        model.add(Conv2D(128, kernel_size=4, strides=2, padding='same'))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(self.conv_dim*4, kernel_size=4, strides=2))
+        model.add(Conv2D(256, kernel_size=4, strides=2, padding='same'))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Flatten())
-        model.add(Dense(1))
+        model.add(Conv2D(1, kernel_size=4, strides=1, padding='same'))
 
         validity = model(img)
 
@@ -146,7 +154,7 @@ class CycleGAN():
             #  Train Discriminators
             # ----------------------
 
-            # Select a random half batch of images
+            # Sample a half batch of images from both domains
             idx = np.random.randint(0, X1.shape[0], half_batch)
             imgs_A = X1[idx]
             imgs_B = X2[idx]
@@ -155,15 +163,19 @@ class CycleGAN():
             fake_B = self.g_AB.predict(imgs_A)
             fake_A = self.g_BA.predict(imgs_B)
 
-            # Train the discriminators (original images = real / Translated = Fake)
-            dA_loss_real = self.d_A.train_on_batch(imgs_A, np.ones((half_batch, 1)))
-            dA_loss_fake = self.d_A.train_on_batch(fake_A, np.zeros((half_batch, 1)))
+            valid = np.ones((half_batch, 4, 4, 1))
+            fake = np.zeros((half_batch, 4, 4, 1))
+
+            # Train the discriminators (original images = real / translated = Fake)
+            dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
+            dA_loss_fake = self.d_A.train_on_batch(fake_A, fake)
             dA_loss = 0.5 * np.add(dA_loss_real, dA_loss_fake)
 
-            dB_loss_real = self.d_B.train_on_batch(imgs_B, np.ones((half_batch, 1)))
-            dB_loss_fake = self.d_B.train_on_batch(fake_B, np.zeros((half_batch, 1)))
+            dB_loss_real = self.d_B.train_on_batch(imgs_B, valid)
+            dB_loss_fake = self.d_B.train_on_batch(fake_B, fake)
             dB_loss = 0.5 * np.add(dB_loss_real, dB_loss_fake)
 
+            # Total disciminator loss
             d_loss = 0.5 * np.add(dA_loss, dB_loss)
 
 
@@ -171,12 +183,13 @@ class CycleGAN():
             #  Train Generators
             # ------------------
 
+            # Sample a batch of images from both domains
             idx = np.random.randint(0, X1.shape[0], batch_size)
             imgs_A = X1[idx]
             imgs_B = X2[idx]
 
-            # The generators wants the discriminators to label the translated images as real
-            valid = np.array([1] * batch_size)
+            # The generators want the discriminators to label the translated images as real
+            valid = np.ones((batch_size, 4, 4, 1))
 
             # Train the generators
             g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B])
@@ -193,13 +206,16 @@ class CycleGAN():
                 self.save_imgs(epoch, imgs_A, imgs_B)
 
     def save_imgs(self, epoch, imgs_A, imgs_B):
-        r, c = 4, 4
+        r, c = 6, 4
 
         # Translate images to the other domain
         fake_B = self.g_AB.predict(imgs_A)
         fake_A = self.g_BA.predict(imgs_B)
+        # Translate back to original domain
+        reconstr_A = self.g_BA.predict(fake_B)
+        reconstr_B = self.g_AB.predict(fake_A)
 
-        gen_imgs = np.concatenate([imgs_A, fake_B, imgs_B, fake_A])
+        gen_imgs = np.concatenate([imgs_A, fake_B, reconstr_A, imgs_B, fake_A, reconstr_B])
 
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5
