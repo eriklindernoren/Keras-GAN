@@ -15,6 +15,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Context-Conditional GAN](#cc-gan)
     + [Context Encoder](#context-encoder)
     + [Coupled GANs](#cogan)
+    + [CycleGAN](#cyclegan)
     + [Deep Convolutional GAN](#dcgan)
     + [DualGAN](#dualgan)
     + [Generative Adversarial Network](#gan)
@@ -96,6 +97,13 @@ Implementation of Coupled generative adversarial networks.
 [Code](cogan/cogan.py)
 
 Paper: https://arxiv.org/abs/1606.07536
+
+### CycleGAN
+Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks.
+
+[Code](cyclegan/cyclegan.py)
+
+Paper: https://arxiv.org/abs/1703.10593
 
 ### DCGAN
 Implementation of Deep Convolutional Generative Adversarial Network.
