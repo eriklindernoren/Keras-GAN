@@ -1,12 +1,13 @@
 # Keras-GAN
 
 ## About
-Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. If dense layers gets the job done for a model I will often prefer them over conv layers. The reason for this is that I would like to enable people without GPUs to test these implementations out. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
+Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. If dense layers gets the job done for a given model I will often prefer them over convolutional layers. The reason is that I would like to enable people without GPUs to test these implementations out. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
 
 ## Table of Contents
 - [Keras-GAN](#keras-gan)
   * [About](#about)
   * [Table of Contents](#table-of-contents)
+  * [Installation](#installation)
   * [Implementations](#implementations)
     + [Auxiliary Classifier GAN](#ac-gan)
     + [Adversarial Autoencoder](#adversarial-autoencoder)
@@ -24,6 +25,10 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Semi-Supervised GAN](#sgan)
     + [Wasserstein GAN](#wgan)
 
+## Installation
+    $ git clone https://github.com/eriklindernoren/Keras-GAN
+    $ cd Keras-GAN
+    $ sudo pip3 install -r requirements.txt
 
 ## Implementations   
 ### AC-GAN
