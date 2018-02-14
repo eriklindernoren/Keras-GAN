@@ -7,6 +7,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
 - [Keras-GAN](#keras-gan)
   * [About](#about)
   * [Table of Contents](#table-of-contents)
+  * [Installation](#installation)
   * [Implementations](#implementations)
     + [Auxiliary Classifier GAN](#ac-gan)
     + [Adversarial Autoencoder](#adversarial-autoencoder)
@@ -24,6 +25,10 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Semi-Supervised GAN](#sgan)
     + [Wasserstein GAN](#wgan)
 
+## Installation
+    $ git clone https://github.com/eriklindernoren/Keras-GAN
+    $ cd Keras-GAN
+    $ sudo pip3 install -r requirements.txt
 
 ## Implementations   
 ### AC-GAN
