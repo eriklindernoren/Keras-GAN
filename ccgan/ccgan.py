@@ -85,7 +85,7 @@ class CCGAN():
         u1 = Conv2D(128, kernel_size=4, strides=1, padding='same')(u1)
         u1 = LeakyReLU(alpha=0.2)(u1)
         u1 = InstanceNormalization()(u1)
-        u1 = Concatenate()([u1, d3])
+        u1 = Concatenate()([u1, d3]) 
         # (4 x 4 x 256)
         u2 = UpSampling2D(size=2)(u1)
         u2 = Conv2D(64, kernel_size=4, strides=1, padding='same')(u2)

@@ -67,7 +67,7 @@ Implementation of Boundary-Seeking Generative Adversarial Networks.
 
 Paper: https://arxiv.org/abs/1702.08431
 
-### CC-GAN
+### CC-GAN 
 Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
 
 [Code](ccgan/ccgan.py)
