@@ -65,13 +65,6 @@ Paper: https://arxiv.org/abs/1702.08431
 ### CC-GAN
 Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
 
-Inpainting using a GAN where the generator is conditioned on a randomly masked image. In this implementation
-images of dogs and cats taken from the Cifar-10 dataset are used. These images are of very low resolution and
-the results are therefore not as nice as in the implementation described in the paper. In this implementation I have
-also decided to combine the adversarial loss with an l2 loss which measures the generated image's similarity to the original
-images. These losses are weighted similar to the approach described by Pathak et al. (2016)  
-in their paper [Context Encoders: Feature Learning by Inpainting](https://arxiv.org/abs/1604.07379).
-
 [Code](ccgan/ccgan.py)
 
 Paper: https://arxiv.org/abs/1611.06430
