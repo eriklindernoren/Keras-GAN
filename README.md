@@ -111,10 +111,10 @@ Paper: https://arxiv.org/abs/1703.10593
 $ cd cyclegan
 $ bash download_dataset.sh apple2orange
 $ python3 cyclegan.py
-```  
+```   
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/apple2orange.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/cyclegan_gif.gif" width="640"\>
 </p>
 
 
