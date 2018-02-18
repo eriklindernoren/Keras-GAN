@@ -12,15 +12,23 @@ from keras.optimizers import Adam
 import datetime
 import matplotlib.pyplot as plt
 import sys
-
+from data_loader import DataLoader
 import numpy as np
+import os
 
 class CycleGAN():
     def __init__(self):
-        self.img_rows = 32
-        self.img_cols = 32
-        self.channels = 1
+        self.img_rows = 64
+        self.img_cols = 64
+        self.channels = 3
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
+
+        self.dataset_name = 'apple2orange'
+        self.data_loader = DataLoader(dataset_name=self.dataset_name)
+
+        # Loss weights
+        self.lambda_cycle = 10.0
+        self.lambda_id = 0.0
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -59,9 +67,11 @@ class CycleGAN():
         valid_A = self.d_A(fake_A)
         valid_B = self.d_B(fake_B)
 
-        self.combined = Model([img_A, img_B], [valid_A, valid_B, reconstr_A, reconstr_B])
-        self.combined.compile(loss=['mse', 'mse', 'mae', 'mae'],
-                                    loss_weights=[1, 1, 10, 10],
+        self.combined = Model([img_A, img_B], [valid_A, valid_B, fake_B, fake_A, \
+                                               reconstr_A, reconstr_B])
+        self.combined.compile(loss=['mse', 'mse', 'mae', 'mae', 'mae', 'mae'],
+                                    loss_weights=[1, 1, self.lambda_id, self.lambda_id, \
+                                                  self.lambda_cycle, self.lambda_cycle],
                                     optimizer=optimizer)
 
     def build_generator(self):
@@ -130,21 +140,6 @@ class CycleGAN():
 
     def train(self, epochs, batch_size=128, save_interval=50):
 
-        # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
-
-        # Rescale MNIST to 32x32
-        X_train = np.array([scipy.misc.imresize(x, [self.img_rows, self.img_cols]) for x in X_train])
-
-        # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
-        X_train = np.expand_dims(X_train, axis=3)
-
-        # Images in domain A and B (rotated)
-        X1 = X_train[:int(X_train.shape[0]/2)]
-        X2 = X_train[int(X_train.shape[0]/2):]
-        X2 = scipy.ndimage.interpolation.rotate(X2, 90, axes=(1, 2))
-
         half_batch = int(batch_size / 2)
 
         start_time = datetime.datetime.now()
@@ -155,17 +150,15 @@ class CycleGAN():
             #  Train Discriminators
             # ----------------------
 
-            # Sample a half batch of images from both domains
-            idx = np.random.randint(0, X1.shape[0], half_batch)
-            imgs_A = X1[idx]
-            imgs_B = X2[idx]
+            imgs_A = self.data_loader.load_data(domain="A", batch_size=half_batch)
+            imgs_B = self.data_loader.load_data(domain="B", batch_size=half_batch)
 
             # Translate images to opposite domain
             fake_B = self.g_AB.predict(imgs_A)
             fake_A = self.g_BA.predict(imgs_B)
 
-            valid = np.ones((half_batch, 4, 4, 1))
-            fake = np.zeros((half_batch, 4, 4, 1))
+            valid = np.ones((half_batch, 8, 8, 1))
+            fake = np.zeros((half_batch, 8, 8, 1))
 
             # Train the discriminators (original images = real / translated = Fake)
             dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
@@ -185,15 +178,14 @@ class CycleGAN():
             # ------------------
 
             # Sample a batch of images from both domains
-            idx = np.random.randint(0, X1.shape[0], batch_size)
-            imgs_A = X1[idx]
-            imgs_B = X2[idx]
+            imgs_A = self.data_loader.load_data(domain="A", batch_size=batch_size)
+            imgs_B = self.data_loader.load_data(domain="B", batch_size=batch_size)
 
             # The generators want the discriminators to label the translated images as real
-            valid = np.ones((batch_size, 4, 4, 1))
+            valid = np.ones((batch_size, 8, 8, 1))
 
             # Train the generators
-            g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B])
+            g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B, imgs_A, imgs_B])
 
             elapsed_time = datetime.datetime.now() - start_time
             # Plot the progress
@@ -201,14 +193,14 @@ class CycleGAN():
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
-                idx = np.random.randint(0, X1.shape[0], 4)
-                imgs_A = X1[idx]
-                imgs_B = X2[idx]
-                self.save_imgs(epoch, imgs_A, imgs_B)
+                self.save_imgs(epoch)
 
-    def save_imgs(self, epoch, imgs_A, imgs_B):
-        r, c = 6, 4
+    def save_imgs(self, epoch):
+        os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
+        r, c = 2, 3
 
+        imgs_A = self.data_loader.load_data(domain="A", batch_size=1, is_testing=True)
+        imgs_B = self.data_loader.load_data(domain="B", batch_size=1, is_testing=True)
         # Translate images to the other domain
         fake_B = self.g_AB.predict(imgs_A)
         fake_A = self.g_BA.predict(imgs_B)
@@ -218,6 +210,7 @@ class CycleGAN():
 
         gen_imgs = np.concatenate([imgs_A, fake_B, reconstr_A, imgs_B, fake_A, reconstr_B])
 
+        titles = ['Original', 'Translated', 'Reconstructed']
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5
 
@@ -225,10 +218,11 @@ class CycleGAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
+                axs[i,j].imshow(gen_imgs[cnt])
+                axs[i, j].set_title(titles[j])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("cyclegan/images/mnist_%d.png" % epoch)
+        fig.savefig("images/%s/%d.png" % (self.dataset_name, epoch))
         plt.close()
 
 

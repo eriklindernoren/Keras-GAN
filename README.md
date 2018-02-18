@@ -67,7 +67,7 @@ Implementation of Boundary-Seeking Generative Adversarial Networks.
 
 Paper: https://arxiv.org/abs/1702.08431
 
-### CC-GAN 
+### CC-GAN
 Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
 
 [Code](ccgan/ccgan.py)
@@ -106,6 +106,18 @@ Paper: https://arxiv.org/abs/1703.10593
 <p align="center">
     <img src="http://eriklindernoren.se/images/cyclegan.png" width="640"\>
 </p>
+
+```
+$ cd cyclegan
+$ bash download_dataset.sh apple2orange
+$ python3 cyclegan.py
+```  
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/apple2orange.png" width="640"\>
+</p>
+
+
 
 ### DCGAN
 Implementation of Deep Convolutional Generative Adversarial Network.
