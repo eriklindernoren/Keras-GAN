@@ -18,21 +18,33 @@ import os
 
 class CycleGAN():
     def __init__(self):
-        self.img_rows = 64
-        self.img_cols = 64
+        # Input shape
+        self.img_rows = 128
+        self.img_cols = 128
         self.channels = 3
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
+        # Configure data loader
         self.dataset_name = 'apple2orange'
-        self.data_loader = DataLoader(dataset_name=self.dataset_name)
+        self.data_loader = DataLoader(dataset_name=self.dataset_name,
+                                      img_res=(self.img_rows, self.img_cols))
+
+
+        # Calculate output shape of D (PatchGAN)
+        patch = int(self.img_rows / 2**4)
+        self.disc_patch = (patch, patch, 1)
+
+        # Number of filters in the first layer of G and D
+        self.gf = 32
+        self.df = 64
 
         # Loss weights
-        self.lambda_cycle = 10.0
-        self.lambda_id = 0.0
+        self.lambda_cycle = 10.0  # Cycle-consistency loss
+        self.lambda_id = 0.0      # Identity loss
 
         optimizer = Adam(0.0002, 0.5)
 
-        # Build and compile the discriminator
+        # Build and compile the discriminators
         self.d_A = self.build_discriminator()
         self.d_B = self.build_discriminator()
         self.d_A.compile(loss='mse',
@@ -42,7 +54,7 @@ class CycleGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
+        # Build and compile the generators
         self.g_AB = self.build_generator()
         self.g_BA = self.build_generator()
         self.g_AB.compile(loss='binary_crossentropy', optimizer=optimizer)
@@ -77,63 +89,59 @@ class CycleGAN():
     def build_generator(self):
         """U-Net Generator"""
 
-        input_img = Input(shape=self.img_shape)
+        def conv2d(layer_input, filters, f_size=4):
+            """Layers used during downsampling"""
+            d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
+            d = LeakyReLU(alpha=0.2)(d)
+            d = InstanceNormalization()(d)
+            return d
 
-        # (32 x 32 x 1)
-        d1 = Conv2D(32, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape)(input_img)
-        d1 = LeakyReLU(alpha=0.2)(d1)
-        d1 = InstanceNormalization()(d1)
-        # (16 x 16 x 32)
-        d2 = Conv2D(64, kernel_size=4, strides=2, padding='same')(d1)
-        d2 = LeakyReLU(alpha=0.2)(d2)
-        d2 = InstanceNormalization()(d2)
-        # (8 x 8 x 64)
-        d3 = Conv2D(128, kernel_size=4, strides=2, padding='same')(d2)
-        d3 = LeakyReLU(alpha=0.2)(d3)
-        d3 = InstanceNormalization()(d3)
-        # (4 x 4 x 128)
-        d4 = Conv2D(256, kernel_size=4, strides=2, padding='same')(d3)
-        d4 = LeakyReLU(alpha=0.2)(d4)
-        d4 = InstanceNormalization()(d4)
-        # (2 x 2 x 256)
-        u1 = UpSampling2D(size=2)(d4)
-        u1 = Conv2D(128, kernel_size=4, strides=1, padding='same')(u1)
-        u1 = LeakyReLU(alpha=0.2)(u1)
-        u1 = InstanceNormalization()(u1)
-        u1 = Concatenate()([u1, d3])
-        # (4 x 4 x 256)
-        u2 = UpSampling2D(size=2)(u1)
-        u2 = Conv2D(64, kernel_size=4, strides=1, padding='same')(u2)
-        u2 = LeakyReLU(alpha=0.2)(u2)
-        u2 = InstanceNormalization()(u2)
-        u2 = Concatenate()([u2, d2])
-        # (8 x 8 x 128)
-        u3 = UpSampling2D(size=2)(u2)
-        u3 = Conv2D(32, kernel_size=4, strides=1, padding='same')(u3)
-        u3 = LeakyReLU(alpha=0.2)(u3)
-        u3 = InstanceNormalization()(u3)
-        u3 = Concatenate()([u3, d1])
-        # (16 x 16 x 64)
-        u2 = UpSampling2D(size=2)(u3)
-        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u2)
+        def deconv2d(layer_input, skip_input, filters, f_size=4, dropout_rate=0):
+            """Layers used during upsampling"""
+            u = UpSampling2D(size=2)(layer_input)
+            u = Conv2D(filters, kernel_size=f_size, strides=1, padding='same', activation='relu')(u)
+            if dropout_rate:
+                u = Dropout(dropout_rate)(u)
+            u = InstanceNormalization()(u)
+            u = Concatenate()([u, skip_input])
+            return u
 
-        return Model(input_img, output_img)
+        # Image input
+        d0 = Input(shape=self.img_shape)
+
+        # Downsampling
+        d1 = conv2d(d0, self.gf)
+        d2 = conv2d(d1, self.gf*2)
+        d3 = conv2d(d2, self.gf*4)
+        d4 = conv2d(d3, self.gf*8)
+
+        # Upsampling
+        u3 = deconv2d(d4, d3, self.gf*4)
+        u4 = deconv2d(u3, d2, self.gf*2)
+        u5 = deconv2d(u4, d1, self.gf)
+
+        u6 = UpSampling2D(size=2)(u5)
+        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u6)
+
+        return Model(d0, output_img)
 
     def build_discriminator(self):
 
-        img = Input(shape=self.img_shape)
-
         model = Sequential()
-        model.add(Conv2D(64, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape))
+        model.add(Conv2D(self.df, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape))
         model.add(LeakyReLU(alpha=0.8))
-        model.add(Conv2D(128, kernel_size=4, strides=2, padding='same'))
+        model.add(Conv2D(self.df*2, kernel_size=4, strides=2, padding='same'))
         model.add(LeakyReLU(alpha=0.2))
         model.add(InstanceNormalization())
-        model.add(Conv2D(256, kernel_size=4, strides=2, padding='same'))
+        model.add(Conv2D(self.df*4, kernel_size=4, strides=2, padding='same'))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(InstanceNormalization())
+        model.add(Conv2D(self.df*8, kernel_size=4, strides=2, padding='same'))
         model.add(LeakyReLU(alpha=0.2))
         model.add(InstanceNormalization())
         model.add(Conv2D(1, kernel_size=4, strides=1, padding='same'))
 
+        img = Input(shape=self.img_shape)
         validity = model(img)
 
         return Model(img, validity)
@@ -157,8 +165,8 @@ class CycleGAN():
             fake_B = self.g_AB.predict(imgs_A)
             fake_A = self.g_BA.predict(imgs_B)
 
-            valid = np.ones((half_batch, 8, 8, 1))
-            fake = np.zeros((half_batch, 8, 8, 1))
+            valid = np.ones((half_batch,) + self.disc_patch)
+            fake = np.zeros((half_batch,) + self.disc_patch)
 
             # Train the discriminators (original images = real / translated = Fake)
             dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
@@ -182,7 +190,7 @@ class CycleGAN():
             imgs_B = self.data_loader.load_data(domain="B", batch_size=batch_size)
 
             # The generators want the discriminators to label the translated images as real
-            valid = np.ones((batch_size, 8, 8, 1))
+            valid = np.ones((batch_size,) + self.disc_patch)
 
             # Train the generators
             g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B, imgs_A, imgs_B])
@@ -201,6 +209,11 @@ class CycleGAN():
 
         imgs_A = self.data_loader.load_data(domain="A", batch_size=1, is_testing=True)
         imgs_B = self.data_loader.load_data(domain="B", batch_size=1, is_testing=True)
+
+        # Demo (for GIF)
+        #imgs_A = self.data_loader.load_img('datasets/apple2orange/testA/n07740461_1541.jpg')
+        #imgs_B = self.data_loader.load_img('datasets/apple2orange/testB/n07749192_4241.jpg')
+
         # Translate images to the other domain
         fake_B = self.g_AB.predict(imgs_A)
         fake_A = self.g_BA.predict(imgs_B)
@@ -210,10 +223,10 @@ class CycleGAN():
 
         gen_imgs = np.concatenate([imgs_A, fake_B, reconstr_A, imgs_B, fake_A, reconstr_B])
 
-        titles = ['Original', 'Translated', 'Reconstructed']
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5
 
+        titles = ['Original', 'Translated', 'Reconstructed']
         fig, axs = plt.subplots(r, c)
         cnt = 0
         for i in range(r):
