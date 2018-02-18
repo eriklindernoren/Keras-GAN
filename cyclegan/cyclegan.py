@@ -116,12 +116,12 @@ class CycleGAN():
         d4 = conv2d(d3, self.gf*8)
 
         # Upsampling
-        u3 = deconv2d(d4, d3, self.gf*4)
-        u4 = deconv2d(u3, d2, self.gf*2)
-        u5 = deconv2d(u4, d1, self.gf)
+        u1 = deconv2d(d4, d3, self.gf*4)
+        u2 = deconv2d(u1, d2, self.gf*2)
+        u3 = deconv2d(u2, d1, self.gf)
 
-        u6 = UpSampling2D(size=2)(u5)
-        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u6)
+        u4 = UpSampling2D(size=2)(u3)
+        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u4)
 
         return Model(d0, output_img)
 
