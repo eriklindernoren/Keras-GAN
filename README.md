@@ -13,6 +13,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Adversarial Autoencoder](#adversarial-autoencoder)
     + [Bidirectional GAN](#bigan)
     + [Boundary-Seeking GAN](#bgan)
+    + [Conditional GAN](#cgan)
     + [Context-Conditional GAN](#cc-gan)
     + [Context Encoder](#context-encoder)
     + [Coupled GANs](#cogan)
