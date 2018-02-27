@@ -23,6 +23,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Generative Adversarial Network](#gan)
     + [InfoGAN](#infogan)
     + [LSGAN](#lsgan)
+    + [Pix2Pix](#pix2pix)
     + [Semi-Supervised GAN](#sgan)
     + [Wasserstein GAN](#wgan)
 
@@ -177,6 +178,27 @@ Implementation of Least Squares Generative Adversarial Networks.
 [Code](lsgan/lsgan.py)
 
 Paper: https://arxiv.org/abs/1611.04076
+
+### Pix2Pix
+Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks.
+
+[Code](pix2pix/pix2pix.py)
+
+Paper: https://arxiv.org/abs/1611.07004
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/pix2pix_architecture.png" width="640"\>
+</p>
+
+```
+$ cd pix2pix
+$ bash download_dataset.sh facades
+$ python3 pix2pix.py
+```   
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/pix2pix.png" width="640"\>
+</p>
 
 ### SGAN
 Implementation of Semi-Supervised Generative Adversarial Network.
