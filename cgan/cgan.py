@@ -88,8 +88,12 @@ class CGAN():
 
         model.add(Dense(512, input_dim=np.prod(self.img_shape)))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(256))
+        model.add(Dense(512))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.4))
+        model.add(Dense(512))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.4))
         model.add(Dense(1, activation='sigmoid'))
         model.summary()
 
@@ -186,4 +190,4 @@ class CGAN():
 
 if __name__ == '__main__':
     cgan = CGAN()
-    cgan.train(epochs=6000, batch_size=32, save_interval=50)
+    cgan.train(epochs=10000, batch_size=32, save_interval=200)

@@ -1,7 +1,7 @@
 # Keras-GAN
 
 ## About
-Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. Since I would like to enable people without GPUs to test these implementations out I will often prefer dense layer over convolutional layers if they get the job done. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
+Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. If dense layers gets the job done for a given model I will often prefer them over convolutional layers. The reason is that I would like to enable people without GPUs to test these implementations out. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
 
 ## Table of Contents
 - [Keras-GAN](#keras-gan)
@@ -87,7 +87,7 @@ Implementation of Conditional Generative Adversarial Nets.
 Paper:https://arxiv.org/abs/1411.1784
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/cgan.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/cgan.gif" width="640"\>
 </p>
 
 ### Context Encoder
