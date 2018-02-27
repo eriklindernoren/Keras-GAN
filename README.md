@@ -1,7 +1,7 @@
 # Keras-GAN
 
 ## About
-Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. If dense layers gets the job done for a given model I will often prefer them over convolutional layers. The reason is that I would like to enable people without GPUs to test these implementations out. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
+Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. If dense layers produce reasonable results for a given model I will often prefer them over convolutional layers. The reason is that I would like to enable people without GPUs to test these implementations out. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
 
 ## Table of Contents
 - [Keras-GAN](#keras-gan)
@@ -180,7 +180,7 @@ Implementation of Least Squares Generative Adversarial Networks.
 Paper: https://arxiv.org/abs/1611.04076
 
 ### Pix2Pix
-Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks.
+Implementation of Unpaired Image-to-Image Translation with Conditional Adversarial Networks.
 
 [Code](pix2pix/pix2pix.py)
 
@@ -197,7 +197,7 @@ $ python3 pix2pix.py
 ```   
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/pix2pix.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/pix2pix2.png" width="640"\>
 </p>
 
 ### SGAN
