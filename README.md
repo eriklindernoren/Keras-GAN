@@ -78,6 +78,17 @@ Paper: https://arxiv.org/abs/1611.06430
     <img src="http://eriklindernoren.se/images/ccgan.png" width="640"\>
 </p>
 
+### CGAN
+Implementation of Conditional Generative Adversarial Nets.
+
+[Code](cgan/cgan.py)
+
+Paper:https://arxiv.org/abs/1411.1784
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/cgan.png" width="640"\>
+</p>
+
 ### Context Encoder
 Implementation of Context Encoders: Feature Learning by Inpainting.
 
