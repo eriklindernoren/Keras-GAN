@@ -27,7 +27,7 @@ class DataLoader():
 
         imgs = np.array(imgs)/127.5 - 1.
 
-        return imgs, batch_images
+        return imgs
 
     def load_img(self, path):
         img = self.imread(path)

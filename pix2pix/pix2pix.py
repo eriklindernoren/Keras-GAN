@@ -40,13 +40,13 @@ class Pix2Pix():
 
         optimizer = Adam(0.0002, 0.5)
 
-        # Build and compile the discriminators
+        # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generators
+        # Build and compile the generator
         self.generator = self.build_generator()
         self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
@@ -59,7 +59,7 @@ class Pix2Pix():
 
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
-        
+
         # Discriminators determines validity of translated images
         valid = self.discriminator([fake_A, img_A])
 
@@ -71,11 +71,11 @@ class Pix2Pix():
     def build_generator(self):
         """U-Net Generator"""
 
-        def conv2d(layer_input, filters, f_size=4, first=False):
+        def conv2d(layer_input, filters, f_size=4, bn=True):
             """Layers used during downsampling"""
             d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
             d = LeakyReLU(alpha=0.2)(d)
-            if not first:
+            if bn:
                 d = BatchNormalization(momentum=0.8)(d)
             return d
 
@@ -93,7 +93,7 @@ class Pix2Pix():
         d0 = Input(shape=self.img_shape)
 
         # Downsampling
-        d1 = conv2d(d0, self.gf, first=True)
+        d1 = conv2d(d0, self.gf, bn=False)
         d2 = conv2d(d1, self.gf*2)
         d3 = conv2d(d2, self.gf*4)
         d4 = conv2d(d3, self.gf*8)
@@ -116,27 +116,26 @@ class Pix2Pix():
 
     def build_discriminator(self):
 
-        model = Sequential()
-        model.add(Conv2D(self.df, kernel_size=4, strides=2, padding='same', input_shape=(self.img_rows, self.img_cols, 2*self.channels)))
-        model.add(LeakyReLU(alpha=0.8))
-        model.add(Conv2D(self.df*2, kernel_size=4, strides=2, padding='same'))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(self.df*4, kernel_size=4, strides=2, padding='same'))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(self.df*8, kernel_size=4, strides=2, padding='same'))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(1, kernel_size=4, strides=1, padding='same'))
+        def d_layer(layer_input, filters, f_size=4, bn=True):
+            """Discriminator layer"""
+            d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
+            d = LeakyReLU(alpha=0.2)(d)
+            if bn:
+                d = BatchNormalization(momentum=0.8)(d)
+            return d
 
         img_A = Input(shape=self.img_shape)
         img_B = Input(shape=self.img_shape)
 
-        # Concatenate image and conditioning image by channels
+        # Concatenate image and conditioning image by channels to produce input
         combined_imgs = Concatenate(axis=-1)([img_A, img_B])
 
-        validity = model(combined_imgs)
+        d1 = d_layer(combined_imgs, self.df, bn=False)
+        d2 = d_layer(d1, self.df*2)
+        d3 = d_layer(d2, self.df*4)
+        d4 = d_layer(d3, self.df*8)
+
+        validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
         return Model([img_A, img_B], validity)
 
@@ -147,12 +146,13 @@ class Pix2Pix():
         for epoch in range(epochs):
 
             # ----------------------
-            #  Train Discriminators
+            #  Train Discriminator
             # ----------------------
 
+            # Sample images and their conditioning counterparts
             imgs_A, imgs_B = self.data_loader.load_data(batch_size)
 
-            # Generate image from condition
+            # Condition on B and generate a translated version
             fake_A = self.generator.predict(imgs_B)
 
             valid = np.ones((batch_size,) + self.disc_patch)
@@ -164,10 +164,10 @@ class Pix2Pix():
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
             # ------------------
-            #  Train Generators
+            #  Train Generator
             # ------------------
 
-            # Sample a batch of images from both domains
+            # Sample images and their conditioning counterparts
             imgs_A, imgs_B = self.data_loader.load_data(batch_size)
 
             # The generators want the discriminators to label the generated images as real
@@ -189,7 +189,6 @@ class Pix2Pix():
         r, c = 3, 3
 
         imgs_A, imgs_B = self.data_loader.load_data(batch_size=3, is_testing=True)
-
         fake_A = self.generator.predict(imgs_B)
 
         gen_imgs = np.concatenate([imgs_B, fake_A, imgs_A])
