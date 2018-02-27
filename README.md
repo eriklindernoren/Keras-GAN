@@ -180,7 +180,7 @@ Implementation of Least Squares Generative Adversarial Networks.
 Paper: https://arxiv.org/abs/1611.04076
 
 ### Pix2Pix
-Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks.
+Implementation of Unpaired Image-to-Image Translation with Conditional Adversarial Networks.
 
 [Code](pix2pix/pix2pix.py)
 
