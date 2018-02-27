@@ -151,10 +151,6 @@ class DUALGAN():
                 X1_translated = self.g1.predict(imgs1)
                 X2_translated = self.g2.predict(imgs2)
 
-                # Retranslate images to their original domain
-                X1_recon = self.g2.predict(X1_translated)
-                X2_recon = self.g1.predict(X2_translated)
-
                 valid = np.ones((half_batch, 1))
                 fake = np.zeros((half_batch, 1))
 
