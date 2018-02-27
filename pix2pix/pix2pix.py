@@ -57,6 +57,9 @@ class Pix2Pix():
         # By conditioning on B generate a fake version of A
         fake_A = self.generator(img_B)
 
+        # For the combined model we will only train the generator
+        self.discriminator.trainable = False
+        
         # Discriminators determines validity of translated images
         valid = self.discriminator([fake_A, img_A])
 
