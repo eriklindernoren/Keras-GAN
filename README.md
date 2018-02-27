@@ -197,7 +197,7 @@ $ python3 pix2pix.py
 ```   
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/pix2pix.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/pix2pix2.png" width="640"\>
 </p>
 
 ### SGAN
