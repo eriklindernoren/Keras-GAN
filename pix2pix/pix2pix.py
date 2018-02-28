@@ -60,8 +60,8 @@ class Pix2Pix():
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
 
-        # Discriminators determines validity of translated images
-        valid = self.discriminator([fake_A, img_A])
+        # Discriminators determines validity of translated images / condition pairs
+        valid = self.discriminator([fake_A, img_B])
 
         self.combined = Model([img_A, img_B], [valid, fake_A])
         self.combined.compile(loss=['mse', 'mae'],
