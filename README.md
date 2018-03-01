@@ -220,7 +220,7 @@ Implementation of Photo-Realistic Single Image Super-Resolution Using a Generati
 Paper: https://arxiv.org/abs/1609.04802
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/srgan_architecture.jpg" width="640"\>
+    <img src="http://eriklindernoren.se/images/superresgan.png" width="640"\>
 </p>
 
 

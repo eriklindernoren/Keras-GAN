@@ -34,8 +34,8 @@ class SRGAN():
 
         optimizer = Adam(0.0002, 0.5)
 
-        # We use a pre-trained VGG19 model and minimize the mse between the image
-        # features of the high res. images and generated images at the later blocks
+        # We use a pre-trained VGG19 model to extract image features from the high resolution
+        # and the generated high resolution images and minimize the mse between them
         self.vgg = self.build_vgg()
         self.vgg.trainable = False
         self.vgg.compile(loss='mse',
@@ -72,8 +72,8 @@ class SRGAN():
         # Generate high res. version from low res.
         fake_hr = self.generator(img_lr)
 
-        # Extract image features of the generated img at the three last blocks
-        f1, f2, f3 = self.vgg(fake_hr)
+        # Extract image features of the generated img
+        fake_features = self.vgg(fake_hr)
 
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
@@ -81,9 +81,9 @@ class SRGAN():
         # Discriminators determines validity of translated images / condition pairs
         validity = self.discriminator(fake_hr)
 
-        self.combined = Model([img_lr, img_hr], [validity, f1, f2, f3])
-        self.combined.compile(loss=['binary_crossentropy', 'mse', 'mse', 'mse'],
-                              loss_weights=[1e-3, 0.33, 0.33, 0.33],
+        self.combined = Model([img_lr, img_hr], [validity, fake_features])
+        self.combined.compile(loss=['binary_crossentropy', 'mse'],
+                              loss_weights=[1e-3, 1],
                               optimizer=optimizer)
 
 
@@ -93,23 +93,22 @@ class SRGAN():
         last three blocks of the model
         """
         vgg = VGG19(weights="imagenet")
-        # Set outputs to outputs of last conv. layers in block 3, 4 and 5
+        # Set outputs to outputs of last conv. layers in block 3
         # See architecture at: https://github.com/keras-team/keras/blob/master/keras/applications/vgg19.py
-        vgg.outputs = [vgg.layers[9].output,
-                       vgg.layers[14].output,
-                       vgg.layers[19].output]
+        vgg.outputs = [vgg.layers[9].output]
 
         img = Input(shape=self.hr_shape)
 
         # Extract image features
-        f1, f2, f3 = vgg(img)
+        img_features = vgg(img)
 
-        return Model(img, [f1, f2, f3])
+        return Model(img, img_features)
 
     def build_generator(self):
 
         def residual_block(layer_input):
-            d = Conv2D(64, kernel_size=3, strides=1, activation='relu', padding='same')(layer_input)
+            d = Conv2D(64, kernel_size=3, strides=1, padding='same')(layer_input)
+            d = Activation('relu')(d)
             d = BatchNormalization(momentum=0.8)(d)
             d = Conv2D(64, kernel_size=3, strides=1, padding='same')(d)
             d = BatchNormalization(momentum=0.8)(d)
@@ -119,23 +118,33 @@ class SRGAN():
         def deconv2d(layer_input):
             """Layers used during upsampling"""
             u = UpSampling2D(size=2)(layer_input)
-            u = Conv2D(256, kernel_size=3, strides=1, padding='same', activation='relu')(u)
+            u = Conv2D(256, kernel_size=3, strides=1, padding='same')(u)
+            u = Activation('relu')(u)
             return u
 
         # Image input
-        d0 = Input(shape=self.lr_shape)
-        d1 = Conv2D(64, kernel_size=3, strides=1, activation='relu', padding='same')(d0)
+        img_lr = Input(shape=self.lr_shape)
+
+        # Pre-residual block
+        c1 = Conv2D(64, kernel_size=9, strides=1, padding='same')(img_lr)
+        c1 = Activation('relu')(c1)
 
         # Propogate through residual blocks
-        r = residual_block(d1)
-        for _ in range(1 - self.n_residual_blocks):
+        r = residual_block(c1)
+        for _ in range(self.n_residual_blocks - 1):
             r = residual_block(r)
 
+        # Post-residual block
+        c2 = Conv2D(64, kernel_size=3, strides=1, padding='same')(r)
+        c2 = BatchNormalization(momentum=0.8)(c2)
+        c2 = Add()([c2, c1])
+
         # Upsampling
-        u1 = deconv2d(r)
+        u1 = deconv2d(d2)
         u2 = deconv2d(u1)
 
-        output_img = Conv2D(self.channels, kernel_size=3, strides=1, padding='same', activation='tanh')(u2)
+        # Output
+        output_img = Conv2D(self.channels, kernel_size=9, strides=1, padding='same', activation='tanh')(u2)
 
         return Model(d0, output_img)
 
@@ -202,10 +211,10 @@ class SRGAN():
             valid = np.ones((batch_size,) + self.disc_patch)
 
             # Extract ground truth image features at last three blocks of VGG19
-            f1, f2, f3 = self.vgg.predict(imgs_hr)
+            image_features = self.vgg.predict(imgs_hr)
 
             # Train the generators
-            g_loss = self.combined.train_on_batch([imgs_lr, imgs_hr], [valid, f1, f2, f3])
+            g_loss = self.combined.train_on_batch([imgs_lr, imgs_hr], [valid, image_features])
 
             elapsed_time = datetime.datetime.now() - start_time
             # Plot the progress
@@ -245,7 +254,7 @@ class SRGAN():
             fig = plt.figure()
             plt.imshow(imgs_lr[i])
             fig.savefig('images/%s/%d_lowres%d.png' % (self.dataset_name, epoch, i))
-
+            plt.close()
 
 if __name__ == '__main__':
     gan = SRGAN()
