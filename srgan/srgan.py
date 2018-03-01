@@ -22,14 +22,15 @@ import keras.backend as K
 class SRGAN():
     def __init__(self):
         # Input shape
+        self.channels = 3
         self.lr_height = 64                 # Low resolution height
         self.lr_width = 64                  # Low resolution width
+        self.lr_shape = (self.lr_height, self.lr_width, self.channels)
         self.hr_height = self.lr_height*4   # High resolution height
         self.hr_width = self.lr_width*4     # High resolution width
-        self.channels = 3
-        self.lr_shape = (self.lr_height, self.lr_width, self.channels)
         self.hr_shape = (self.hr_height, self.hr_width, self.channels)
 
+        # Number of residual blocks in the generator
         self.n_residual_blocks = 16
 
         optimizer = Adam(0.0002, 0.5)
@@ -65,7 +66,7 @@ class SRGAN():
         self.generator = self.build_generator()
         self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
-        # Low res. and high res. images
+        # High res. and low res. images
         img_hr = Input(shape=self.hr_shape)
         img_lr = Input(shape=self.lr_shape)
 
@@ -90,10 +91,10 @@ class SRGAN():
     def build_vgg(self):
         """
         Builds a pre-trained VGG19 model that outputs image features extracted at the
-        last three blocks of the model
+        third block of the model
         """
         vgg = VGG19(weights="imagenet")
-        # Set outputs to outputs of last conv. layers in block 3
+        # Set outputs to outputs of last conv. layer in block 3
         # See architecture at: https://github.com/keras-team/keras/blob/master/keras/applications/vgg19.py
         vgg.outputs = [vgg.layers[9].output]
 
@@ -107,6 +108,7 @@ class SRGAN():
     def build_generator(self):
 
         def residual_block(layer_input):
+            """Residual block described in paper"""
             d = Conv2D(64, kernel_size=3, strides=1, padding='same')(layer_input)
             d = Activation('relu')(d)
             d = BatchNormalization(momentum=0.8)(d)
@@ -122,7 +124,7 @@ class SRGAN():
             u = Activation('relu')(u)
             return u
 
-        # Image input
+        # Low resolution image input
         img_lr = Input(shape=self.lr_shape)
 
         # Pre-residual block
@@ -143,10 +145,10 @@ class SRGAN():
         u1 = deconv2d(c2)
         u2 = deconv2d(u1)
 
-        # Output
-        output_img = Conv2D(self.channels, kernel_size=9, strides=1, padding='same', activation='tanh')(u2)
+        # Generate high resolution output
+        gen_hr = Conv2D(self.channels, kernel_size=9, strides=1, padding='same', activation='tanh')(u2)
 
-        return Model(d0, output_img)
+        return Model(img_lr, gen_hr)
 
     def build_discriminator(self):
 
