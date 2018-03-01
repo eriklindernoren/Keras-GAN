@@ -220,14 +220,9 @@ Implementation of Photo-Realistic Single Image Super-Resolution Using a Generati
 Paper: https://arxiv.org/abs/1609.04802
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/srgan_architecture.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/srgan_architecture.jpg" width="640"\>
 </p>
 
-```
-$ cd srgan
-Add folder with images in ./datasets/ and change name of self.dataset_name in SRGAN (see celebA below)
-$ python3 srgan.py
-```   
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/srgan.png" width="640"\>
