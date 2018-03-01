@@ -96,6 +96,7 @@ class SRGAN():
         """
         vgg = VGG19(weights="imagenet")
         # Set outputs to outputs of last conv. layers in block 3, 4 and 5
+        # See architecture at: https://github.com/keras-team/keras/blob/master/keras/applications/vgg19.py
         vgg.outputs = [vgg.layers[9].output,
                        vgg.layers[14].output,
                        vgg.layers[19].output]
