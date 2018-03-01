@@ -34,9 +34,8 @@ class SRGAN():
 
         optimizer = Adam(0.0002, 0.5)
 
-        # Where going to use a pre-trained VGG19 model and minimize the mse
-        # between the image embeddings of the high res. images and generated images
-        # at the later blocks
+        # We use a pre-trained VGG19 model and minimize the mse between the image
+        # features of the high res. images and generated images at the later blocks
         self.vgg = self.build_vgg()
         self.vgg.trainable = False
         self.vgg.compile(loss='mse',
@@ -47,7 +46,6 @@ class SRGAN():
         self.dataset_name = 'img_align_celeba'
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.hr_height, self.hr_width))
-
 
         # Calculate output shape of D (PatchGAN)
         patch = int(self.hr_height / 2**4)
@@ -229,6 +227,7 @@ class SRGAN():
         fake_hr = 0.5 * fake_hr + 0.5
         imgs_hr = 0.5 * imgs_hr + 0.5
 
+        # Save generated images and the high resolution originals
         titles = ['Generated', 'Original']
         fig, axs = plt.subplots(r, c)
         cnt = 0
@@ -241,6 +240,7 @@ class SRGAN():
         fig.savefig("images/%s/%d.png" % (self.dataset_name, epoch))
         plt.close()
 
+        # Save low resolution images for comparison
         for i in range(r):
             fig = plt.figure()
             plt.imshow(imgs_lr[i])
