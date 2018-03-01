@@ -78,7 +78,7 @@ class SRGAN():
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
 
-        # Discriminators determines validity of translated images / condition pairs
+        # Discriminator determines validity of generated high res. images
         validity = self.discriminator(fake_hr)
 
         self.combined = Model([img_lr, img_hr], [validity, fake_features])
@@ -140,7 +140,7 @@ class SRGAN():
         c2 = Add()([c2, c1])
 
         # Upsampling
-        u1 = deconv2d(d2)
+        u1 = deconv2d(c2)
         u2 = deconv2d(u1)
 
         # Output
@@ -210,7 +210,7 @@ class SRGAN():
             # The generators want the discriminators to label the generated images as real
             valid = np.ones((batch_size,) + self.disc_patch)
 
-            # Extract ground truth image features at last three blocks of VGG19
+            # Extract ground truth image features using pre-trained VGG19 model
             image_features = self.vgg.predict(imgs_hr)
 
             # Train the generators
