@@ -25,6 +25,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [LSGAN](#lsgan)
     + [Pix2Pix](#pix2pix)
     + [Semi-Supervised GAN](#sgan)
+    + [Super-Resolution GAN](#srgan)
     + [Wasserstein GAN](#wgan)
 
 ## Installation
@@ -209,6 +210,27 @@ Paper: https://arxiv.org/abs/1606.01583
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/sgan.png" width="640"\>
+</p>
+
+### SRGAN
+Implementation of Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network.
+
+[Code](srgan/srgan.py)
+
+Paper: https://arxiv.org/abs/1609.04802
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/srgan_architecture.png" width="640"\>
+</p>
+
+```
+$ cd srgan
+Add folder with images in ./datasets/ and change name of self.dataset_name in SRGAN (see celebA below)
+$ python3 srgan.py
+```   
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/srgan.png" width="640"\>
 </p>
 
 ### WGAN
