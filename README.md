@@ -162,6 +162,7 @@ Paper: https://arxiv.org/abs/1406.2661
 </p>
 
 GAN on RGB face images
+[Code](gan/gan_rgb.py)
 
 <p align="center">
     <img src="etc/adam.gif" width="640"\>
