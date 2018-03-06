@@ -162,6 +162,13 @@ Paper: https://arxiv.org/abs/1406.2661
     <img src="http://eriklindernoren.se/images/gan.png" width="640"\>
 </p>
 
+GAN on RGB face images
+[Code](gan/gan_rgb.py)
+
+<p align="center">
+    <img src="gan/etc/adam.gif" width="640"\>
+</p>
+
 ### InfoGAN
 Implementation of InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets.
 
