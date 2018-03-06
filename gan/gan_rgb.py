@@ -211,7 +211,7 @@ class GAN():
 	        plt.xlabel('Epochs')
 	        plt.ylabel('Loss')
 	        plt.legend()
-	        plt.title('Adadelta optimizer')
+	        plt.title('Variation of losses over epochs')
 	        plt.grid(True)
 	        plt.show()     
 
