@@ -165,7 +165,7 @@ GAN on RGB face images
 [Code](gan/gan_rgb.py)
 
 <p align="center">
-    <img src="etc/adam.gif" width="640"\>
+    <img src="gan/etc/adam.gif" width="640"\>
 </p>
 
 ### InfoGAN

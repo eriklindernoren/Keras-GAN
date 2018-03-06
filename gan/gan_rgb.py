@@ -1,6 +1,18 @@
-# This code adds the ability to use RGB face images form the 
-# CelebA dataset to generate faces
+"""
+This code adds the ability to RGB images using the gan architecture
+This example generates face images using the CelebA dataset
 
+The dataset is uploaded on Floydhub for easy dowloading. Find it here: https://www.floydhub.com/mirantha/datasets/celeba
+
+Instrustion on running the script:
+1. Download the dataset from the provided link
+2. Save the images to a folder named 'data' in the save directory as this script
+3. Create another folder named 'output' in this same directory (This folder will be used to save the generated images)
+4. Run the sript using command 'python gan_rgb.py'
+Have fun!
+
+
+"""
 
 from __future__ import print_function, division
 
@@ -121,24 +133,24 @@ class GAN():
         data_batch = np.array(
             [self.get_image(sample_file, width, height, mode) for sample_file in image_files])
 
-        # if len(data_batch.shape) < 4:
-        #     data_batch = data_batch.reshape(data_batch.shape + (1,))
-
         return data_batch    
 
     def train(self, epochs, batch_size=128, save_interval=50):
         
-        data_dir = './data_face'
+        data_dir = './data'
         X_train = self.get_batch(glob(os.path.join(data_dir, '*.jpg'))[:5000], 28, 28, 'RGB')
-        
-        # X_train = X_train[:,:,:,2]
-        # print(X_train.shape)
+
 
         #Rescale -1 to 1
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
-        # X_train = np.expand_dims(X_train, axis=3)
+
 
         half_batch = int(batch_size / 2)
+
+        #Create lists for logging the losses
+        d_loss_logs_r = []
+        d_loss_logs_f = []
+        g_loss_logs = []
 
         for epoch in range(epochs):
 
@@ -177,9 +189,31 @@ class GAN():
             # Plot the progress
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
 
+            #Append the logs with the loss values in each training step
+            d_loss_logs_r.append([epoch, d_loss[0]])
+            d_loss_logs_f.append([epoch, d_loss[1]])
+            g_loss_logs.append([epoch, g_loss])
+
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
                 self.save_imgs(epoch)
+
+
+            #Convert the log lists to numpy arrays
+            d_loss_logs_r_a = np.array(d_loss_logs_r)
+	        d_loss_logs_f_a = np.array(d_loss_logs_f)
+	        g_loss_logs_a = np.array(g_loss_logs)
+
+	        #Generate the plot at the end of training
+	        plt.plot(d_loss_logs_r_a[:,0], d_loss_logs_r_a[:,1], label="Discriminator Loss - Real")
+	        plt.plot(d_loss_logs_f_a[:,0], d_loss_logs_f_a[:,1], label="Discriminator Loss - Fake")
+	        plt.plot(g_loss_logs_a[:,0], g_loss_logs_a[:,1], label="Generator Loss")
+	        plt.xlabel('Epochs')
+	        plt.ylabel('Loss')
+	        plt.legend()
+	        plt.title('Adadelta optimizer')
+	        plt.grid(True)
+	        plt.show()     
 
     def save_imgs(self, epoch):
         r, c = 5, 5
@@ -187,17 +221,16 @@ class GAN():
         gen_imgs = self.generator.predict(noise)
 
         # Rescale images 0 - 1
-        gen_imgs = 0.5 * gen_imgs + 0.5
+        gen_imgs = (1/2.5) * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
         cnt = 0
         for i in range(r):
             for j in range(c):
-                # axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].imshow(gen_imgs[cnt, :,:,:])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images3/%d.png" % epoch)
+        fig.savefig("output/%d.png" % epoch)
         plt.close()
 
 
