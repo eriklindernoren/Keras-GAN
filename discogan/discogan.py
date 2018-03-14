@@ -80,7 +80,11 @@ class DiscoGAN():
         valid_A = self.d_A(fake_A)
         valid_B = self.d_B(fake_B)
 
-        # Losses: Adversarial, identity, translation mae, cycle-consistency
+        # Losses
+        # + Adversarial: Fool domain discriminators
+        # + Identity: Translated images shall keep semantics of original
+        # + Translation MAE: Minimize MAE between e.g. fake B and true B
+        # + Cycle-consistency: MAE between reconstructed images and original
         self.combined = Model([img_A, img_B], [valid_A, valid_B, \
                                                fake_B, fake_A, \
                                                fake_B, fake_A, \
