@@ -19,6 +19,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [Coupled GANs](#cogan)
     + [CycleGAN](#cyclegan)
     + [Deep Convolutional GAN](#dcgan)
+    + [DiscoGAN](#discogan)
     + [DualGAN](#dualgan)
     + [Generative Adversarial Network](#gan)
     + [InfoGAN](#infogan)
@@ -143,6 +144,23 @@ Paper: https://arxiv.org/abs/1511.06434
 <p align="center">
     <img src="http://eriklindernoren.se/images/dcgan2.png" width="640"\>
 </p>
+
+### DiscoGAN
+Implementation of Learning to Discover Cross-Domain Relations with Generative Adversarial Networks.
+
+[Code](discogan/discogan.py)
+
+Paper: https://arxiv.org/abs/1703.05192
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/discogan_architecture.png" width="640"\>
+</p>
+
+```
+$ cd discogan
+$ bash download_dataset.sh edges2handbags
+$ python3 discogan.py
+```   
 
 ### DualGAN
 Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Translation.
