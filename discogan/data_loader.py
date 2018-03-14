@@ -8,19 +8,18 @@ class DataLoader():
         self.img_res = img_res
 
     def load_data(self, batch_size=1, is_testing=False):
-        data_type_A = "trainA" if not is_testing else "testA"
-        data_type_B = "trainB" if not is_testing else "testB"
-        path_A = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type_A))
-        path_B = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type_B))
+        data_type = "train" if not is_testing else "val"
+        path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
 
-        idx = np.random.choice(range(len(path_A)), size=batch_size)
-        batch_A = [path_A[i] for i in idx]
-        batch_B = [path_B[i] for i in idx]
+        batch = np.random.choice(path, size=batch_size)
 
         imgs_A, imgs_B = [], []
-        for img_path_A, img_path_B in zip(batch_A, batch_B):
-            img_A = self.imread(img_path_A)
-            img_B = self.imread(img_path_B)
+        for img in batch:
+            img = self.imread(img)
+            h, w, _ = img.shape
+            half_w = int(w/2)
+            img_A = img[:, :half_w, :]
+            img_B = img[:, half_w:, :]
 
             img_A = scipy.misc.imresize(img_A, self.img_res)
             img_B = scipy.misc.imresize(img_B, self.img_res)

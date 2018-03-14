@@ -25,7 +25,7 @@ class DiscoGAN():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
-        self.dataset_name = 'edges2handbags'
+        self.dataset_name = 'edges2shoes'
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
