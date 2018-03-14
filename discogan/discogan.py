@@ -35,7 +35,7 @@ class DiscoGAN():
         self.disc_patch = (patch, patch, 1)
 
         # Number of filters in the first layer of G and D
-        self.gf = 32
+        self.gf = 64
         self.df = 64
 
         # Loss weights
@@ -102,11 +102,12 @@ class DiscoGAN():
     def build_generator(self):
         """U-Net Generator"""
 
-        def conv2d(layer_input, filters, f_size=4):
+        def conv2d(layer_input, filters, f_size=4, normalize=True):
             """Layers used during downsampling"""
             d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
             d = LeakyReLU(alpha=0.2)(d)
-            d = InstanceNormalization()(d)
+            if normalize:
+                d = InstanceNormalization()(d)
             return d
 
         def deconv2d(layer_input, skip_input, filters, f_size=4, dropout_rate=0):
@@ -123,18 +124,24 @@ class DiscoGAN():
         d0 = Input(shape=self.img_shape)
 
         # Downsampling
-        d1 = conv2d(d0, self.gf)
+        d1 = conv2d(d0, self.gf, normalize=False)
         d2 = conv2d(d1, self.gf*2)
         d3 = conv2d(d2, self.gf*4)
         d4 = conv2d(d3, self.gf*8)
+        d5 = conv2d(d4, self.gf*8)
+        d6 = conv2d(d5, self.gf*8)
+        d7 = conv2d(d6, self.gf*8)
 
         # Upsampling
-        u1 = deconv2d(d4, d3, self.gf*4)
-        u2 = deconv2d(u1, d2, self.gf*2)
-        u3 = deconv2d(u2, d1, self.gf)
+        u1 = deconv2d(d7, d6, self.gf*8)
+        u2 = deconv2d(u1, d5, self.gf*8)
+        u3 = deconv2d(u2, d4, self.gf*8)
+        u4 = deconv2d(u3, d3, self.gf*4)
+        u5 = deconv2d(u4, d2, self.gf*2)
+        u6 = deconv2d(u5, d1, self.gf)
 
-        u4 = UpSampling2D(size=2)(u3)
-        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u4)
+        u7 = UpSampling2D(size=2)(u6)
+        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u7)
 
         return Model(d0, output_img)
 

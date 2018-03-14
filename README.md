@@ -158,7 +158,7 @@ Paper: https://arxiv.org/abs/1703.05192
 
 ```
 $ cd discogan
-$ bash download_dataset.sh edges2handbags
+$ bash download_dataset.sh edges2shoes
 $ python3 discogan.py
 ```   
 
