@@ -38,11 +38,6 @@ class DiscoGAN():
         self.gf = 64
         self.df = 64
 
-        # Loss weights
-        self.lambda_cycle = 10.0  # Cycle-consistency loss
-        self.lambda_id = 0.0      # Identity loss
-        self.lambda_trans = 1.0
-
         optimizer = Adam(0.0002, 0.5)
 
         # Build and compile the discriminators
@@ -80,23 +75,16 @@ class DiscoGAN():
         valid_A = self.d_A(fake_A)
         valid_B = self.d_B(fake_B)
 
-        # Losses
+        # Objectives
         # + Adversarial: Fool domain discriminators
-        # + Identity: Translated images shall keep semantics of original
-        # + Translation MAE: Minimize MAE between e.g. fake B and true B
-        # + Cycle-consistency: MAE between reconstructed images and original
+        # + Translation: Minimize MAE between e.g. fake B and true B
+        # + Cycle-consistency: Minimize MAE between reconstructed images and original
         self.combined = Model([img_A, img_B], [valid_A, valid_B, \
-                                               fake_B, fake_A, \
                                                fake_B, fake_A, \
                                                reconstr_A, reconstr_B])
         self.combined.compile(loss=['mse', 'mse', \
-                                    'mae', 'mae', \
-                                    'mae', 'mae', \
-                                    'mae', 'mae'],
-                              loss_weights=[1, 1, \
-                                          self.lambda_id, self.lambda_id, \
-                                          self.lambda_trans, self.lambda_trans, \
-                                          self.lambda_cycle, self.lambda_cycle],
+                                    'mse', 'mse', \
+                                    'mse', 'mse'],
                               optimizer=optimizer)
 
     def build_generator(self):
@@ -141,7 +129,8 @@ class DiscoGAN():
         u6 = deconv2d(u5, d1, self.gf)
 
         u7 = UpSampling2D(size=2)(u6)
-        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u7)
+        output_img = Conv2D(self.channels, kernel_size=4, strides=1,
+                            padding='same', activation='tanh')(u7)
 
         return Model(d0, output_img)
 
@@ -168,71 +157,65 @@ class DiscoGAN():
 
     def train(self, epochs, batch_size=128, save_interval=50):
 
-        half_batch = int(batch_size / 2)
-
         start_time = datetime.datetime.now()
+
 
         for epoch in range(epochs):
 
-            # ----------------------
-            #  Train Discriminators
-            # ----------------------
+            for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
-            imgs_A, imgs_B = self.data_loader.load_data(batch_size=half_batch)
+                # ----------------------
+                #  Train Discriminators
+                # ----------------------
 
-            # Translate images to opposite domain
-            fake_B = self.g_AB.predict(imgs_A)
-            fake_A = self.g_BA.predict(imgs_B)
+                # Translate images to opposite domain
+                fake_B = self.g_AB.predict(imgs_A)
+                fake_A = self.g_BA.predict(imgs_B)
 
-            valid = np.ones((half_batch,) + self.disc_patch)
-            fake = np.zeros((half_batch,) + self.disc_patch)
+                valid = np.ones((batch_size,) + self.disc_patch)
+                fake = np.zeros((batch_size,) + self.disc_patch)
 
-            # Train the discriminators (original images = real / translated = Fake)
-            dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
-            dA_loss_fake = self.d_A.train_on_batch(fake_A, fake)
-            dA_loss = 0.5 * np.add(dA_loss_real, dA_loss_fake)
+                # Train the discriminators (original images = real / translated = Fake)
+                dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
+                dA_loss_fake = self.d_A.train_on_batch(fake_A, fake)
+                dA_loss = 0.5 * np.add(dA_loss_real, dA_loss_fake)
 
-            dB_loss_real = self.d_B.train_on_batch(imgs_B, valid)
-            dB_loss_fake = self.d_B.train_on_batch(fake_B, fake)
-            dB_loss = 0.5 * np.add(dB_loss_real, dB_loss_fake)
+                dB_loss_real = self.d_B.train_on_batch(imgs_B, valid)
+                dB_loss_fake = self.d_B.train_on_batch(fake_B, fake)
+                dB_loss = 0.5 * np.add(dB_loss_real, dB_loss_fake)
 
-            # Total disciminator loss
-            d_loss = 0.5 * np.add(dA_loss, dB_loss)
+                # Total disciminator loss
+                d_loss = 0.5 * np.add(dA_loss, dB_loss)
 
 
-            # ------------------
-            #  Train Generators
-            # ------------------
+                # ------------------
+                #  Train Generators
+                # ------------------
 
-            # Sample a batch of images from both domains
-            imgs_A, imgs_B = self.data_loader.load_data(batch_size=batch_size)
+                # The generators want the discriminators to label the translated images as real
+                valid = np.ones((batch_size,) + self.disc_patch)
 
-            # The generators want the discriminators to label the translated images as real
-            valid = np.ones((batch_size,) + self.disc_patch)
+                # Train the generators
+                g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, \
+                                                                         imgs_B, imgs_A, \
+                                                                         imgs_A, imgs_B])
 
-            # Train the generators
-            g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, \
-                                                                     imgs_A, imgs_B, \
-                                                                     imgs_B, imgs_A, \
-                                                                     imgs_A, imgs_B])
+                elapsed_time = datetime.datetime.now() - start_time
+                # Plot the progress
+                print ("[%d] [%d/%d] time: %s, [d_loss: %f, g_loss: %f]" % (epoch, batch_i,
+                                                                        self.data_loader.n_batches,
+                                                                        elapsed_time,
+                                                                        d_loss[0], g_loss[0]))
 
-            elapsed_time = datetime.datetime.now() - start_time
-            # Plot the progress
-            print ("%d time: %s" % (epoch, elapsed_time))
+                # If at save interval => save generated image samples
+                if batch_i % save_interval == 0:
+                    self.save_imgs(epoch, batch_i)
 
-            # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
-
-    def save_imgs(self, epoch):
+    def save_imgs(self, epoch, batch_i):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 2, 3
 
         imgs_A, imgs_B = self.data_loader.load_data(batch_size=1, is_testing=True)
-
-        # Demo (for GIF)
-        #imgs_A = self.data_loader.load_img('datasets/apple2orange/testA/n07740461_1541.jpg')
-        #imgs_B = self.data_loader.load_img('datasets/apple2orange/testB/n07749192_4241.jpg')
 
         # Translate images to the other domain
         fake_B = self.g_AB.predict(imgs_A)
@@ -255,10 +238,10 @@ class DiscoGAN():
                 axs[i, j].set_title(titles[j])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d.png" % (self.dataset_name, epoch))
+        fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
 if __name__ == '__main__':
     gan = DiscoGAN()
-    gan.train(epochs=30000, batch_size=2, save_interval=200)
+    gan.train(epochs=20, batch_size=1, save_interval=200)

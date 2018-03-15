@@ -162,6 +162,10 @@ $ bash download_dataset.sh edges2shoes
 $ python3 discogan.py
 ```   
 
+<p align="center">
+    <img src="http://eriklindernoren.se/images/discogan.png" width="640"\>
+</p>
+
 ### DualGAN
 Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Translation.
 
