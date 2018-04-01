@@ -29,7 +29,7 @@ class WGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=self.wasserstein_loss, 
+        self.discriminator.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -48,9 +48,9 @@ class WGAN():
         valid = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity 
+        # noise as input => generates images => determines validity
         self.combined = Model(z, valid)
-        self.combined.compile(loss=self.wasserstein_loss, 
+        self.combined.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -60,7 +60,7 @@ class WGAN():
     def build_generator(self):
 
         noise_shape = (100,)
-        
+
         model = Sequential()
 
         model.add(Dense(128 * 7 * 7, activation="relu", input_shape=noise_shape))
@@ -74,7 +74,7 @@ class WGAN():
         model.add(Conv2D(64, kernel_size=4, padding="same"))
         model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(1, kernel_size=4, padding="same"))
+        model.add(Conv2D(self.channels, kernel_size=4, padding="same"))
         model.add(Activation("tanh"))
 
         model.summary()
@@ -87,7 +87,7 @@ class WGAN():
     def build_discriminator(self):
 
         img_shape = (self.img_rows, self.img_cols, self.channels)
-        
+
         model = Sequential()
 
         model.add(Conv2D(16, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
@@ -194,9 +194,3 @@ class WGAN():
 if __name__ == '__main__':
     wgan = WGAN()
     wgan.train(epochs=4000, batch_size=32, save_interval=50)
-
-
-
-
-
-
