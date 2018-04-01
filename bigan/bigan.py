@@ -18,7 +18,7 @@ import numpy as np
 
 class BIGAN():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
@@ -28,24 +28,24 @@ class BIGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=['binary_crossentropy'], 
+        self.discriminator.compile(loss=['binary_crossentropy'],
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'], 
+        self.generator.compile(loss=['binary_crossentropy'],
             optimizer=optimizer)
 
         # Build and compile the encoder
         self.encoder = self.build_encoder()
-        self.encoder.compile(loss=['binary_crossentropy'], 
+        self.encoder.compile(loss=['binary_crossentropy'],
             optimizer=optimizer)
 
         # The part of the bigan that trains the discriminator and encoder
         self.discriminator.trainable = False
 
-        # Generate image from samples noise
+        # Generate image from sampled noise
         z = Input(shape=(self.latent_dim, ))
         img_ = self.generator(z)
 
@@ -106,7 +106,7 @@ class BIGAN():
         z = Input(shape=(self.latent_dim, ))
         img = Input(shape=self.img_shape)
         d_in = concatenate([z, Flatten()(img)])
-        
+
         model = Dense(1024)(d_in)
         model = LeakyReLU(alpha=0.2)(model)
         model = Dropout(0.5)(model)
@@ -201,9 +201,3 @@ class BIGAN():
 if __name__ == '__main__':
     bigan = BIGAN()
     bigan.train(epochs=40000, batch_size=32, save_interval=400)
-
-
-
-
-
-

@@ -16,7 +16,7 @@ import numpy as np
 
 class GAN():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
@@ -25,7 +25,7 @@ class GAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy', 
+        self.discriminator.compile(loss='binary_crossentropy',
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -33,25 +33,25 @@ class GAN():
         self.generator = self.build_generator()
         self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
-        # The generator takes noise as input and generated imgs
+        # The generator takes noise as input and generates imgs
         z = Input(shape=(100,))
         img = self.generator(z)
 
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
 
-        # The valid takes generated images as input and determines validity
+        # The discriminator takes generated images as input and determines validity
         valid = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity 
+        # noise as input => generates images => determines validity
         self.combined = Model(z, valid)
         self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
 
     def build_generator(self):
 
         noise_shape = (100,)
-        
+
         model = Sequential()
 
         model.add(Dense(256, input_shape=noise_shape))
@@ -76,7 +76,7 @@ class GAN():
     def build_discriminator(self):
 
         img_shape = (self.img_rows, self.img_cols, self.channels)
-        
+
         model = Sequential()
 
         model.add(Flatten(input_shape=img_shape))
@@ -166,9 +166,3 @@ class GAN():
 if __name__ == '__main__':
     gan = GAN()
     gan.train(epochs=30000, batch_size=32, save_interval=200)
-
-
-
-
-
-
