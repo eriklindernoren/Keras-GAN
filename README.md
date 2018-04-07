@@ -25,6 +25,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [InfoGAN](#infogan)
     + [LSGAN](#lsgan)
     + [Pix2Pix](#pix2pix)
+    + [PixelDA](#pixelda)
     + [Semi-Supervised GAN](#sgan)
     + [Super-Resolution GAN](#srgan)
     + [Wasserstein GAN](#wgan)
@@ -229,6 +230,20 @@ $ python3 pix2pix.py
 <p align="center">
     <img src="http://eriklindernoren.se/images/pix2pix2.png" width="640"\>
 </p>
+
+### PixelDA
+Implementation of Unsupervised Pixel-Level Domain Adaptation with Generative Adversarial Networks.
+
+[Code](pixelda/pixelda.py)
+
+Paper: https://arxiv.org/abs/1612.05424
+
+**MNIST to MNIST-M Classification**
+
+| Method       | Accuracy  |
+| ------------ |:---------:|
+| Naive        | 55%       |
+| PixelDA      | 95%       |
 
 ### SGAN
 Implementation of Semi-Supervised Generative Adversarial Network.
