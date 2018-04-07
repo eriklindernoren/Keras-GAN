@@ -16,7 +16,7 @@ import numpy as np
 
 class DCGAN():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
 
@@ -24,7 +24,7 @@ class DCGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy', 
+        self.discriminator.compile(loss='binary_crossentropy',
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -32,25 +32,24 @@ class DCGAN():
         self.generator = self.build_generator()
         self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
-        # The generator takes noise as input and generated imgs
+        # The generator takes noise as input and generates imgs
         z = Input(shape=(100,))
         img = self.generator(z)
 
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
 
-        # The valid takes generated images as input and determines validity
+        # The discriminator takes generated images as input and determines validity
         valid = self.discriminator(img)
 
-        # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity 
+        # The combined model  (stacked generator and discriminator)
         self.combined = Model(z, valid)
         self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
 
     def build_generator(self):
 
         noise_shape = (100,)
-        
+
         model = Sequential()
 
         model.add(Dense(128 * 7 * 7, activation="relu", input_shape=noise_shape))
@@ -59,12 +58,12 @@ class DCGAN():
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=3, padding="same"))
         model.add(Activation("relu"))
-        model.add(BatchNormalization(momentum=0.8)) 
+        model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
         model.add(Conv2D(64, kernel_size=3, padding="same"))
         model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(1, kernel_size=3, padding="same"))
+        model.add(Conv2D(self.channels, kernel_size=3, padding="same"))
         model.add(Activation("tanh"))
 
         model.summary()
@@ -77,7 +76,7 @@ class DCGAN():
     def build_discriminator(self):
 
         img_shape = (self.img_rows, self.img_cols, self.channels)
-        
+
         model = Sequential()
 
         model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
@@ -175,9 +174,3 @@ class DCGAN():
 if __name__ == '__main__':
     dcgan = DCGAN()
     dcgan.train(epochs=4000, batch_size=32, save_interval=50)
-
-
-
-
-
-
