@@ -55,6 +55,7 @@ class PixelDA():
         self.generator = self.build_generator()
         self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
+        # Build and compile the task (classification) network
         self.clf = self.build_classifier()
         self.clf.compile(loss='binary_crossentropy', optimizer=optimizer)
 
@@ -68,10 +69,10 @@ class PixelDA():
         # Classify the translated image
         class_pred = self.clf(fake_B)
 
-        # For the combined model we will only train the generators
+        # For the combined model we will only train the generator and classifier
         self.discriminator.trainable = False
 
-        # Discriminators determines validity of translated images
+        # Discriminator determines validity of translated images
         valid = self.discriminator(fake_B)
 
         self.combined = Model(img_A, [valid, class_pred])
@@ -105,48 +106,7 @@ class PixelDA():
         output_img = Conv2D(self.channels, kernel_size=3, padding='same', activation='tanh')(r)
 
         return Model(img, output_img)
-    #
-    # def build_generator(self):
-    #     """U-Net Generator"""
-    #
-    #     def conv2d(layer_input, filters, f_size=4, dropout=0.5):
-    #         """Layers used during downsampling"""
-    #         d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
-    #         d = LeakyReLU(alpha=0.2)(d)
-    #         d = InstanceNormalization()(d)
-    #         # Applies dropout in train and test phase
-    #         if dropout:
-    #             d = Dropout(dropout)(d, training=True)
-    #         return d
-    #
-    #     def deconv2d(layer_input, skip_input, filters, f_size=4, dropout=0):
-    #         """Layers used during upsampling"""
-    #         u = UpSampling2D(size=2)(layer_input)
-    #         u = Conv2D(filters, kernel_size=f_size, strides=1, padding='same', activation='relu')(u)
-    #         u = InstanceNormalization()(u)
-    #         # Applies dropout in train and test phase
-    #         if dropout:
-    #             u = Dropout(dropout)(u, training=True)
-    #         u = Concatenate()([u, skip_input])
-    #         return u
-    #
-    #     # Image input
-    #     d0 = Input(shape=self.img_shape)
-    #
-    #     # Downsampling
-    #     d1 = conv2d(d0, self.gf)
-    #     d2 = conv2d(d1, self.gf*2)
-    #     d3 = conv2d(d2, self.gf*4)
-    #     d4 = conv2d(d3, self.gf*8)
-    #     # Upsampling
-    #     u1 = deconv2d(d4, d3, self.gf*4)
-    #     u2 = deconv2d(u1, d2, self.gf*2)
-    #     u3 = deconv2d(u2, d1, self.gf)
-    #
-    #     u4 = UpSampling2D(size=2)(u3)
-    #     output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u4)
-    #
-    #     return Model(d0, output_img)
+
 
     def build_discriminator(self):
 
