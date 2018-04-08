@@ -30,7 +30,7 @@ class RandomWeightedAverage(_Merge):
         return (weights * inputs[0]) + ((1 - weights) * inputs[1])
 
 class ImprovedWGAN():
-    def __init__(self, batch_size):
+    def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
@@ -38,7 +38,6 @@ class ImprovedWGAN():
 
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
-        self.clip_value = 0.01
         optimizer = RMSprop(lr=0.00005)
 
         # Build the generator and discriminator
@@ -50,7 +49,7 @@ class ImprovedWGAN():
         #       for Discriminator
         #-------------------------------
 
-        # Freeze generator's layers while training generator
+        # Freeze generator's layers while training discriminator
         self.generator.trainable = False
 
         # Image input (real sample)
@@ -195,7 +194,7 @@ class ImprovedWGAN():
         # Adversarial ground truths
         valid = -np.ones((batch_size, 1))
         fake =  np.ones((batch_size, 1))
-        dummy = np.zeros((batch_size, 1))
+        dummy = np.zeros((batch_size, 1)) # Dummy gt for gradient penalty
         for epoch in range(epochs):
 
             for _ in range(self.n_critic):
@@ -251,4 +250,4 @@ class ImprovedWGAN():
 
 if __name__ == '__main__':
     wgan = ImprovedWGAN()
-    wgan.train(epochs=4000, batch_size=32, save_interval=50)
+    wgan.train(epochs=10000, batch_size=32, save_interval=100)
