@@ -22,6 +22,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
     + [DiscoGAN](#discogan)
     + [DualGAN](#dualgan)
     + [Generative Adversarial Network](#gan)
+    + [Improved Wasserstein GAN](#improved-wgan)
     + [InfoGAN](#infogan)
     + [LSGAN](#lsgan)
     + [Pix2Pix](#pix2pix)
@@ -192,6 +193,13 @@ GAN on RGB face images
     <img src="gan/etc/adam.gif" width="640"\>
 </p>
 
+### Improved WGAN
+Implementation of Improved Training of Wasserstein GANs.
+
+[Code](improved_wgan/improved_wgan.py)
+
+Paper: https://arxiv.org/abs/1704.00028
+
 ### InfoGAN
 Implementation of InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets.
 
@@ -239,7 +247,7 @@ Implementation of Unsupervised Pixel-Level Domain Adaptation with Generative Adv
 Paper: https://arxiv.org/abs/1612.05424
 
 ##### MNIST to MNIST-M Classification
-Trains a classifier on MNIST images that are translated to resemble MNIST-M (by performing unsupervised image-to-image domain adaptation). This model is compared to the naive solution of training a classifier on MNIST and evaluating it on MNIST-M. The naive model manages a 55% classification accuracy on MNIST-M while the one trained during domain adaptation gets a 95% classification accuracy. 
+Trains a classifier on MNIST images that are translated to resemble MNIST-M (by performing unsupervised image-to-image domain adaptation). This model is compared to the naive solution of training a classifier on MNIST and evaluating it on MNIST-M. The naive model manages a 55% classification accuracy on MNIST-M while the one trained during domain adaptation gets a 95% classification accuracy.
 
 | Method       | Accuracy  |
 | ------------ |:---------:|
