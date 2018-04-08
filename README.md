@@ -201,7 +201,7 @@ Implementation of Improved Training of Wasserstein GANs.
 Paper: https://arxiv.org/abs/1704.00028
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/improved_wgan1.gif" width="640"\>
+    <img src="http://eriklindernoren.se/images/imp_wgan.gif" width="640"\>
 </p>
 
 ### InfoGAN
