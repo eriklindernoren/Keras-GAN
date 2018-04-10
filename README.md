@@ -38,7 +38,7 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
 
 ## Implementations   
 ### AC-GAN
-Implementation of Auxiliary Classifier Generative Adversarial Network.
+Implementation of _Auxiliary Classifier Generative Adversarial Network_.
 
 [Code](acgan/acgan.py)
 
@@ -55,7 +55,7 @@ $ python3 acgan.py
 </p>
 
 ### Adversarial Autoencoder
-Implementation of Adversarial Autoencoder.
+Implementation of _Adversarial Autoencoder_.
 
 [Code](aae/adversarial_autoencoder.py)
 
@@ -72,7 +72,7 @@ $ python3 aae.py
 </p>
 
 ### BiGAN
-Implementation of Bidirectional Generative Adversarial Network.
+Implementation of _Bidirectional Generative Adversarial Network_.
 
 [Code](bigan/bigan.py)
 
@@ -85,7 +85,7 @@ $ python3 bigan.py
 ```
 
 ### BGAN
-Implementation of Boundary-Seeking Generative Adversarial Networks.
+Implementation of _Boundary-Seeking Generative Adversarial Networks_.
 
 [Code](bgan/bgan.py)
 
@@ -98,7 +98,7 @@ $ python3 bgan.py
 ```
 
 ### CC-GAN
-Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
+Implementation of _Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks_.
 
 [Code](ccgan/ccgan.py)
 
@@ -115,7 +115,7 @@ $ python3 ccgan.py
 </p>
 
 ### CGAN
-Implementation of Conditional Generative Adversarial Nets.
+Implementation of _Conditional Generative Adversarial Nets_.
 
 [Code](cgan/cgan.py)
 
@@ -132,7 +132,7 @@ $ python3 cgan.py
 </p>
 
 ### Context Encoder
-Implementation of Context Encoders: Feature Learning by Inpainting.
+Implementation of _Context Encoders: Feature Learning by Inpainting_.
 
 [Code](context_encoder/context_encoder.py)
 
@@ -149,7 +149,7 @@ $ python3 context_encoder.py
 </p>
 
 ### CoGAN
-Implementation of Coupled generative adversarial networks.
+Implementation of _Coupled generative adversarial networks_.
 
 [Code](cogan/cogan.py)
 
@@ -162,7 +162,7 @@ $ python3 cogan.py
 ```
 
 ### CycleGAN
-Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks.
+Implementation of _Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks_.
 
 [Code](cyclegan/cyclegan.py)
 
@@ -185,7 +185,7 @@ $ python3 cyclegan.py
 
 
 ### DCGAN
-Implementation of Deep Convolutional Generative Adversarial Network.
+Implementation of _Deep Convolutional Generative Adversarial Network_.
 
 [Code](dcgan/dcgan.py)
 
@@ -202,7 +202,7 @@ $ python3 dcgan.py
 </p>
 
 ### DiscoGAN
-Implementation of Learning to Discover Cross-Domain Relations with Generative Adversarial Networks.
+Implementation of _Learning to Discover Cross-Domain Relations with Generative Adversarial Networks_.
 
 [Code](discogan/discogan.py)
 
@@ -224,7 +224,7 @@ $ python3 discogan.py
 </p>
 
 ### DualGAN
-Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Translation.
+Implementation of _DualGAN: Unsupervised Dual Learning for Image-to-Image Translation_.
 
 [Code](dualgan/dualgan.py)
 
@@ -237,7 +237,7 @@ $ python3 dualgan.py
 ```
 
 ### GAN
-Implementation of Generative Adversarial Network with a MLP generator and discriminator.
+Implementation of _Generative Adversarial Network_ with a MLP generator and discriminator.
 
 [Code](gan/gan.py)
 
@@ -268,7 +268,7 @@ $ python3 gan_rgb.py
 </p>
 
 ### Improved WGAN
-Implementation of Improved Training of Wasserstein GANs.
+Implementation of _Improved Training of Wasserstein GANs_.
 
 [Code](improved_wgan/improved_wgan.py)
 
@@ -285,7 +285,7 @@ $ python3 improved_wgan.py
 </p>
 
 ### InfoGAN
-Implementation of InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets.
+Implementation of _InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets_.
 
 [Code](infogan/infogan.py)
 
@@ -302,7 +302,7 @@ $ python3 infogan.py
 </p>
 
 ### LSGAN
-Implementation of Least Squares Generative Adversarial Networks.
+Implementation of _Least Squares Generative Adversarial Networks_.
 
 [Code](lsgan/lsgan.py)
 
@@ -315,7 +315,7 @@ $ python3 lsgan.py
 ```
 
 ### Pix2Pix
-Implementation of Unpaired Image-to-Image Translation with Conditional Adversarial Networks.
+Implementation of _Unpaired Image-to-Image Translation with Conditional Adversarial Networks_.
 
 [Code](pix2pix/pix2pix.py)
 
@@ -337,7 +337,7 @@ $ python3 pix2pix.py
 </p>
 
 ### PixelDA
-Implementation of Unsupervised Pixel-Level Domain Adaptation with Generative Adversarial Networks.
+Implementation of _Unsupervised Pixel-Level Domain Adaptation with Generative Adversarial Networks_.
 
 [Code](pixelda/pixelda.py)
 
@@ -357,7 +357,7 @@ $ python3 pixelda.py
 | PixelDA      | 95%       |
 
 ### SGAN
-Implementation of Semi-Supervised Generative Adversarial Network.
+Implementation of _Semi-Supervised Generative Adversarial Network_.
 
 [Code](sgan/sgan.py)
 
@@ -374,7 +374,7 @@ $ python3 sgan.py
 </p>
 
 ### SRGAN
-Implementation of Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network.
+Implementation of _Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network_.
 
 [Code](srgan/srgan.py)
 
@@ -397,7 +397,7 @@ $ python3 srgan.py
 </p>
 
 ### WGAN
-Implementation of Wasserstein GAN (with DCGAN generator and discriminator).
+Implementation of _Wasserstein GAN_ (with DCGAN generator and discriminator).
 
 [Code](wgan/wgan.py)
 
