@@ -44,6 +44,11 @@ Implementation of Auxiliary Classifier Generative Adversarial Network.
 
 Paper: https://arxiv.org/abs/1610.09585
 
+```
+cd acgan
+python3 acgan.py
+```
+
 <p align="center">
     <img src="http://eriklindernoren.se/images/acgan.gif" width="640"\>
 </p>
@@ -54,6 +59,11 @@ Implementation of Adversarial Autoencoder.
 [Code](aae/adversarial_autoencoder.py)
 
 Paper: https://arxiv.org/abs/1511.05644
+
+```
+cd aae
+python3 aae.py
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/aae.png" width="640"\>
@@ -66,6 +76,11 @@ Implementation of Bidirectional Generative Adversarial Network.
 
 Paper: https://arxiv.org/abs/1605.09782
 
+```
+cd bigan
+python3 bigan.py
+```
+
 ### BGAN
 Implementation of Boundary-Seeking Generative Adversarial Networks.
 
@@ -73,12 +88,22 @@ Implementation of Boundary-Seeking Generative Adversarial Networks.
 
 Paper: https://arxiv.org/abs/1702.08431
 
+```
+cd bgan
+python3 bgan.py
+```
+
 ### CC-GAN
 Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
 
 [Code](ccgan/ccgan.py)
 
 Paper: https://arxiv.org/abs/1611.06430
+
+```
+cd ccgan
+python3 ccgan.py
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/ccgan.png" width="640"\>
@@ -91,6 +116,11 @@ Implementation of Conditional Generative Adversarial Nets.
 
 Paper:https://arxiv.org/abs/1411.1784
 
+```
+cd cgan
+python3 cgan.py
+```
+
 <p align="center">
     <img src="http://eriklindernoren.se/images/cgan.gif" width="640"\>
 </p>
@@ -102,6 +132,11 @@ Implementation of Context Encoders: Feature Learning by Inpainting.
 
 Paper: https://arxiv.org/abs/1604.07379
 
+```
+cd context_encoder
+python3 context_encoder.py
+```
+
 <p align="center">
     <img src="http://eriklindernoren.se/images/context_encoder.png" width="640"\>
 </p>
@@ -112,6 +147,11 @@ Implementation of Coupled generative adversarial networks.
 [Code](cogan/cogan.py)
 
 Paper: https://arxiv.org/abs/1606.07536
+
+```
+cd cogan
+python3 cogan.py
+```
 
 ### CycleGAN
 Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks.
@@ -135,13 +175,17 @@ $ python3 cyclegan.py
 </p>
 
 
-
 ### DCGAN
 Implementation of Deep Convolutional Generative Adversarial Network.
 
 [Code](dcgan/dcgan.py)
 
 Paper: https://arxiv.org/abs/1511.06434
+
+```
+cd dcgan
+python3 dcgan.py
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/dcgan2.png" width="640"\>
@@ -175,6 +219,11 @@ Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Transla
 
 Paper: https://arxiv.org/abs/1704.02510
 
+```
+cd dualgan
+python3 dualgan.py
+```
+
 ### GAN
 Implementation of Generative Adversarial Network with a MLP generator and discriminator.
 
@@ -182,12 +231,23 @@ Implementation of Generative Adversarial Network with a MLP generator and discri
 
 Paper: https://arxiv.org/abs/1406.2661
 
+```
+cd gan
+python3 gan.py
+```
+
 <p align="center">
     <img src="http://eriklindernoren.se/images/gan.png" width="640"\>
 </p>
 
 GAN on RGB face images
 [Code](gan/gan_rgb.py)
+
+```
+cd gan
+<follow steps at the top of gan_rgb.py>
+python3 gan_rgb.py
+```
 
 <p align="center">
     <img src="gan/etc/adam.gif" width="640"\>
@@ -200,6 +260,11 @@ Implementation of Improved Training of Wasserstein GANs.
 
 Paper: https://arxiv.org/abs/1704.00028
 
+```
+cd improved_wgan
+python3 improved_wgan.py
+```
+
 <p align="center">
     <img src="http://eriklindernoren.se/images/imp_wgan.gif" width="640"\>
 </p>
@@ -211,6 +276,11 @@ Implementation of InfoGAN: Interpretable Representation Learning by Information 
 
 Paper: https://arxiv.org/abs/1606.03657
 
+```
+cd infogan
+python3 infogan.py
+```
+
 <p align="center">
     <img src="http://eriklindernoren.se/images/infogan.png" width="640"\>
 </p>
@@ -221,6 +291,11 @@ Implementation of Least Squares Generative Adversarial Networks.
 [Code](lsgan/lsgan.py)
 
 Paper: https://arxiv.org/abs/1611.04076
+
+```
+cd lsgan
+python3 lsgan.py
+```
 
 ### Pix2Pix
 Implementation of Unpaired Image-to-Image Translation with Conditional Adversarial Networks.
@@ -253,6 +328,11 @@ Paper: https://arxiv.org/abs/1612.05424
 ##### MNIST to MNIST-M Classification
 Trains a classifier on MNIST images that are translated to resemble MNIST-M (by performing unsupervised image-to-image domain adaptation). This model is compared to the naive solution of training a classifier on MNIST and evaluating it on MNIST-M. The naive model manages a 55% classification accuracy on MNIST-M while the one trained during domain adaptation gets a 95% classification accuracy.
 
+```
+cd pixelda
+python3 pixelda.py
+```
+
 | Method       | Accuracy  |
 | ------------ |:---------:|
 | Naive        | 55%       |
@@ -264,6 +344,11 @@ Implementation of Semi-Supervised Generative Adversarial Network.
 [Code](sgan/sgan.py)
 
 Paper: https://arxiv.org/abs/1606.01583
+
+```
+cd sgan
+python3 sgan.py
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/sgan.png" width="640"\>
@@ -281,6 +366,12 @@ Paper: https://arxiv.org/abs/1609.04802
 </p>
 
 
+```
+cd srgan
+<follow steps at the top of srgan.py>
+python3 srgan.py
+```
+
 <p align="center">
     <img src="http://eriklindernoren.se/images/srgan.png" width="640"\>
 </p>
@@ -291,6 +382,11 @@ Implementation of Wasserstein GAN (with DCGAN generator and discriminator).
 [Code](wgan/wgan.py)
 
 Paper: https://arxiv.org/abs/1701.07875
+
+```
+cd wgan
+python3 wgan.py
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/wgan2.png" width="640"\>
