@@ -44,6 +44,7 @@ Implementation of Auxiliary Classifier Generative Adversarial Network.
 
 Paper: https://arxiv.org/abs/1610.09585
 
+#### Example
 ```
 $ cd acgan/
 $ python3 acgan.py
@@ -60,6 +61,7 @@ Implementation of Adversarial Autoencoder.
 
 Paper: https://arxiv.org/abs/1511.05644
 
+#### Example
 ```
 $ cd aae/
 $ python3 aae.py
@@ -76,6 +78,7 @@ Implementation of Bidirectional Generative Adversarial Network.
 
 Paper: https://arxiv.org/abs/1605.09782
 
+#### Example
 ```
 $ cd bigan/
 $ python3 bigan.py
@@ -88,6 +91,7 @@ Implementation of Boundary-Seeking Generative Adversarial Networks.
 
 Paper: https://arxiv.org/abs/1702.08431
 
+#### Example
 ```
 $ cd bgan/
 $ python3 bgan.py
@@ -100,6 +104,7 @@ Implementation of Semi-Supervised Learning with Context-Conditional Generative A
 
 Paper: https://arxiv.org/abs/1611.06430
 
+#### Example
 ```
 $ cd ccgan/
 $ python3 ccgan.py
@@ -116,6 +121,7 @@ Implementation of Conditional Generative Adversarial Nets.
 
 Paper:https://arxiv.org/abs/1411.1784
 
+#### Example
 ```
 $ cd cgan/
 $ python3 cgan.py
@@ -132,6 +138,7 @@ Implementation of Context Encoders: Feature Learning by Inpainting.
 
 Paper: https://arxiv.org/abs/1604.07379
 
+#### Example
 ```
 $ cd context_encoder/
 $ python3 context_encoder.py
@@ -148,6 +155,7 @@ Implementation of Coupled generative adversarial networks.
 
 Paper: https://arxiv.org/abs/1606.07536
 
+#### Example
 ```
 $ cd cogan/
 $ python3 cogan.py
@@ -164,6 +172,7 @@ Paper: https://arxiv.org/abs/1703.10593
     <img src="http://eriklindernoren.se/images/cyclegan.png" width="640"\>
 </p>
 
+#### Example
 ```
 $ cd cyclegan/
 $ bash download_dataset.sh apple2orange
@@ -182,6 +191,7 @@ Implementation of Deep Convolutional Generative Adversarial Network.
 
 Paper: https://arxiv.org/abs/1511.06434
 
+#### Example
 ```
 $ cd dcgan/
 $ python3 dcgan.py
@@ -202,6 +212,7 @@ Paper: https://arxiv.org/abs/1703.05192
     <img src="http://eriklindernoren.se/images/discogan_architecture.png" width="640"\>
 </p>
 
+#### Example
 ```
 $ cd discogan/
 $ bash download_dataset.sh edges2shoes
@@ -219,6 +230,7 @@ Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Transla
 
 Paper: https://arxiv.org/abs/1704.02510
 
+#### Example
 ```
 $ cd dualgan/
 $ python3 dualgan.py
@@ -231,6 +243,7 @@ Implementation of Generative Adversarial Network with a MLP generator and discri
 
 Paper: https://arxiv.org/abs/1406.2661
 
+#### Example
 ```
 $ cd gan/
 $ python3 gan.py
@@ -243,6 +256,7 @@ $ python3 gan.py
 GAN on RGB face images
 [Code](gan/gan_rgb.py)
 
+#### Example
 ```
 $ cd gan/
 <follow steps at the top of gan_rgb.py>
@@ -260,6 +274,7 @@ Implementation of Improved Training of Wasserstein GANs.
 
 Paper: https://arxiv.org/abs/1704.00028
 
+#### Example
 ```
 $ cd improved_wgan/
 $ python3 improved_wgan.py
@@ -276,6 +291,7 @@ Implementation of InfoGAN: Interpretable Representation Learning by Information 
 
 Paper: https://arxiv.org/abs/1606.03657
 
+#### Example
 ```
 $ cd infogan/
 $ python3 infogan.py
@@ -292,6 +308,7 @@ Implementation of Least Squares Generative Adversarial Networks.
 
 Paper: https://arxiv.org/abs/1611.04076
 
+#### Example
 ```
 $ cd lsgan/
 $ python3 lsgan.py
@@ -308,6 +325,7 @@ Paper: https://arxiv.org/abs/1611.07004
     <img src="http://eriklindernoren.se/images/pix2pix_architecture.png" width="640"\>
 </p>
 
+#### Example
 ```
 $ cd pix2pix/
 $ bash download_dataset.sh facades
@@ -325,7 +343,7 @@ Implementation of Unsupervised Pixel-Level Domain Adaptation with Generative Adv
 
 Paper: https://arxiv.org/abs/1612.05424
 
-##### MNIST to MNIST-M Classification
+#### MNIST to MNIST-M Classification
 Trains a classifier on MNIST images that are translated to resemble MNIST-M (by performing unsupervised image-to-image domain adaptation). This model is compared to the naive solution of training a classifier on MNIST and evaluating it on MNIST-M. The naive model manages a 55% classification accuracy on MNIST-M while the one trained during domain adaptation gets a 95% classification accuracy.
 
 ```
@@ -345,6 +363,7 @@ Implementation of Semi-Supervised Generative Adversarial Network.
 
 Paper: https://arxiv.org/abs/1606.01583
 
+#### Example
 ```
 $ cd sgan/
 $ python3 sgan.py
@@ -366,6 +385,7 @@ Paper: https://arxiv.org/abs/1609.04802
 </p>
 
 
+#### Example
 ```
 $ cd srgan/
 <follow steps at the top of srgan.py>
@@ -383,6 +403,7 @@ Implementation of Wasserstein GAN (with DCGAN generator and discriminator).
 
 Paper: https://arxiv.org/abs/1701.07875
 
+#### Example
 ```
 $ cd wgan/
 $ python3 wgan.py
