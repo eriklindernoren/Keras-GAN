@@ -118,7 +118,7 @@ class AdversarialAutoencoder():
 
         return Model(encoded_repr, validity)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
@@ -172,13 +172,13 @@ class AdversarialAutoencoder():
             print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
+            if epoch % sample_interval == 0:
                 # Select a random half batch of images
                 idx = np.random.randint(0, X_train.shape[0], 25)
                 imgs = X_train[idx]
-                self.save_imgs(epoch, imgs)
+                self.sample_images(epoch, imgs)
 
-    def save_imgs(self, epoch, imgs):
+    def sample_images(self, epoch, imgs):
         r, c = 5, 5
 
         encoded_imgs = self.encoder.predict(imgs)
@@ -213,4 +213,4 @@ class AdversarialAutoencoder():
 
 if __name__ == '__main__':
     aae = AdversarialAutoencoder()
-    aae.train(epochs=20000, batch_size=32, save_interval=200)
+    aae.train(epochs=20000, batch_size=32, sample_interval=200)

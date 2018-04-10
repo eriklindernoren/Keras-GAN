@@ -115,7 +115,7 @@ class DUALGAN():
     def wasserstein_loss(self, y_true, y_pred):
         return K.mean(y_true * y_pred)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
@@ -191,7 +191,7 @@ class DUALGAN():
                 % (epoch, d1_loss[0], 100*d1_loss[1], d2_loss[0], 100*d2_loss[1], g_loss[0]))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
+            if epoch % sample_interval == 0:
                 self.save_imgs(epoch, X1)
 
     def save_imgs(self, epoch, X):
@@ -223,4 +223,4 @@ class DUALGAN():
 
 if __name__ == '__main__':
     gan = DUALGAN()
-    gan.train(epochs=30000, batch_size=32, save_interval=200)
+    gan.train(epochs=30000, batch_size=32, sample_interval=200)

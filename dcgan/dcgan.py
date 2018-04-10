@@ -16,9 +16,12 @@ import numpy as np
 
 class DCGAN():
     def __init__(self):
+        # Input shape
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
+        self.img_shape = (self.img_rows, self.img_cols, self.channels)
+        self.latent_dim = 100
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -48,11 +51,9 @@ class DCGAN():
 
     def build_generator(self):
 
-        noise_shape = (100,)
-
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_shape=noise_shape))
+        model.add(Dense(128 * 7 * 7, activation="relu", input_shape=(self.latent_dim,)))
         model.add(Reshape((7, 7, 128)))
         model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
@@ -68,18 +69,16 @@ class DCGAN():
 
         model.summary()
 
-        noise = Input(shape=noise_shape)
+        noise = Input(shape=(self.latent_dim,))
         img = model(noise)
 
         return Model(noise, img)
 
     def build_discriminator(self):
 
-        img_shape = (self.img_rows, self.img_cols, self.channels)
-
         model = Sequential()
 
-        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
+        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
@@ -100,7 +99,7 @@ class DCGAN():
 
         model.summary()
 
-        img = Input(shape=img_shape)
+        img = Input(shape=self.img_shape)
         validity = model(img)
 
         return Model(img, validity)
@@ -139,8 +138,9 @@ class DCGAN():
             #  Train Generator
             # ---------------------
 
+            # Sample generator input
             noise = np.random.normal(0, 1, (batch_size, 100))
-
+            
             # Train the generator (wants discriminator to mistake images as real)
             g_loss = self.combined.train_on_batch(noise, np.ones((batch_size, 1)))
 

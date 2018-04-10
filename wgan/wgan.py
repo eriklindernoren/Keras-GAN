@@ -116,7 +116,7 @@ class WGAN():
 
         return Model(img, valid)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
@@ -169,10 +169,10 @@ class WGAN():
             print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1 - d_loss[0], 1 - g_loss[0]))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, 100))
         gen_imgs = self.generator.predict(noise)
@@ -193,4 +193,4 @@ class WGAN():
 
 if __name__ == '__main__':
     wgan = WGAN()
-    wgan.train(epochs=4000, batch_size=32, save_interval=50)
+    wgan.train(epochs=4000, batch_size=32, sample_interval=50)

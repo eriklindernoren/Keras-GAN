@@ -182,7 +182,7 @@ class ImprovedWGAN():
 
         return Model(img, valid)
 
-    def train(self, epochs, batch_size, save_interval=50):
+    def train(self, epochs, batch_size, sample_interval=50):
 
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
@@ -203,12 +203,11 @@ class ImprovedWGAN():
                 #  Train Discriminator
                 # ---------------------
 
-                # Select a random half batch of images
+                # Select a random batch of images
                 idx = np.random.randint(0, X_train.shape[0], batch_size)
                 imgs = X_train[idx]
-
+                # Sample generator input
                 noise = np.random.normal(0, 1, (batch_size, 100))
-
                 # Train the discriminator
                 d_loss = self.discriminator_model.train_on_batch([imgs, noise],
                                                                 [valid, fake, dummy])
@@ -217,8 +216,8 @@ class ImprovedWGAN():
             #  Train Generator
             # ---------------------
 
+            # Sample generator input
             noise = np.random.normal(0, 1, (batch_size, 100))
-
             # Train the generator
             g_loss = self.generator_model.train_on_batch(noise, valid)
 
@@ -226,10 +225,10 @@ class ImprovedWGAN():
             print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1 - d_loss[0], 1 - g_loss))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, 100))
         gen_imgs = self.generator.predict(noise)
@@ -250,4 +249,4 @@ class ImprovedWGAN():
 
 if __name__ == '__main__':
     wgan = ImprovedWGAN()
-    wgan.train(epochs=10000, batch_size=32, save_interval=100)
+    wgan.train(epochs=30000, batch_size=32, sample_interval=100)
