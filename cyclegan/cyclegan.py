@@ -204,7 +204,7 @@ class CycleGAN():
                 self.sample_images(epoch)
 
     def sample_images(self, epoch):
-        os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
+        os.makedirs('%s' % self.dataset_name, exist_ok=True)
         r, c = 2, 3
 
         imgs_A = self.data_loader.load_data(domain="A", batch_size=1, is_testing=True)
@@ -235,7 +235,7 @@ class CycleGAN():
                 axs[i, j].set_title(titles[j])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d.png" % (self.dataset_name, epoch))
+        fig.savefig("%s/%d.png" % (self.dataset_name, epoch))
         plt.close()
 
 

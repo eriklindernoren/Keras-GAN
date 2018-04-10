@@ -140,7 +140,7 @@ class DCGAN():
 
             # Sample generator input
             noise = np.random.normal(0, 1, (batch_size, 100))
-            
+
             # Train the generator (wants discriminator to mistake images as real)
             g_loss = self.combined.train_on_batch(noise, np.ones((batch_size, 1)))
 
@@ -167,7 +167,7 @@ class DCGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("dcgan/images/mnist_%d.png" % epoch)
+        fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
 

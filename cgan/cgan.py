@@ -14,6 +14,7 @@ import numpy as np
 
 class CGAN():
     def __init__(self):
+        # Input shape
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
@@ -176,7 +177,6 @@ class CGAN():
         gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
-        fig.suptitle("CGAN: Generated digits", fontsize=12)
         cnt = 0
         for i in range(r):
             for j in range(c):
@@ -184,10 +184,10 @@ class CGAN():
                 axs[i,j].set_title("Digit: %d" % sampled_labels[cnt])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("cgan/images/%d.png" % epoch)
+        fig.savefig("images/%d.png" % epoch)
         plt.close()
 
 
 if __name__ == '__main__':
     cgan = CGAN()
-    cgan.train(epochs=10000, batch_size=32, sample_interval=200)
+    cgan.train(epochs=20000, batch_size=32, sample_interval=200)

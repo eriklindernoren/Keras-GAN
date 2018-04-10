@@ -197,21 +197,20 @@ class ACGAN():
         gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
-        fig.suptitle("ACGAN: Generated digits", fontsize=12)
         cnt = 0
         for i in range(r):
             for j in range(c):
                 axs[i,j].imshow(gen_imgs[cnt,:,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("acgan/images/%d.png" % epoch)
+        fig.savefig("images/%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "acgan/saved_model/%s.json" % model_name
-            weights_path = "acgan/saved_model/%s_weights.hdf5" % model_name
+            model_path = "saved_model/%s.json" % model_name
+            weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()

@@ -214,14 +214,14 @@ class INFOGAN():
             for j in range(r):
                 axs[j,i].imshow(gen_imgs[j,:,:,0], cmap='gray')
                 axs[j,i].axis('off')
-        fig.savefig("./infogan/images/mnist_%d.png" % epoch)
+        fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "infogan/saved_model/%s.json" % model_name
-            weights_path = "infogan/saved_model/%s_weights.hdf5" % model_name
+            model_path = "saved_model/%s.json" % model_name
+            weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
