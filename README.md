@@ -250,7 +250,7 @@ $ python3 gan.py
 ```
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/gan.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/gan_mnist5.gif" width="640"\>
 </p>
 
 GAN on RGB face images
