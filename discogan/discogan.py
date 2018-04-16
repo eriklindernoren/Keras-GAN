@@ -83,8 +83,8 @@ class DiscoGAN():
                                                fake_B, fake_A, \
                                                reconstr_A, reconstr_B])
         self.combined.compile(loss=['mse', 'mse', \
-                                    'mse', 'mse', \
-                                    'mse', 'mse'],
+                                    'mae', 'mae', \
+                                    'mae', 'mae'],
                               optimizer=optimizer)
 
     def build_generator(self):
@@ -155,7 +155,7 @@ class DiscoGAN():
 
         return Model(img, validity)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         start_time = datetime.datetime.now()
 
@@ -208,10 +208,10 @@ class DiscoGAN():
                                                                         d_loss[0], g_loss[0]))
 
                 # If at save interval => save generated image samples
-                if batch_i % save_interval == 0:
-                    self.save_imgs(epoch, batch_i)
+                if batch_i % sample_interval == 0:
+                    self.sample_images(epoch, batch_i)
 
-    def save_imgs(self, epoch, batch_i):
+    def sample_images(self, epoch, batch_i):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 2, 3
 
@@ -244,4 +244,4 @@ class DiscoGAN():
 
 if __name__ == '__main__':
     gan = DiscoGAN()
-    gan.train(epochs=20, batch_size=1, save_interval=200)
+    gan.train(epochs=20, batch_size=1, sample_interval=200)

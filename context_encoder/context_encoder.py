@@ -18,7 +18,7 @@ import numpy as np
 
 class ContextEncoder():
     def __init__(self):
-        self.img_rows = 32 
+        self.img_rows = 32
         self.img_cols = 32
         self.mask_height = 8
         self.mask_width = 8
@@ -31,13 +31,13 @@ class ContextEncoder():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy', 
+        self.discriminator.compile(loss='binary_crossentropy',
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'], 
+        self.generator.compile(loss=['binary_crossentropy'],
             optimizer=optimizer)
 
         # The generator takes noise as input and generates the missing
@@ -53,7 +53,7 @@ class ContextEncoder():
         valid = self.discriminator(gen_missing)
 
         # The combined model  (stacked generator and discriminator) takes
-        # masked_img as input => generates missing image => determines validity 
+        # masked_img as input => generates missing image => determines validity
         self.combined = Model(masked_img , [gen_missing, valid])
         self.combined.compile(loss=['mse', 'binary_crossentropy'],
             loss_weights=[0.999, 0.001],
@@ -61,7 +61,7 @@ class ContextEncoder():
 
     def build_generator(self):
 
-        
+
         model = Sequential()
 
         # Encoder
@@ -99,7 +99,7 @@ class ContextEncoder():
         return Model(masked_img, gen_missing)
 
     def build_discriminator(self):
-        
+
         model = Sequential()
 
         model.add(Conv2D(64, kernel_size=3, strides=2, input_shape=self.missing_shape, padding="same"))
@@ -139,7 +139,7 @@ class ContextEncoder():
 
 
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, y_train), (X_test, y_test) = cifar10.load_data()
@@ -171,7 +171,7 @@ class ContextEncoder():
             imgs = X_train[idx]
 
             masked_imgs, missing, _ = self.mask_randomly(imgs)
-            
+
             # Generate a half batch of new images
             gen_missing = self.generator.predict(masked_imgs)
 
@@ -203,15 +203,15 @@ class ContextEncoder():
             print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
+            if epoch % sample_interval == 0:
                 # Select a random half batch of images
                 idx = np.random.randint(0, X_train.shape[0], 6)
                 imgs = X_train[idx]
-                self.save_imgs(epoch, imgs)
+                self.sample_images(epoch, imgs)
 
-    def save_imgs(self, epoch, imgs):
+    def sample_images(self, epoch, imgs):
         r, c = 3, 6
-        
+
         masked_imgs, missing_parts, (y1, y2, x1, x2) = self.mask_randomly(imgs)
         gen_missing = self.generator.predict(masked_imgs)
 
@@ -229,15 +229,15 @@ class ContextEncoder():
             filled_in[y1[i]:y2[i], x1[i]:x2[i], :] = gen_missing[i]
             axs[2,i].imshow(filled_in)
             axs[2,i].axis('off')
-        fig.savefig("context_encoder/images/cifar_%d.png" % epoch)
+        fig.savefig("images/cifar_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "context_encoder/saved_model/%s.json" % model_name
-            weights_path = "context_encoder/saved_model/%s_weights.hdf5" % model_name
-            options = {"file_arch": model_path, 
+            model_path = "saved_model/%s.json" % model_name
+            weights_path = "saved_model/%s_weights.hdf5" % model_name
+            options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
@@ -249,10 +249,4 @@ class ContextEncoder():
 
 if __name__ == '__main__':
     context_encoder = ContextEncoder()
-    context_encoder.train(epochs=30000, batch_size=64, save_interval=50)
-
-
-
-
-
-
+    context_encoder.train(epochs=30000, batch_size=64, sample_interval=50)

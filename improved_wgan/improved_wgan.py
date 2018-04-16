@@ -38,7 +38,6 @@ class ImprovedWGAN():
 
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
-        self.clip_value = 0.01
         optimizer = RMSprop(lr=0.00005)
 
         # Build the generator and discriminator
@@ -50,7 +49,7 @@ class ImprovedWGAN():
         #       for Discriminator
         #-------------------------------
 
-        # Freeze generator's layers while training generator
+        # Freeze generator's layers while training discriminator
         self.generator.trainable = False
 
         # Image input (real sample)
@@ -183,7 +182,7 @@ class ImprovedWGAN():
 
         return Model(img, valid)
 
-    def train(self, epochs, batch_size, save_interval=50):
+    def train(self, epochs, batch_size, sample_interval=50):
 
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
@@ -195,7 +194,7 @@ class ImprovedWGAN():
         # Adversarial ground truths
         valid = -np.ones((batch_size, 1))
         fake =  np.ones((batch_size, 1))
-        dummy = np.zeros((batch_size, 1))
+        dummy = np.zeros((batch_size, 1)) # Dummy gt for gradient penalty
         for epoch in range(epochs):
 
             for _ in range(self.n_critic):
@@ -204,12 +203,11 @@ class ImprovedWGAN():
                 #  Train Discriminator
                 # ---------------------
 
-                # Select a random half batch of images
+                # Select a random batch of images
                 idx = np.random.randint(0, X_train.shape[0], batch_size)
                 imgs = X_train[idx]
-
+                # Sample generator input
                 noise = np.random.normal(0, 1, (batch_size, 100))
-
                 # Train the discriminator
                 d_loss = self.discriminator_model.train_on_batch([imgs, noise],
                                                                 [valid, fake, dummy])
@@ -218,8 +216,8 @@ class ImprovedWGAN():
             #  Train Generator
             # ---------------------
 
+            # Sample generator input
             noise = np.random.normal(0, 1, (batch_size, 100))
-
             # Train the generator
             g_loss = self.generator_model.train_on_batch(noise, valid)
 
@@ -227,10 +225,10 @@ class ImprovedWGAN():
             print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1 - d_loss[0], 1 - g_loss))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, 100))
         gen_imgs = self.generator.predict(noise)
@@ -245,10 +243,10 @@ class ImprovedWGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("improved_wgan/images/mnist_%d.png" % epoch)
+        fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
 
 if __name__ == '__main__':
     wgan = ImprovedWGAN()
-    wgan.train(epochs=4000, batch_size=32, save_interval=50)
+    wgan.train(epochs=30000, batch_size=32, sample_interval=100)

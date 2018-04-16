@@ -139,7 +139,7 @@ class Pix2Pix():
 
         return Model([img_A, img_B], validity)
 
-    def train(self, epochs, batch_size=1, save_interval=50):
+    def train(self, epochs, batch_size=1, sample_interval=50):
 
         start_time = datetime.datetime.now()
 
@@ -181,10 +181,10 @@ class Pix2Pix():
             print ("%d time: %s" % (epoch, elapsed_time))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, 3
 
@@ -211,4 +211,4 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     gan = Pix2Pix()
-    gan.train(epochs=30000, batch_size=1, save_interval=200)
+    gan.train(epochs=30000, batch_size=1, sample_interval=200)

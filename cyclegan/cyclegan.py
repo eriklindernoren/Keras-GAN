@@ -154,7 +154,7 @@ class CycleGAN():
 
         return Model(img, validity)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         half_batch = int(batch_size / 2)
 
@@ -208,11 +208,11 @@ class CycleGAN():
             print ("%d time: %s" % (epoch, elapsed_time))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
-        os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
+    def sample_images(self, epoch):
+        os.makedirs('%s' % self.dataset_name, exist_ok=True)
         r, c = 2, 3
 
         imgs_A = self.data_loader.load_data(domain="A", batch_size=1, is_testing=True)
@@ -243,10 +243,10 @@ class CycleGAN():
                 axs[i, j].set_title(titles[j])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d.png" % (self.dataset_name, epoch))
+        fig.savefig("%s/%d.png" % (self.dataset_name, epoch))
         plt.close()
 
 
 if __name__ == '__main__':
     gan = CycleGAN()
-    gan.train(epochs=30000, batch_size=2, save_interval=200)
+    gan.train(epochs=30000, batch_size=2, sample_interval=200)

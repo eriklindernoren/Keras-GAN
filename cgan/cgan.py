@@ -14,6 +14,7 @@ import numpy as np
 
 class CGAN():
     def __init__(self):
+        # Input shape
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
@@ -109,7 +110,7 @@ class CGAN():
 
         return Model([img, label], validity)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
@@ -162,10 +163,10 @@ class CGAN():
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         r, c = 2, 5
         noise = np.random.normal(0, 1, (r * c, 100))
         sampled_labels = np.arange(0, 10).reshape(-1, 1)
@@ -176,7 +177,6 @@ class CGAN():
         gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
-        fig.suptitle("CGAN: Generated digits", fontsize=12)
         cnt = 0
         for i in range(r):
             for j in range(c):
@@ -184,10 +184,10 @@ class CGAN():
                 axs[i,j].set_title("Digit: %d" % sampled_labels[cnt])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("cgan/images/%d.png" % epoch)
+        fig.savefig("images/%d.png" % epoch)
         plt.close()
 
 
 if __name__ == '__main__':
     cgan = CGAN()
-    cgan.train(epochs=10000, batch_size=32, save_interval=200)
+    cgan.train(epochs=20000, batch_size=32, sample_interval=200)

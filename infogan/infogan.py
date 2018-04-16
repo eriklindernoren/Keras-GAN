@@ -142,7 +142,7 @@ class INFOGAN():
 
         return sampled_noise, sampled_labels
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
@@ -198,10 +198,10 @@ class INFOGAN():
             print ("%d [D loss: %.2f, acc.: %.2f%%] [Q loss: %.2f] [G loss: %.2f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[1], g_loss[2]))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         r, c = 10, 10
 
         fig, axs = plt.subplots(r, c)
@@ -214,14 +214,14 @@ class INFOGAN():
             for j in range(r):
                 axs[j,i].imshow(gen_imgs[j,:,:,0], cmap='gray')
                 axs[j,i].axis('off')
-        fig.savefig("./infogan/images/mnist_%d.png" % epoch)
+        fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "infogan/saved_model/%s.json" % model_name
-            weights_path = "infogan/saved_model/%s_weights.hdf5" % model_name
+            model_path = "saved_model/%s.json" % model_name
+            weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
@@ -235,4 +235,4 @@ class INFOGAN():
 
 if __name__ == '__main__':
     infogan = INFOGAN()
-    infogan.train(epochs=50000, batch_size=128, save_interval=50)
+    infogan.train(epochs=50000, batch_size=128, sample_interval=50)

@@ -37,13 +37,14 @@ class PixelDA():
         patch = int(self.img_rows / 2**4)
         self.disc_patch = (patch, patch, 1)
 
+        # Number of residual blocks in the generator
         self.residual_blocks = 6
 
-        # Number of filters in the first layer of G and D
-        self.gf = 32
-        self.df = 64
-
         optimizer = Adam(0.0002, 0.5)
+
+        # Number of filters in first layer of discriminator and classifier
+        self.df = 64
+        self.cf = 64
 
         # Build and compile the discriminators
         self.discriminator = self.build_discriminator()
@@ -99,6 +100,7 @@ class PixelDA():
 
         l1 = Conv2D(64, kernel_size=3, padding='same', activation='relu')(img)
 
+        # Propogate signal through residual blocks
         r = residual_block(l1)
         for _ in range(self.residual_blocks - 1):
             r = residual_block(r)
@@ -141,21 +143,21 @@ class PixelDA():
 
         img = Input(shape=self.img_shape)
 
-        d1 = clf_layer(img, self.df, normalization=False)
-        d2 = clf_layer(d1, self.df*2)
-        d3 = clf_layer(d2, self.df*4)
-        d4 = clf_layer(d3, self.df*8)
-        d5 = clf_layer(d4, self.df*8)
+        c1 = clf_layer(img, self.cf, normalization=False)
+        c2 = clf_layer(c1, self.cf*2)
+        c3 = clf_layer(c2, self.cf*4)
+        c4 = clf_layer(c3, self.cf*8)
+        c5 = clf_layer(c4, self.cf*8)
 
-        class_pred = Dense(self.num_classes, activation='softmax')(Flatten()(d5))
+        class_pred = Dense(self.num_classes, activation='softmax')(Flatten()(c5))
 
         return Model(img, class_pred)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         half_batch = int(batch_size / 2)
 
-        # Classifier's average accuracy on the 100 latest batches of domain B
+        # Classification accuracy on 100 last batches of domain B
         test_accs = []
 
         for epoch in range(epochs):
@@ -196,7 +198,10 @@ class PixelDA():
             # Train the generator and classifier
             g_loss = self.combined.train_on_batch(imgs_A, [valid, labels_A])
 
-            # Evaluate classifier on domain B
+            #-----------------------
+            # Evaluation (domain B)
+            #-----------------------
+
             pred_B = self.clf.predict(imgs_B)
             test_acc = np.mean(np.argmax(pred_B, axis=1) == labels_B)
 
@@ -204,6 +209,7 @@ class PixelDA():
             test_accs.append(test_acc)
             if len(test_accs) > 100:
                 test_accs.pop(0)
+
 
             # Plot the progress
             print ( "%d : [D - loss: %.5f, acc: %3d%%], [G - loss: %.5f], [clf - loss: %.5f, acc: %3d%%, test_acc: %3d%% (%3d%%)]" % \
@@ -213,10 +219,10 @@ class PixelDA():
 
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         r, c = 2, 5
 
         imgs_A, _ = self.data_loader.load_data(domain="A", batch_size=5)
@@ -244,4 +250,4 @@ class PixelDA():
 
 if __name__ == '__main__':
     gan = PixelDA()
-    gan.train(epochs=30000, batch_size=32, save_interval=500)
+    gan.train(epochs=30000, batch_size=32, sample_interval=500)

@@ -17,7 +17,7 @@ import numpy as np
 
 class SGAN():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.num_classes = 10
@@ -26,14 +26,14 @@ class SGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=['binary_crossentropy', 'categorical_crossentropy'], 
+        self.discriminator.compile(loss=['binary_crossentropy', 'categorical_crossentropy'],
             loss_weights=[0.5, 0.5],
             optimizer=optimizer,
             metrics=['accuracy'])
 
         # Build and compile the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'], 
+        self.generator.compile(loss=['binary_crossentropy'],
             optimizer=optimizer)
 
         # The generator takes noise as input and generates imgs
@@ -47,7 +47,7 @@ class SGAN():
         valid, _ = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity 
+        # noise as input => generates images => determines validity
         self.combined = Model(noise , valid)
         self.combined.compile(loss=['binary_crossentropy'],
             optimizer=optimizer)
@@ -81,7 +81,7 @@ class SGAN():
     def build_discriminator(self):
 
         img_shape = (self.img_rows, self.img_cols, self.channels)
-        
+
         model = Sequential()
 
         model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
@@ -111,7 +111,7 @@ class SGAN():
 
         return Model(img, [valid, label])
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
@@ -126,7 +126,7 @@ class SGAN():
         noise_until = epochs
 
         # Class weights:
-        # To balance the difference in occurences of digit class labels. 
+        # To balance the difference in occurences of digit class labels.
         # 50% of labels that the discriminator trains on are 'fake'.
         # Weight = 1 / frequency
         cw1 = {0: 1, 1: 1}
@@ -142,7 +142,7 @@ class SGAN():
             # Select a random half batch of images
             idx = np.random.randint(0, X_train.shape[0], half_batch)
             imgs = X_train[idx]
-            
+
             # Sample noise and generate a half batch of new images
             noise = np.random.normal(0, 1, (half_batch, 100))
             gen_imgs = self.generator.predict(noise)
@@ -173,10 +173,10 @@ class SGAN():
             print ("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[3], 100*d_loss[4], g_loss))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
-                self.save_imgs(epoch)
+            if epoch % sample_interval == 0:
+                self.sample_images(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_images(self, epoch):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, 100))
         gen_imgs = self.generator.predict(noise)
@@ -191,15 +191,15 @@ class SGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("sgan/images/mnist_%d.png" % epoch)
+        fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "sgan/saved_model/%s.json" % model_name
-            weights_path = "sgan/saved_model/%s_weights.hdf5" % model_name
-            options = {"file_arch": model_path, 
+            model_path = "saved_model/%s.json" % model_name
+            weights_path = "saved_model/%s_weights.hdf5" % model_name
+            options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
@@ -212,10 +212,4 @@ class SGAN():
 
 if __name__ == '__main__':
     sgan = SGAN()
-    sgan.train(epochs=20000, batch_size=32, save_interval=50)
-
-
-
-
-
-
+    sgan.train(epochs=20000, batch_size=32, sample_interval=50)

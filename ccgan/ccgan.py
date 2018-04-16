@@ -28,6 +28,11 @@ class CCGAN():
         self.num_classes = 10
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
+
+        # Number of filters in first layer of generator and discriminator
+        self.gf = 32
+        self.df = 32
+
         optimizer = Adam(0.0002, 0.5)
 
         # Build and compile the discriminator
@@ -62,47 +67,41 @@ class CCGAN():
     def build_generator(self):
         """U-Net Generator"""
 
-        input_img = Input(shape=self.img_shape)
+        def conv2d(layer_input, filters, f_size=4, bn=True):
+            """Layers used during downsampling"""
+            d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
+            d = LeakyReLU(alpha=0.2)(d)
+            if bn:
+                d = BatchNormalization(momentum=0.8)(d)
+            return d
 
-        # (32 x 32 x 1)
-        d1 = Conv2D(32, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape)(input_img)
-        d1 = LeakyReLU(alpha=0.2)(d1)
-        d1 = InstanceNormalization()(d1)
-        # (16 x 16 x 32)
-        d2 = Conv2D(64, kernel_size=4, strides=2, padding='same')(d1)
-        d2 = LeakyReLU(alpha=0.2)(d2)
-        d2 = InstanceNormalization()(d2)
-        # (8 x 8 x 64)
-        d3 = Conv2D(128, kernel_size=4, strides=2, padding='same')(d2)
-        d3 = LeakyReLU(alpha=0.2)(d3)
-        d3 = InstanceNormalization()(d3)
-        # (4 x 4 x 128)
-        d4 = Conv2D(256, kernel_size=4, strides=2, padding='same')(d3)
-        d4 = LeakyReLU(alpha=0.2)(d4)
-        d4 = InstanceNormalization()(d4)
-        # (2 x 2 x 256)
-        u1 = UpSampling2D(size=2)(d4)
-        u1 = Conv2D(128, kernel_size=4, strides=1, padding='same')(u1)
-        u1 = LeakyReLU(alpha=0.2)(u1)
-        u1 = InstanceNormalization()(u1)
-        u1 = Concatenate()([u1, d3]) 
-        # (4 x 4 x 256)
-        u2 = UpSampling2D(size=2)(u1)
-        u2 = Conv2D(64, kernel_size=4, strides=1, padding='same')(u2)
-        u2 = LeakyReLU(alpha=0.2)(u2)
-        u2 = InstanceNormalization()(u2)
-        u2 = Concatenate()([u2, d2])
-        # (8 x 8 x 128)
-        u3 = UpSampling2D(size=2)(u2)
-        u3 = Conv2D(32, kernel_size=4, strides=1, padding='same')(u3)
-        u3 = LeakyReLU(alpha=0.2)(u3)
-        u3 = InstanceNormalization()(u3)
-        u3 = Concatenate()([u3, d1])
-        # (16 x 16 x 64)
-        u2 = UpSampling2D(size=2)(u3)
-        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u2)
+        def deconv2d(layer_input, skip_input, filters, f_size=4, dropout_rate=0):
+            """Layers used during upsampling"""
+            u = UpSampling2D(size=2)(layer_input)
+            u = Conv2D(filters, kernel_size=f_size, strides=1, padding='same', activation='relu')(u)
+            if dropout_rate:
+                u = Dropout(dropout_rate)(u)
+            u = BatchNormalization(momentum=0.8)(u)
+            u = Concatenate()([u, skip_input])
+            return u
 
-        return Model(input_img, output_img)
+        img = Input(shape=self.img_shape)
+
+        # Downsampling
+        d1 = conv2d(img, self.gf, bn=False)
+        d2 = conv2d(d1, self.gf*2)
+        d3 = conv2d(d2, self.gf*4)
+        d4 = conv2d(d3, self.gf*8)
+
+        # Upsampling
+        u1 = deconv2d(d4, d3, self.gf*4)
+        u2 = deconv2d(d3, d2, self.gf*2)
+        u3 = deconv2d(d2, d1, self.gf)
+
+        u4 = UpSampling2D(size=2)(u3)
+        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u4)
+
+        return Model(img, output_img)
 
     def build_discriminator(self):
 
@@ -146,7 +145,7 @@ class CCGAN():
         return masked_imgs
 
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
 
@@ -212,15 +211,15 @@ class CCGAN():
             print ("%d [D loss: %f, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[4], g_loss))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
+            if epoch % sample_interval == 0:
                 # Select a random half batch of images
                 idx = np.random.randint(0, X_train.shape[0], 6)
                 imgs = X_train[idx]
-                self.save_imgs(epoch, imgs)
+                self.sample_images(epoch, imgs)
                 self.save_model()
 
 
-    def save_imgs(self, epoch, imgs):
+    def sample_images(self, epoch, imgs):
         r, c = 3, 6
 
         masked_imgs = self.mask_randomly(imgs)
@@ -240,14 +239,14 @@ class CCGAN():
             axs[1,i].axis('off')
             axs[2,i].imshow(gen_imgs[i, :, :, 0], cmap='gray')
             axs[2,i].axis('off')
-        fig.savefig("ccgan/images/cifar_%d.png" % epoch)
+        fig.savefig("images/%d.png" % epoch)
         plt.close()
 
     def save_model(self):
 
         def save(model, model_name):
-            model_path = "ccgan/saved_model/%s.json" % model_name
-            weights_path = "ccgan/saved_model/%s_weights.hdf5" % model_name
+            model_path = "saved_model/%s.json" % model_name
+            weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
@@ -260,4 +259,4 @@ class CCGAN():
 
 if __name__ == '__main__':
     ccgan = CCGAN()
-    ccgan.train(epochs=20000, batch_size=16, save_interval=50)
+    ccgan.train(epochs=20000, batch_size=32, sample_interval=200)

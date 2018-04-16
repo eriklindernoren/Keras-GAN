@@ -120,7 +120,7 @@ class BIGAN():
 
         return Model([z, img], validity)
 
-    def train(self, epochs, batch_size=128, save_interval=50):
+    def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
@@ -176,11 +176,11 @@ class BIGAN():
             print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
 
             # If at save interval => save generated image samples
-            if epoch % save_interval == 0:
+            if epoch % sample_interval == 0:
                 # Select a random half batch of images
-                self.save_imgs(epoch)
+                self.sample_interval(epoch)
 
-    def save_imgs(self, epoch):
+    def sample_interval(self, epoch):
         r, c = 5, 5
         z = np.random.normal(size=(25, self.latent_dim))
         gen_imgs = self.generator.predict(z)
@@ -194,10 +194,10 @@ class BIGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("bigan/images/mnist_%d.png" % epoch)
+        fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
 
 if __name__ == '__main__':
     bigan = BIGAN()
-    bigan.train(epochs=40000, batch_size=32, save_interval=400)
+    bigan.train(epochs=40000, batch_size=32, sample_interval=400)
