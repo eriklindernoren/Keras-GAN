@@ -1,3 +1,14 @@
+"""
+Super-resolution of CelebA using Generative Adversarial Networks.
+
+The dataset can be downloaded from: https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADIKlz8PR9zr6Y20qbkunrba/Img/img_align_celeba.zip?dl=0
+
+Instrustion on running the script:
+1. Download the dataset from the provided link
+2. Save the folder 'img_align_celeba' to 'datasets/'
+4. Run the sript using command 'python srgan.py'
+"""
+
 from __future__ import print_function, division
 import scipy
 
