@@ -30,7 +30,7 @@ class RandomWeightedAverage(_Merge):
         return (weights * inputs[0]) + ((1 - weights) * inputs[1])
 
 class ImprovedWGAN():
-    def __init__(self, batch_size):
+    def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

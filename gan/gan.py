@@ -48,6 +48,7 @@ class GAN():
         self.combined = Model(z, valid)
         self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
 
+
     def build_generator(self):
 
         noise_shape = (100,)
