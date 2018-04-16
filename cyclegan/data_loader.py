@@ -35,12 +35,18 @@ class DataLoader():
         pathB = glob('./datasets/%s/%sB/*' % (self.dataset_name, data_type))
 
         self.n_batches = int(min(len(pathA), len(pathB)) / batch_size)
+        total_samples = self.n_batches * batch_size
+
+        # Sample n_batches * batch_size from each path list so that model sees all
+        # samples from both domains
+        path_A = np.random.choice(path_A, total_samples, replace=False)
+        path_B = np.random.choice(path_B, total_samples, replace=False)
 
         for i in range(self.n_batches-1):
-            batchA = pathA[i*batch_size:(i+1)*batch_size]
-            batchB = pathB[i*batch_size:(i+1)*batch_size]
+            batch_A = path_A[i*batch_size:(i+1)*batch_size]
+            batch_B = path_B[i*batch_size:(i+1)*batch_size]
             imgs_A, imgs_B = [], []
-            for img_A, img_B in zip(batchA, batchB):
+            for img_A, img_B in zip(batch_A, batch_B):
                 img_A = self.imread(img_A)
                 img_B = self.imread(img_B)
 
