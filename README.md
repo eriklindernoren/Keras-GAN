@@ -38,12 +38,13 @@ Keras implementations of Generative Adversarial Networks (GANs) suggested in res
 
 ## Implementations   
 ### AC-GAN
-Implementation of Auxiliary Classifier Generative Adversarial Network.
+Implementation of _Auxiliary Classifier Generative Adversarial Network_.
 
 [Code](acgan/acgan.py)
 
 Paper: https://arxiv.org/abs/1610.09585
 
+#### Example
 ```
 $ cd acgan/
 $ python3 acgan.py
@@ -54,12 +55,13 @@ $ python3 acgan.py
 </p>
 
 ### Adversarial Autoencoder
-Implementation of Adversarial Autoencoder.
+Implementation of _Adversarial Autoencoder_.
 
 [Code](aae/adversarial_autoencoder.py)
 
 Paper: https://arxiv.org/abs/1511.05644
 
+#### Example
 ```
 $ cd aae/
 $ python3 aae.py
@@ -70,36 +72,39 @@ $ python3 aae.py
 </p>
 
 ### BiGAN
-Implementation of Bidirectional Generative Adversarial Network.
+Implementation of _Bidirectional Generative Adversarial Network_.
 
 [Code](bigan/bigan.py)
 
 Paper: https://arxiv.org/abs/1605.09782
 
+#### Example
 ```
 $ cd bigan/
 $ python3 bigan.py
 ```
 
 ### BGAN
-Implementation of Boundary-Seeking Generative Adversarial Networks.
+Implementation of _Boundary-Seeking Generative Adversarial Networks_.
 
 [Code](bgan/bgan.py)
 
 Paper: https://arxiv.org/abs/1702.08431
 
+#### Example
 ```
 $ cd bgan/
 $ python3 bgan.py
 ```
 
 ### CC-GAN
-Implementation of Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks.
+Implementation of _Semi-Supervised Learning with Context-Conditional Generative Adversarial Networks_.
 
 [Code](ccgan/ccgan.py)
 
 Paper: https://arxiv.org/abs/1611.06430
 
+#### Example
 ```
 $ cd ccgan/
 $ python3 ccgan.py
@@ -110,12 +115,13 @@ $ python3 ccgan.py
 </p>
 
 ### CGAN
-Implementation of Conditional Generative Adversarial Nets.
+Implementation of _Conditional Generative Adversarial Nets_.
 
 [Code](cgan/cgan.py)
 
 Paper:https://arxiv.org/abs/1411.1784
 
+#### Example
 ```
 $ cd cgan/
 $ python3 cgan.py
@@ -126,12 +132,13 @@ $ python3 cgan.py
 </p>
 
 ### Context Encoder
-Implementation of Context Encoders: Feature Learning by Inpainting.
+Implementation of _Context Encoders: Feature Learning by Inpainting_.
 
 [Code](context_encoder/context_encoder.py)
 
 Paper: https://arxiv.org/abs/1604.07379
 
+#### Example
 ```
 $ cd context_encoder/
 $ python3 context_encoder.py
@@ -142,19 +149,20 @@ $ python3 context_encoder.py
 </p>
 
 ### CoGAN
-Implementation of Coupled generative adversarial networks.
+Implementation of _Coupled generative adversarial networks_.
 
 [Code](cogan/cogan.py)
 
 Paper: https://arxiv.org/abs/1606.07536
 
+#### Example
 ```
 $ cd cogan/
 $ python3 cogan.py
 ```
 
 ### CycleGAN
-Implementation of Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks.
+Implementation of _Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks_.
 
 [Code](cyclegan/cyclegan.py)
 
@@ -164,6 +172,7 @@ Paper: https://arxiv.org/abs/1703.10593
     <img src="http://eriklindernoren.se/images/cyclegan.png" width="640"\>
 </p>
 
+#### Example
 ```
 $ cd cyclegan/
 $ bash download_dataset.sh apple2orange
@@ -176,12 +185,13 @@ $ python3 cyclegan.py
 
 
 ### DCGAN
-Implementation of Deep Convolutional Generative Adversarial Network.
+Implementation of _Deep Convolutional Generative Adversarial Network_.
 
 [Code](dcgan/dcgan.py)
 
 Paper: https://arxiv.org/abs/1511.06434
 
+#### Example
 ```
 $ cd dcgan/
 $ python3 dcgan.py
@@ -192,7 +202,7 @@ $ python3 dcgan.py
 </p>
 
 ### DiscoGAN
-Implementation of Learning to Discover Cross-Domain Relations with Generative Adversarial Networks.
+Implementation of _Learning to Discover Cross-Domain Relations with Generative Adversarial Networks_.
 
 [Code](discogan/discogan.py)
 
@@ -202,6 +212,7 @@ Paper: https://arxiv.org/abs/1703.05192
     <img src="http://eriklindernoren.se/images/discogan_architecture.png" width="640"\>
 </p>
 
+#### Example
 ```
 $ cd discogan/
 $ bash download_dataset.sh edges2shoes
@@ -213,24 +224,26 @@ $ python3 discogan.py
 </p>
 
 ### DualGAN
-Implementation of DualGAN: Unsupervised Dual Learning for Image-to-Image Translation.
+Implementation of _DualGAN: Unsupervised Dual Learning for Image-to-Image Translation_.
 
 [Code](dualgan/dualgan.py)
 
 Paper: https://arxiv.org/abs/1704.02510
 
+#### Example
 ```
 $ cd dualgan/
 $ python3 dualgan.py
 ```
 
 ### GAN
-Implementation of Generative Adversarial Network with a MLP generator and discriminator.
+Implementation of _Generative Adversarial Network_ with a MLP generator and discriminator.
 
 [Code](gan/gan.py)
 
 Paper: https://arxiv.org/abs/1406.2661
 
+#### Example
 ```
 $ cd gan/
 $ python3 gan.py
@@ -243,6 +256,7 @@ $ python3 gan.py
 GAN on RGB face images
 [Code](gan/gan_rgb.py)
 
+#### Example
 ```
 $ cd gan/
 <follow steps at the top of gan_rgb.py>
@@ -254,12 +268,13 @@ $ python3 gan_rgb.py
 </p>
 
 ### Improved WGAN
-Implementation of Improved Training of Wasserstein GANs.
+Implementation of _Improved Training of Wasserstein GANs_.
 
 [Code](improved_wgan/improved_wgan.py)
 
 Paper: https://arxiv.org/abs/1704.00028
 
+#### Example
 ```
 $ cd improved_wgan/
 $ python3 improved_wgan.py
@@ -270,12 +285,13 @@ $ python3 improved_wgan.py
 </p>
 
 ### InfoGAN
-Implementation of InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets.
+Implementation of _InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets_.
 
 [Code](infogan/infogan.py)
 
 Paper: https://arxiv.org/abs/1606.03657
 
+#### Example
 ```
 $ cd infogan/
 $ python3 infogan.py
@@ -286,19 +302,20 @@ $ python3 infogan.py
 </p>
 
 ### LSGAN
-Implementation of Least Squares Generative Adversarial Networks.
+Implementation of _Least Squares Generative Adversarial Networks_.
 
 [Code](lsgan/lsgan.py)
 
 Paper: https://arxiv.org/abs/1611.04076
 
+#### Example
 ```
 $ cd lsgan/
 $ python3 lsgan.py
 ```
 
 ### Pix2Pix
-Implementation of Unpaired Image-to-Image Translation with Conditional Adversarial Networks.
+Implementation of _Unpaired Image-to-Image Translation with Conditional Adversarial Networks_.
 
 [Code](pix2pix/pix2pix.py)
 
@@ -308,6 +325,7 @@ Paper: https://arxiv.org/abs/1611.07004
     <img src="http://eriklindernoren.se/images/pix2pix_architecture.png" width="640"\>
 </p>
 
+#### Example
 ```
 $ cd pix2pix/
 $ bash download_dataset.sh facades
@@ -319,13 +337,13 @@ $ python3 pix2pix.py
 </p>
 
 ### PixelDA
-Implementation of Unsupervised Pixel-Level Domain Adaptation with Generative Adversarial Networks.
+Implementation of _Unsupervised Pixel-Level Domain Adaptation with Generative Adversarial Networks_.
 
 [Code](pixelda/pixelda.py)
 
 Paper: https://arxiv.org/abs/1612.05424
 
-##### MNIST to MNIST-M Classification
+#### MNIST to MNIST-M Classification
 Trains a classifier on MNIST images that are translated to resemble MNIST-M (by performing unsupervised image-to-image domain adaptation). This model is compared to the naive solution of training a classifier on MNIST and evaluating it on MNIST-M. The naive model manages a 55% classification accuracy on MNIST-M while the one trained during domain adaptation gets a 95% classification accuracy.
 
 ```
@@ -339,12 +357,13 @@ $ python3 pixelda.py
 | PixelDA      | 95%       |
 
 ### SGAN
-Implementation of Semi-Supervised Generative Adversarial Network.
+Implementation of _Semi-Supervised Generative Adversarial Network_.
 
 [Code](sgan/sgan.py)
 
 Paper: https://arxiv.org/abs/1606.01583
 
+#### Example
 ```
 $ cd sgan/
 $ python3 sgan.py
@@ -355,7 +374,7 @@ $ python3 sgan.py
 </p>
 
 ### SRGAN
-Implementation of Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network.
+Implementation of _Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network_.
 
 [Code](srgan/srgan.py)
 
@@ -366,6 +385,7 @@ Paper: https://arxiv.org/abs/1609.04802
 </p>
 
 
+#### Example
 ```
 $ cd srgan/
 <follow steps at the top of srgan.py>
@@ -377,12 +397,13 @@ $ python3 srgan.py
 </p>
 
 ### WGAN
-Implementation of Wasserstein GAN (with DCGAN generator and discriminator).
+Implementation of _Wasserstein GAN_ (with DCGAN generator and discriminator).
 
 [Code](wgan/wgan.py)
 
 Paper: https://arxiv.org/abs/1701.07875
 
+#### Example
 ```
 $ cd wgan/
 $ python3 wgan.py
