@@ -60,6 +60,11 @@ class CycleGAN():
         self.g_AB.compile(loss='binary_crossentropy', optimizer=optimizer)
         self.g_BA.compile(loss='binary_crossentropy', optimizer=optimizer)
 
+        #-------------------------
+        # Construct Computational
+        #   Graph of Generators
+        #-------------------------
+
         # Input images from both domains
         img_A = Input(shape=self.img_shape)
         img_B = Input(shape=self.img_shape)
@@ -82,16 +87,16 @@ class CycleGAN():
         valid_A = self.d_A(fake_A)
         valid_B = self.d_B(fake_B)
 
-        self.combined = Model([img_A, img_B],
-                              [valid_A, valid_B,
-                               reconstr_A, reconstr_B,
-                               img_A_id, img_B_id])
+        self.combined = Model(inputs=[img_A, img_B],
+                              outputs=[ valid_A, valid_B,
+                                        reconstr_A, reconstr_B,
+                                        img_A_id, img_B_id ])
         self.combined.compile(loss=['mse', 'mse',
                                     'mae', 'mae',
                                     'mae', 'mae'],
-                            loss_weights=[1, 1,
-                                        self.lambda_cycle, self.lambda_cycle,
-                                        self.lambda_id, self.lambda_id],
+                            loss_weights=[  1, 1,
+                                            self.lambda_cycle, self.lambda_cycle,
+                                            self.lambda_id, self.lambda_id ],
                             optimizer=optimizer)
 
     def build_generator(self):
@@ -154,9 +159,13 @@ class CycleGAN():
 
         return Model(img, validity)
 
-    def train(self, epochs, batch_size=128, sample_interval=50):
+    def train(self, epochs, batch_size=1, sample_interval=50):
 
         start_time = datetime.datetime.now()
+
+        # Adversarial loss ground truths
+        valid = np.ones((batch_size,) + self.disc_patch)
+        fake = np.zeros((batch_size,) + self.disc_patch)
 
         for epoch in range(epochs):
             for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
@@ -168,9 +177,6 @@ class CycleGAN():
                 # Translate images to opposite domain
                 fake_B = self.g_AB.predict(imgs_A)
                 fake_A = self.g_BA.predict(imgs_B)
-
-                valid = np.ones((batch_size,) + self.disc_patch)
-                fake = np.zeros((batch_size,) + self.disc_patch)
 
                 # Train the discriminators (original images = real / translated = Fake)
                 dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
@@ -189,11 +195,11 @@ class CycleGAN():
                 #  Train Generators
                 # ------------------
 
-                # The generators want the discriminators to label the translated images as real
-                valid = np.ones((batch_size,) + self.disc_patch)
-
                 # Train the generators
-                g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B, imgs_A, imgs_B])
+                g_loss = self.combined.train_on_batch([imgs_A, imgs_B],
+                                                        [valid, valid,
+                                                        imgs_A, imgs_B,
+                                                        imgs_A, imgs_B])
 
                 elapsed_time = datetime.datetime.now() - start_time
 
@@ -208,7 +214,7 @@ class CycleGAN():
                                                                             np.mean(g_loss[5:6]),
                                                                             elapsed_time))
 
-                # If at save interval                                        => save generated image samples
+                # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 

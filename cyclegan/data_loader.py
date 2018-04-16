@@ -31,10 +31,10 @@ class DataLoader():
 
     def load_batch(self, batch_size=1, is_testing=False):
         data_type = "train" if not is_testing else "val"
-        pathA = glob('./datasets/%s/%sA/*' % (self.dataset_name, data_type))
-        pathB = glob('./datasets/%s/%sB/*' % (self.dataset_name, data_type))
+        path_A = glob('./datasets/%s/%sA/*' % (self.dataset_name, data_type))
+        path_B = glob('./datasets/%s/%sB/*' % (self.dataset_name, data_type))
 
-        self.n_batches = int(min(len(pathA), len(pathB)) / batch_size)
+        self.n_batches = int(min(len(path_A), len(path_B)) / batch_size)
         total_samples = self.n_batches * batch_size
 
         # Sample n_batches * batch_size from each path list so that model sees all

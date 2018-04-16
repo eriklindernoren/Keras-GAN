@@ -50,6 +50,11 @@ class Pix2Pix():
         self.generator = self.build_generator()
         self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
+        #-------------------------
+        # Construct Computational
+        #   Graph of Generator
+        #-------------------------
+
         # Input images and their conditioning images
         img_A = Input(shape=self.img_shape)
         img_B = Input(shape=self.img_shape)
@@ -63,7 +68,7 @@ class Pix2Pix():
         # Discriminators determines validity of translated images / condition pairs
         valid = self.discriminator([fake_A, img_B])
 
-        self.combined = Model([img_A, img_B], [valid, fake_A])
+        self.combined = Model(inputs=[img_A, img_B], outputs=[valid, fake_A])
         self.combined.compile(loss=['mse', 'mae'],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
@@ -143,48 +148,45 @@ class Pix2Pix():
 
         start_time = datetime.datetime.now()
 
+        # Adversarial loss ground truths
+        valid = np.ones((batch_size,) + self.disc_patch)
+        fake = np.zeros((batch_size,) + self.disc_patch)
+
         for epoch in range(epochs):
+            for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
-            # ----------------------
-            #  Train Discriminator
-            # ----------------------
+                # ---------------------
+                #  Train Discriminator
+                # ---------------------
 
-            # Sample images and their conditioning counterparts
-            imgs_A, imgs_B = self.data_loader.load_data(batch_size)
+                # Condition on B and generate a translated version
+                fake_A = self.generator.predict(imgs_B)
 
-            # Condition on B and generate a translated version
-            fake_A = self.generator.predict(imgs_B)
+                # Train the discriminators (original images = real / generated = Fake)
+                d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
+                d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake)
+                d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
-            valid = np.ones((batch_size,) + self.disc_patch)
-            fake = np.zeros((batch_size,) + self.disc_patch)
+                # -----------------
+                #  Train Generator
+                # -----------------
 
-            # Train the discriminators (original images = real / generated = Fake)
-            d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
-            d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake)
-            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+                # Train the generators
+                g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
-            # ------------------
-            #  Train Generator
-            # ------------------
+                elapsed_time = datetime.datetime.now() - start_time
+                # Plot the progress
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] time: %s" % (epoch, epochs,
+                                                                        batch_i, self.data_loader.n_batches,
+                                                                        d_loss[0], 100*d_loss[1],
+                                                                        g_loss[0],
+                                                                        elapsed_time))
 
-            # Sample images and their conditioning counterparts
-            imgs_A, imgs_B = self.data_loader.load_data(batch_size)
+                # If at save interval => save generated image samples
+                if batch_i % sample_interval == 0:
+                    self.sample_images(epoch, batch_i)
 
-            # The generators want the discriminators to label the generated images as real
-            valid = np.ones((batch_size,) + self.disc_patch)
-
-            # Train the generators
-            g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
-
-            elapsed_time = datetime.datetime.now() - start_time
-            # Plot the progress
-            print ("%d time: %s" % (epoch, elapsed_time))
-
-            # If at save interval => save generated image samples
-            if epoch % sample_interval == 0:
-                self.sample_images(epoch)
-
-    def sample_images(self, epoch):
+    def sample_images(self, epoch, batch_i):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, 3
 
@@ -205,10 +207,10 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d.png" % (self.dataset_name, epoch))
+        fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
 if __name__ == '__main__':
     gan = Pix2Pix()
-    gan.train(epochs=30000, batch_size=1, sample_interval=200)
+    gan.train(epochs=200, batch_size=1, sample_interval=200)

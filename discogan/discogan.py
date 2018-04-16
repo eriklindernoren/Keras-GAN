@@ -56,6 +56,11 @@ class DiscoGAN():
         self.g_AB.compile(loss='binary_crossentropy', optimizer=optimizer)
         self.g_BA.compile(loss='binary_crossentropy', optimizer=optimizer)
 
+        #-------------------------
+        # Construct Computational
+        #   Graph of Generators
+        #-------------------------
+
         # Input images from both domains
         img_A = Input(shape=self.img_shape)
         img_B = Input(shape=self.img_shape)
@@ -79,11 +84,12 @@ class DiscoGAN():
         # + Adversarial: Fool domain discriminators
         # + Translation: Minimize MAE between e.g. fake B and true B
         # + Cycle-consistency: Minimize MAE between reconstructed images and original
-        self.combined = Model([img_A, img_B], [valid_A, valid_B, \
-                                               fake_B, fake_A, \
-                                               reconstr_A, reconstr_B])
-        self.combined.compile(loss=['mse', 'mse', \
-                                    'mae', 'mae', \
+        self.combined = Model(inputs=[img_A, img_B],
+                              outputs=[ valid_A, valid_B,
+                                        fake_B, fake_A,
+                                        reconstr_A, reconstr_B ])
+        self.combined.compile(loss=['mse', 'mse',
+                                    'mae', 'mae',
                                     'mae', 'mae'],
                               optimizer=optimizer)
 
@@ -159,6 +165,9 @@ class DiscoGAN():
 
         start_time = datetime.datetime.now()
 
+        # Adversarial loss ground truths
+        valid = np.ones((batch_size,) + self.disc_patch)
+        fake = np.zeros((batch_size,) + self.disc_patch)
 
         for epoch in range(epochs):
 
@@ -172,9 +181,6 @@ class DiscoGAN():
                 fake_B = self.g_AB.predict(imgs_A)
                 fake_A = self.g_BA.predict(imgs_B)
 
-                valid = np.ones((batch_size,) + self.disc_patch)
-                fake = np.zeros((batch_size,) + self.disc_patch)
-
                 # Train the discriminators (original images = real / translated = Fake)
                 dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
                 dA_loss_fake = self.d_A.train_on_batch(fake_A, fake)
@@ -187,13 +193,9 @@ class DiscoGAN():
                 # Total disciminator loss
                 d_loss = 0.5 * np.add(dA_loss, dB_loss)
 
-
                 # ------------------
                 #  Train Generators
                 # ------------------
-
-                # The generators want the discriminators to label the translated images as real
-                valid = np.ones((batch_size,) + self.disc_patch)
 
                 # Train the generators
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, \
