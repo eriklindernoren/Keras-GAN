@@ -1,7 +1,7 @@
 # Keras-GAN
 
 ## About
-Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. If dense layers produce reasonable results for a given model I will often prefer them over convolutional layers. The reason is that I would like to enable people without GPUs to test these implementations out. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. However, because of this the results will not always be as nice as in the papers.
+Collection of Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. Contributions and suggestions of GAN varieties to implement are very welcomed.
 
 ## Table of Contents
 - [Keras-GAN](#keras-gan)
@@ -250,7 +250,7 @@ $ python3 gan.py
 ```
 
 <p align="center">
-    <img src="http://eriklindernoren.se/images/gan.png" width="640"\>
+    <img src="http://eriklindernoren.se/images/gan_mnist5.gif" width="640"\>
 </p>
 
 GAN on RGB face images
