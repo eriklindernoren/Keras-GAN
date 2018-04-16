@@ -156,62 +156,63 @@ class CycleGAN():
 
     def train(self, epochs, batch_size=128, sample_interval=50):
 
-        half_batch = int(batch_size / 2)
-
         start_time = datetime.datetime.now()
 
         for epoch in range(epochs):
+            for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
-            # ----------------------
-            #  Train Discriminators
-            # ----------------------
+                # ----------------------
+                #  Train Discriminators
+                # ----------------------
 
-            imgs_A = self.data_loader.load_data(domain="A", batch_size=half_batch)
-            imgs_B = self.data_loader.load_data(domain="B", batch_size=half_batch)
+                # Translate images to opposite domain
+                fake_B = self.g_AB.predict(imgs_A)
+                fake_A = self.g_BA.predict(imgs_B)
 
-            # Translate images to opposite domain
-            fake_B = self.g_AB.predict(imgs_A)
-            fake_A = self.g_BA.predict(imgs_B)
+                valid = np.ones((batch_size,) + self.disc_patch)
+                fake = np.zeros((batch_size,) + self.disc_patch)
 
-            valid = np.ones((half_batch,) + self.disc_patch)
-            fake = np.zeros((half_batch,) + self.disc_patch)
+                # Train the discriminators (original images = real / translated = Fake)
+                dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
+                dA_loss_fake = self.d_A.train_on_batch(fake_A, fake)
+                dA_loss = 0.5 * np.add(dA_loss_real, dA_loss_fake)
 
-            # Train the discriminators (original images = real / translated = Fake)
-            dA_loss_real = self.d_A.train_on_batch(imgs_A, valid)
-            dA_loss_fake = self.d_A.train_on_batch(fake_A, fake)
-            dA_loss = 0.5 * np.add(dA_loss_real, dA_loss_fake)
+                dB_loss_real = self.d_B.train_on_batch(imgs_B, valid)
+                dB_loss_fake = self.d_B.train_on_batch(fake_B, fake)
+                dB_loss = 0.5 * np.add(dB_loss_real, dB_loss_fake)
 
-            dB_loss_real = self.d_B.train_on_batch(imgs_B, valid)
-            dB_loss_fake = self.d_B.train_on_batch(fake_B, fake)
-            dB_loss = 0.5 * np.add(dB_loss_real, dB_loss_fake)
-
-            # Total disciminator loss
-            d_loss = 0.5 * np.add(dA_loss, dB_loss)
+                # Total disciminator loss
+                d_loss = 0.5 * np.add(dA_loss, dB_loss)
 
 
-            # ------------------
-            #  Train Generators
-            # ------------------
+                # ------------------
+                #  Train Generators
+                # ------------------
 
-            # Sample a batch of images from both domains
-            imgs_A = self.data_loader.load_data(domain="A", batch_size=batch_size)
-            imgs_B = self.data_loader.load_data(domain="B", batch_size=batch_size)
+                # The generators want the discriminators to label the translated images as real
+                valid = np.ones((batch_size,) + self.disc_patch)
 
-            # The generators want the discriminators to label the translated images as real
-            valid = np.ones((batch_size,) + self.disc_patch)
+                # Train the generators
+                g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B, imgs_A, imgs_B])
 
-            # Train the generators
-            g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B, imgs_A, imgs_B])
+                elapsed_time = datetime.datetime.now() - start_time
 
-            elapsed_time = datetime.datetime.now() - start_time
-            # Plot the progress
-            print ("%d time: %s" % (epoch, elapsed_time))
+                # Plot the progress
+                print ("[Epoch %d/%d] [Batch %d/%d] time: %s [D loss: %f, acc: %3d%%] [G loss: %05f, adv: %05f, recon: %05f, id: %05f]" \
+                                                                        % ( epoch, epochs,
+                                                                            batch_i, self.data_loader.n_batches,
+                                                                            elapsed_time,
+                                                                            d_loss[0], 100*d_loss[1],
+                                                                            g_loss[0],
+                                                                            np.mean(g_loss[1:3]),
+                                                                            np.mean(g_loss[3:5]),
+                                                                            np.mean(g_loss[5:6])))
 
-            # If at save interval => save generated image samples
-            if epoch % sample_interval == 0:
-                self.sample_images(epoch)
+                # If at save interval                                        => save generated image samples
+                if batch_i % sample_interval == 0:
+                    self.sample_images(epoch, batch_i)
 
-    def sample_images(self, epoch):
+    def sample_images(self, epoch, batch_i):
         os.makedirs('%s' % self.dataset_name, exist_ok=True)
         r, c = 2, 3
 
@@ -243,10 +244,10 @@ class CycleGAN():
                 axs[i, j].set_title(titles[j])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("%s/%d.png" % (self.dataset_name, epoch))
+        fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
 if __name__ == '__main__':
     gan = CycleGAN()
-    gan.train(epochs=30000, batch_size=2, sample_interval=200)
+    gan.train(epochs=200, batch_size=1, sample_interval=200)
