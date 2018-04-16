@@ -39,8 +39,8 @@ class CycleGAN():
         self.df = 64
 
         # Loss weights
-        self.lambda_cycle = 10.0  # Cycle-consistency loss
-        self.lambda_id = 0.0      # Identity loss
+        self.lambda_cycle = 10.0                    # Cycle-consistency loss
+        self.lambda_id = 0.5 * self.lambda_cycle    # Identity loss
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -70,6 +70,9 @@ class CycleGAN():
         # Translate images back to original domain
         reconstr_A = self.g_BA(fake_B)
         reconstr_B = self.g_AB(fake_A)
+        # Identity mapping of images
+        img_A_id = self.g_BA(img_A)
+        img_B_id = self.g_AB(img_B)
 
         # For the combined model we will only train the generators
         self.d_A.trainable = False
@@ -79,12 +82,17 @@ class CycleGAN():
         valid_A = self.d_A(fake_A)
         valid_B = self.d_B(fake_B)
 
-        self.combined = Model([img_A, img_B], [valid_A, valid_B, fake_B, fake_A, \
-                                               reconstr_A, reconstr_B])
-        self.combined.compile(loss=['mse', 'mse', 'mae', 'mae', 'mae', 'mae'],
-                                    loss_weights=[1, 1, self.lambda_id, self.lambda_id, \
-                                                  self.lambda_cycle, self.lambda_cycle],
-                                    optimizer=optimizer)
+        self.combined = Model([img_A, img_B],
+                              [valid_A, valid_B,
+                               reconstr_A, reconstr_B,
+                               img_A_id, img_B_id])
+        self.combined.compile(loss=['mse', 'mse',
+                                    'mae', 'mae',
+                                    'mae', 'mae'],
+                            loss_weights=[1, 1,
+                                        self.lambda_cycle, self.lambda_cycle,
+                                        self.lambda_id, self.lambda_id],
+                            optimizer=optimizer)
 
     def build_generator(self):
         """U-Net Generator"""
