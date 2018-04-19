@@ -85,7 +85,7 @@ class DUALGAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dropout(0.4))
-        model.add(Dense(np.prod(self.img_shape), activation='tanh'))
+        model.add(Dense(self.img_dim, activation='tanh'))
 
         X_translated = model(X)
 
