@@ -42,7 +42,12 @@ class DUALGAN():
         self.g2 = self.build_generator()
         self.g2.compile(loss='binary_crossentropy', optimizer=optimizer)
 
-        # For the combined model we will only train the generator
+        #-------------------------
+        # Construct Computational
+        #   Graph of Generators
+        #-------------------------
+
+        # For the combined model we will only train the generators
         self.d1.trainable = False
         self.d2.trainable = False
 
@@ -63,10 +68,10 @@ class DUALGAN():
         X2_recon = self.g1(X2_translated)
 
         # The combined model  (stacked generators and discriminators)
-        self.combined = Model([X1, X2], [valid1, valid2, X1_recon, X2_recon])
+        self.combined = Model(inputs=[X1, X2], outputs=[valid1, valid2, X1_recon, X2_recon])
         self.combined.compile(loss=[self.wasserstein_loss, self.wasserstein_loss, 'mae', 'mae'],
-                                    optimizer=optimizer,
-                                    loss_weights=[1, 1, 100, 100])
+                            optimizer=optimizer,
+                            loss_weights=[1, 1, 100, 100])
 
     def build_generator(self):
 
