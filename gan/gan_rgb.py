@@ -39,7 +39,7 @@ import numpy as np
 
 class GAN():
     def __init__(self):
-        self.img_rows = 28 
+        self.img_rows = 28
         self.img_cols = 28
         self.channels = 3
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
@@ -48,7 +48,7 @@ class GAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy', 
+        self.discriminator.compile(loss='binary_crossentropy',
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -67,14 +67,14 @@ class GAN():
         valid = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity 
+        # noise as input => generates images => determines validity
         self.combined = Model(z, valid)
         self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
 
     def build_generator(self):
 
         noise_shape = (100,)
-        
+
         model = Sequential()
 
         model.add(Dense(256, input_shape=noise_shape))
@@ -99,7 +99,7 @@ class GAN():
     def build_discriminator(self):
 
         img_shape = (self.img_rows, self.img_cols, self.channels)
-        
+
         model = Sequential()
 
         model.add(Flatten(input_shape=img_shape))
@@ -116,41 +116,34 @@ class GAN():
         return Model(img, validity)
 
     def get_image(self, image_path, width, height, mode):
-    
+
         image = Image.open(image_path)
         # image = image.resize([width, height], Image.BILINEAR)
-        if image.size != (width, height):  
+        if image.size != (width, height):
         # Remove most pixels that aren't part of a face
             face_width = face_height = 108
             j = (image.size[0] - face_width) // 2
             i = (image.size[1] - face_height) // 2
             image = image.crop([j, i, j + face_width, i + face_height])
             image = image.resize([width, height])
-    
+
         return np.array(image.convert(mode))
 
     def get_batch(self, image_files, width, height, mode):
         data_batch = np.array(
             [self.get_image(sample_file, width, height, mode) for sample_file in image_files])
 
-        return data_batch    
+        return data_batch
 
     def train(self, epochs, batch_size=128, save_interval=50):
-        
-        data_dir = './data'
-        X_train = self.get_batch(glob(os.path.join(data_dir, '*.jpg'))[:5000], 28, 28, 'RGB')
 
-
-        #Rescale -1 to 1
+        X_train = self.get_batch(glob(os.path.join('data', '*.jpg'))[:5000], 28, 28, 'RGB')
+        # Rescale -1 to 1
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
-
-        half_batch = int(batch_size / 2)
-
-        #Create lists for logging the losses
-        d_loss_logs_r = []
-        d_loss_logs_f = []
-        g_loss_logs = []
+        # Adversarial ground truth
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -158,62 +151,35 @@ class GAN():
             #  Train Discriminator
             # ---------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            # Sample a random batch of images
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            noise = np.random.normal(0, 1, (half_batch, 100))
-
-            # Generate a half batch of new images
+            # Sample generator input
+            noise = np.random.normal(0, 1, (batch_size, 100))
+            # Generate a batch of new images
             gen_imgs = self.generator.predict(noise)
 
             # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch(imgs, np.ones((half_batch, 1)))
-            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, np.zeros((half_batch, 1)))
+            d_loss_real = self.discriminator.train_on_batch(imgs, valid)
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
-
 
             # ---------------------
             #  Train Generator
             # ---------------------
 
+            # Sample generator input
             noise = np.random.normal(0, 1, (batch_size, 100))
-
-            # The generator wants the discriminator to label the generated samples
-            # as valid (ones)
-            valid_y = np.array([1] * batch_size)
-
             # Train the generator
-            g_loss = self.combined.train_on_batch(noise, valid_y)
+            g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
 
-            #Append the logs with the loss values in each training step
-            d_loss_logs_r.append([epoch, d_loss[0]])
-            d_loss_logs_f.append([epoch, d_loss[1]])
-            g_loss_logs.append([epoch, g_loss])
-
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
                 self.save_imgs(epoch)
-
-
-            #Convert the log lists to numpy arrays
-            d_loss_logs_r_a = np.array(d_loss_logs_r)
-	        d_loss_logs_f_a = np.array(d_loss_logs_f)
-	        g_loss_logs_a = np.array(g_loss_logs)
-
-	        #Generate the plot at the end of training
-	        plt.plot(d_loss_logs_r_a[:,0], d_loss_logs_r_a[:,1], label="Discriminator Loss - Real")
-	        plt.plot(d_loss_logs_f_a[:,0], d_loss_logs_f_a[:,1], label="Discriminator Loss - Fake")
-	        plt.plot(g_loss_logs_a[:,0], g_loss_logs_a[:,1], label="Generator Loss")
-	        plt.xlabel('Epochs')
-	        plt.ylabel('Loss')
-	        plt.legend()
-	        plt.title('Variation of losses over epochs')
-	        plt.grid(True)
-	        plt.show()     
 
     def save_imgs(self, epoch):
         r, c = 5, 5
