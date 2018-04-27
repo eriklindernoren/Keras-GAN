@@ -34,10 +34,8 @@ class COGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
+        # Build the generator
         self.g1, self.g2 = self.build_generators()
-        self.g1.compile(loss='binary_crossentropy', optimizer=optimizer)
-        self.g2.compile(loss='binary_crossentropy', optimizer=optimizer)
 
         # The generator takes noise as input and generated imgs
         z = Input(shape=(100,))

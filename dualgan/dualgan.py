@@ -36,16 +36,14 @@ class DUALGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generators
-        self.g1 = self.build_generator()
-        self.g1.compile(loss='binary_crossentropy', optimizer=optimizer)
-        self.g2 = self.build_generator()
-        self.g2.compile(loss='binary_crossentropy', optimizer=optimizer)
-
         #-------------------------
         # Construct Computational
         #   Graph of Generators
         #-------------------------
+
+        # Build the generators
+        self.g1 = self.build_generator()
+        self.g2 = self.build_generator()
 
         # For the combined model we will only train the generators
         self.d1.trainable = False

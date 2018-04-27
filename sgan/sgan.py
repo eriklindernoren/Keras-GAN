@@ -31,10 +31,8 @@ class SGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
+        # Build the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
 
         # The generator takes noise as input and generates imgs
         noise = Input(shape=(100,))

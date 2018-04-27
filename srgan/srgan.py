@@ -73,9 +73,8 @@ class SRGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
+        # Build the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
         # High res. and low res. images
         img_hr = Input(shape=self.hr_shape)

@@ -32,14 +32,9 @@ class AdversarialAutoencoder():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the encoder / decoder
+        # Build the encoder / decoder
         self.encoder = self.build_encoder()
-        self.encoder.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
-
         self.decoder = self.build_decoder()
-        self.decoder.compile(loss=['mse'],
-            optimizer=optimizer)
 
         img = Input(shape=self.img_shape)
         # The generator takes the image, encodes it and reconstructs it

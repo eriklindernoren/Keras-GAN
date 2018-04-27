@@ -42,10 +42,8 @@ class CCGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
+        # Build the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
 
         # The generator takes noise as input and generates imgs
         masked_img = Input(shape=self.img_shape)

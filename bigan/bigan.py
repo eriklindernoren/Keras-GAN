@@ -32,15 +32,11 @@ class BIGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
+        # Build the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
-
-        # Build and compile the encoder
+        
+        # Build the encoder
         self.encoder = self.build_encoder()
-        self.encoder.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
 
         # The part of the bigan that trains the discriminator and encoder
         self.discriminator.trainable = False

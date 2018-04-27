@@ -52,13 +52,11 @@ class PixelDA():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generators
+        # Build the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
-        # Build and compile the task (classification) network
+        # Build the task (classification) network
         self.clf = self.build_classifier()
-        self.clf.compile(loss='binary_crossentropy', optimizer=optimizer)
 
         # Input images from both domains
         img_A = Input(shape=self.img_shape)

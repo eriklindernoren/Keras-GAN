@@ -27,11 +27,6 @@ class INFOGAN():
         optimizer = Adam(0.0002, 0.5)
         losses = ['binary_crossentropy', self.mutual_info_loss]
 
-        # Build and compile the generator
-        self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
-
         # Build and the discriminator and recognition network
         self.discriminator, self.auxilliary = self.build_disk_and_q_net()
 
@@ -43,6 +38,9 @@ class INFOGAN():
         self.auxilliary.compile(loss=[self.mutual_info_loss],
             optimizer=optimizer,
             metrics=['accuracy'])
+
+        # Build the generator
+        self.generator = self.build_generator()
 
         # The generator takes noise and the target label as input
         # and generates the corresponding digit of that label

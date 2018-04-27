@@ -54,16 +54,14 @@ class CycleGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generators
-        self.g_AB = self.build_generator()
-        self.g_BA = self.build_generator()
-        self.g_AB.compile(loss='binary_crossentropy', optimizer=optimizer)
-        self.g_BA.compile(loss='binary_crossentropy', optimizer=optimizer)
-
         #-------------------------
         # Construct Computational
         #   Graph of Generators
         #-------------------------
+
+        # Build the generators
+        self.g_AB = self.build_generator()
+        self.g_BA = self.build_generator()
 
         # Input images from both domains
         img_A = Input(shape=self.img_shape)

@@ -31,10 +31,8 @@ class ACGAN():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
+        # Build the generator
         self.generator = self.build_generator()
-        self.generator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
 
         # The generator takes noise and the target label as input
         # and generates the corresponding digit of that label

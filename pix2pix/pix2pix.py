@@ -46,14 +46,13 @@ class Pix2Pix():
             optimizer=optimizer,
             metrics=['accuracy'])
 
-        # Build and compile the generator
-        self.generator = self.build_generator()
-        self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
-
         #-------------------------
         # Construct Computational
         #   Graph of Generator
         #-------------------------
+
+        # Build the generator
+        self.generator = self.build_generator()
 
         # Input images and their conditioning images
         img_A = Input(shape=self.img_shape)
