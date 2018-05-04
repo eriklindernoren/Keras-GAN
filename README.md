@@ -3,7 +3,7 @@
 ## About
 Collection of Keras implementations of Generative Adversarial Networks (GANs) suggested in research papers. These models are in some cases simplified versions of the ones ultimately described in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. Contributions and suggestions of GAN varieties to implement are very welcomed.
 
-See also: [PyTorch-GAN](https://github.com/eriklindernoren/PyTorch-GAN)
+<b>See also:</b> [PyTorch-GAN](https://github.com/eriklindernoren/PyTorch-GAN)
 
 ## Table of Contents
 - [Keras-GAN](#keras-gan)
