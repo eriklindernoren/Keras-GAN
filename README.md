@@ -8,9 +8,6 @@ Collection of Keras implementations of Generative Adversarial Networks (GANs) su
 <b>See also:</b> [PyTorch-GAN](https://github.com/eriklindernoren/PyTorch-GAN)
 
 ## Table of Contents
-- [Keras-GAN](#keras-gan)
-  * [About](#about)
-  * [Table of Contents](#table-of-contents)
   * [Installation](#installation)
   * [Implementations](#implementations)
     + [Auxiliary Classifier GAN](#ac-gan)
