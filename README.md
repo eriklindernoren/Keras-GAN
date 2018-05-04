@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="assets/keras_gan.png" width="300"\>
+    <img src="assets/keras_gan.png" width="480"\>
 </p>
 
 ## About
