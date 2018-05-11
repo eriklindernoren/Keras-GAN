@@ -3,7 +3,7 @@ from __future__ import print_function, division
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
 from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers import MaxPooling2D
+from keras.layers import MaxPooling2D, merge
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
@@ -22,7 +22,7 @@ class AdversarialAutoencoder():
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.encoded_dim = 100
+        self.latent_dim = 10
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -57,58 +57,52 @@ class AdversarialAutoencoder():
 
     def build_encoder(self):
         # Encoder
-        encoder = Sequential()
-
-        encoder.add(Flatten(input_shape=self.img_shape))
-        encoder.add(Dense(512))
-        encoder.add(LeakyReLU(alpha=0.2))
-        encoder.add(BatchNormalization(momentum=0.8))
-        encoder.add(Dense(512))
-        encoder.add(LeakyReLU(alpha=0.2))
-        encoder.add(BatchNormalization(momentum=0.8))
-        encoder.add(Dense(self.encoded_dim))
-
-        encoder.summary()
 
         img = Input(shape=self.img_shape)
-        encoded_repr = encoder(img)
 
-        return Model(img, encoded_repr)
+        h = Flatten(input_shape=self.img_shape)(img)
+        h = Dense(512)(h)
+        h = LeakyReLU(alpha=0.2)(h)
+        h = Dense(512)(h)
+        h = LeakyReLU(alpha=0.2)(h)
+        mu = Dense(self.latent_dim)(h)
+        log_var = Dense(self.latent_dim)(h)
+        latent_repr = merge([mu, log_var],
+                mode=lambda p: p[0] + K.random_normal(K.shape(p[0])) * K.exp(p[1] / 2),
+                output_shape=lambda p: p[0])
+
+        return Model(img, latent_repr)
 
     def build_decoder(self):
         # Decoder
         decoder = Sequential()
 
-        decoder.add(Dense(512, input_dim=self.encoded_dim))
+        decoder.add(Dense(512, input_dim=self.latent_dim))
         decoder.add(LeakyReLU(alpha=0.2))
-        decoder.add(BatchNormalization(momentum=0.8))
         decoder.add(Dense(512))
         decoder.add(LeakyReLU(alpha=0.2))
-        decoder.add(BatchNormalization(momentum=0.8))
         decoder.add(Dense(np.prod(self.img_shape), activation='tanh'))
         decoder.add(Reshape(self.img_shape))
 
         decoder.summary()
 
-        encoded_repr = Input(shape=(self.encoded_dim,))
-        gen_img = decoder(encoded_repr)
+        z = Input(shape=(self.latent_dim,))
+        img = decoder(z)
 
-        return Model(encoded_repr, gen_img)
+        return Model(z, img)
 
     def build_discriminator(self):
 
         model = Sequential()
 
-        model.add(Dense(512, input_dim=self.encoded_dim))
+        model.add(Dense(512, input_dim=self.latent_dim))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(512))
+        model.add(Dense(256))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(1, activation="sigmoid"))
         model.summary()
 
-        encoded_repr = Input(shape=(self.encoded_dim, ))
+        encoded_repr = Input(shape=(self.latent_dim, ))
         validity = model(encoded_repr)
 
         return Model(encoded_repr, validity)
@@ -135,17 +129,12 @@ class AdversarialAutoencoder():
             idx = np.random.randint(0, X_train.shape[0], half_batch)
             imgs = X_train[idx]
 
-            # Generate a half batch of embedded images
             latent_fake = self.encoder.predict(imgs)
-
-            latent_real = np.random.normal(size=(half_batch, self.encoded_dim))
-
-            valid = np.ones((half_batch, 1))
-            fake = np.zeros((half_batch, 1))
+            latent_real = np.random.normal(size=(half_batch, self.latent_dim))
 
             # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch(latent_real, valid)
-            d_loss_fake = self.discriminator.train_on_batch(latent_fake, fake)
+            d_loss_real = self.discriminator.train_on_batch(latent_real, np.ones((half_batch, 1)))
+            d_loss_fake = self.discriminator.train_on_batch(latent_fake, np.zeros((half_batch, 1)))
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
 
@@ -157,27 +146,21 @@ class AdversarialAutoencoder():
             idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            # Generator wants the discriminator to label the generated representations as valid
-            valid_y = np.ones((batch_size, 1))
-
             # Train the generator
-            g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid_y])
+            g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, np.ones((batch_size, 1))])
 
             # Plot the progress
             print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                # Select a random half batch of images
-                idx = np.random.randint(0, X_train.shape[0], 25)
-                imgs = X_train[idx]
-                self.sample_images(epoch, imgs)
+                self.sample_images(epoch)
 
-    def sample_images(self, epoch, imgs):
+    def sample_images(self, epoch):
         r, c = 5, 5
 
-        encoded_imgs = self.encoder.predict(imgs)
-        gen_imgs = self.decoder.predict(encoded_imgs)
+        z = np.random.normal(size=(r*c, self.latent_dim))
+        gen_imgs = self.decoder.predict(z)
 
         gen_imgs = 0.5 * gen_imgs + 0.5
 
