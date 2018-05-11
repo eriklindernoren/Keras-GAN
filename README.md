@@ -23,7 +23,6 @@ Collection of Keras implementations of Generative Adversarial Networks (GANs) su
     + [DiscoGAN](#discogan)
     + [DualGAN](#dualgan)
     + [Generative Adversarial Network](#gan)
-    + [Improved Wasserstein GAN](#improved-wgan)
     + [InfoGAN](#infogan)
     + [LSGAN](#lsgan)
     + [Pix2Pix](#pix2pix)
@@ -31,6 +30,7 @@ Collection of Keras implementations of Generative Adversarial Networks (GANs) su
     + [Semi-Supervised GAN](#sgan)
     + [Super-Resolution GAN](#srgan)
     + [Wasserstein GAN](#wgan)
+    + [Wasserstein GAN GP](#wgan-gp)     
 
 ## Installation
     $ git clone https://github.com/eriklindernoren/Keras-GAN
@@ -268,23 +268,6 @@ $ python3 gan_rgb.py
     <img src="gan/etc/adam.gif" width="640"\>
 </p>
 
-### Improved WGAN
-Implementation of _Improved Training of Wasserstein GANs_.
-
-[Code](improved_wgan/improved_wgan.py)
-
-Paper: https://arxiv.org/abs/1704.00028
-
-#### Example
-```
-$ cd improved_wgan/
-$ python3 improved_wgan.py
-```
-
-<p align="center">
-    <img src="http://eriklindernoren.se/images/imp_wgan.gif" width="640"\>
-</p>
-
 ### InfoGAN
 Implementation of _InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets_.
 
@@ -412,4 +395,21 @@ $ python3 wgan.py
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/wgan2.png" width="640"\>
+</p>
+
+### WGAN GP
+Implementation of _Improved Training of Wasserstein GANs_.
+
+[Code](wgan_gp/wgan_gp.py)
+
+Paper: https://arxiv.org/abs/1704.00028
+
+#### Example
+```
+$ cd wgan_gp/
+$ python3 wgan_gp.py
+```
+
+<p align="center">
+    <img src="http://eriklindernoren.se/images/imp_wgan.gif" width="640"\>
 </p>

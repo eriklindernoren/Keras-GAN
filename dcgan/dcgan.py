@@ -54,15 +54,14 @@ class DCGAN():
 
         model.add(Dense(128 * 7 * 7, activation="relu", input_shape=(self.latent_dim,)))
         model.add(Reshape((7, 7, 128)))
-        model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=3, padding="same"))
-        model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
+        model.add(Activation("relu"))
         model.add(UpSampling2D())
         model.add(Conv2D(64, kernel_size=3, padding="same"))
-        model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
+        model.add(Activation("relu"))
         model.add(Conv2D(self.channels, kernel_size=3, padding="same"))
         model.add(Activation("tanh"))
 
@@ -82,17 +81,17 @@ class DCGAN():
         model.add(Dropout(0.25))
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
         model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-        model.add(BatchNormalization(momentum=0.8))
         model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-
+        model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
         model.add(Flatten())
         model.add(Dense(1, activation='sigmoid'))
 
@@ -109,7 +108,7 @@ class DCGAN():
         (X_train, _), (_, _) = mnist.load_data()
 
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        X_train = X_train.astype(np.float32) / 127.5 - 1.
         X_train = np.expand_dims(X_train, axis=3)
 
         half_batch = int(batch_size / 2)
@@ -125,7 +124,7 @@ class DCGAN():
             imgs = X_train[idx]
 
             # Sample noise and generate a half batch of new images
-            noise = np.random.normal(0, 1, (half_batch, 100))
+            noise = np.random.normal(0, 1, (half_batch, self.latent_dim))
             gen_imgs = self.generator.predict(noise)
 
             # Train the discriminator (real classified as ones and generated as zeros)
@@ -138,7 +137,7 @@ class DCGAN():
             # ---------------------
 
             # Sample generator input
-            noise = np.random.normal(0, 1, (batch_size, 100))
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
 
             # Train the generator (wants discriminator to mistake images as real)
             g_loss = self.combined.train_on_batch(noise, np.ones((batch_size, 1)))
@@ -152,7 +151,7 @@ class DCGAN():
 
     def save_imgs(self, epoch):
         r, c = 5, 5
-        noise = np.random.normal(0, 1, (r * c, 100))
+        noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
 
         # Rescale images 0 - 1

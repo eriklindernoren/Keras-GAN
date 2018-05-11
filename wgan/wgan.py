@@ -21,15 +21,17 @@ class WGAN():
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
+        self.img_shape = (self.img_rows, self.img_cols, self.channels)
+        self.latent_dim = 100
 
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
         self.clip_value = 0.01
         optimizer = RMSprop(lr=0.00005)
 
-        # Build and compile the discriminator
-        self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=self.wasserstein_loss,
+        # Build and compile the critic
+        self.critic = self.build_critic()
+        self.critic.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -41,13 +43,12 @@ class WGAN():
         img = self.generator(z)
 
         # For the combined model we will only train the generator
-        self.discriminator.trainable = False
+        self.critic.trainable = False
 
-        # The discriminator takes generated images as input and determines validity
-        valid = self.discriminator(img)
+        # The critic takes generated images as input and determines validity
+        valid = self.critic(img)
 
-        # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity
+        # The combined model  (stacked generator and critic)
         self.combined = Model(z, valid)
         self.combined.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
@@ -58,21 +59,18 @@ class WGAN():
 
     def build_generator(self):
 
-        noise_shape = (100,)
-
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_shape=noise_shape))
+        model.add(Dense(128 * 7 * 7, activation="relu", input_shape=(self.latent_dim,)))
         model.add(Reshape((7, 7, 128)))
-        model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=4, padding="same"))
-        model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
+        model.add(Activation("relu"))
         model.add(UpSampling2D())
         model.add(Conv2D(64, kernel_size=4, padding="same"))
-        model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
+        model.add(Activation("relu"))
         model.add(Conv2D(self.channels, kernel_size=4, padding="same"))
         model.add(Activation("tanh"))
 
@@ -83,37 +81,35 @@ class WGAN():
 
         return Model(noise, img)
 
-    def build_discriminator(self):
-
-        img_shape = (self.img_rows, self.img_cols, self.channels)
+    def build_critic(self):
 
         model = Sequential()
 
-        model.add(Conv2D(16, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
+        model.add(Conv2D(16, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(32, kernel_size=3, strides=2, padding="same"))
         model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-        model.add(BatchNormalization(momentum=0.8))
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(128, kernel_size=3, strides=1, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
-
+        model.add(Conv2D(128, kernel_size=3, strides=1, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
         model.add(Flatten())
+        model.add(Dense(1))
 
         model.summary()
 
         img = Input(shape=img_shape)
-        features = model(img)
-        valid = Dense(1, activation="linear")(features)
+        validity = model(img)
 
-        return Model(img, valid)
+        return Model(img, validity)
 
     def train(self, epochs, batch_size=128, sample_interval=50):
 
@@ -138,18 +134,18 @@ class WGAN():
                 idx = np.random.randint(0, X_train.shape[0], half_batch)
                 imgs = X_train[idx]
 
-                noise = np.random.normal(0, 1, (half_batch, 100))
+                noise = np.random.normal(0, 1, (half_batch, self.latent_dim))
 
                 # Generate a half batch of new images
                 gen_imgs = self.generator.predict(noise)
 
-                # Train the discriminator
-                d_loss_real = self.discriminator.train_on_batch(imgs, -np.ones((half_batch, 1)))
-                d_loss_fake = self.discriminator.train_on_batch(gen_imgs, np.ones((half_batch, 1)))
+                # Train the critic
+                d_loss_real = self.critic.train_on_batch(imgs, -np.ones((half_batch, 1)))
+                d_loss_fake = self.critic.train_on_batch(gen_imgs, np.ones((half_batch, 1)))
                 d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
 
-                # Clip discriminator weights
-                for l in self.discriminator.layers:
+                # Clip critic weights
+                for l in self.critic.layers:
                     weights = l.get_weights()
                     weights = [np.clip(w, -self.clip_value, self.clip_value) for w in weights]
                     l.set_weights(weights)
@@ -159,7 +155,7 @@ class WGAN():
             #  Train Generator
             # ---------------------
 
-            noise = np.random.normal(0, 1, (batch_size, 100))
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
 
             # Train the generator
             g_loss = self.combined.train_on_batch(noise, -np.ones((batch_size, 1)))
@@ -173,7 +169,7 @@ class WGAN():
 
     def sample_images(self, epoch):
         r, c = 5, 5
-        noise = np.random.normal(0, 1, (r * c, 100))
+        noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
 
         # Rescale images 0 - 1
