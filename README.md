@@ -58,7 +58,7 @@ $ python3 acgan.py
 ### Adversarial Autoencoder
 Implementation of _Adversarial Autoencoder_.
 
-[Code](aae/adversarial_autoencoder.py)
+[Code](aae/aae.py)
 
 Paper: https://arxiv.org/abs/1511.05644
 

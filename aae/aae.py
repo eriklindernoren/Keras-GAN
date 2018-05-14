@@ -60,7 +60,7 @@ class AdversarialAutoencoder():
 
         img = Input(shape=self.img_shape)
 
-        h = Flatten(input_shape=self.img_shape)(img)
+        h = Flatten()(img)
         h = Dense(512)(h)
         h = LeakyReLU(alpha=0.2)(h)
         h = Dense(512)(h)

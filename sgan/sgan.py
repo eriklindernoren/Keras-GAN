@@ -21,6 +21,7 @@ class SGAN():
         self.img_cols = 28
         self.channels = 1
         self.num_classes = 10
+        self.latent_dim = 100
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -55,7 +56,7 @@ class SGAN():
 
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=100))
+        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
         model.add(Reshape((7, 7, 128)))
         model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
@@ -71,18 +72,16 @@ class SGAN():
 
         model.summary()
 
-        noise = Input(shape=(100,))
+        noise = Input(shape=(self.latent_dim,))
         img = model(noise)
 
         return Model(noise, img)
 
     def build_discriminator(self):
 
-        img_shape = (self.img_rows, self.img_cols, self.channels)
-
         model = Sequential()
 
-        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
+        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
@@ -101,7 +100,7 @@ class SGAN():
         model.add(Flatten())
         model.summary()
 
-        img = Input(shape=img_shape)
+        img = Input(shape=self.img_shape)
 
         features = model(img)
         valid = Dense(1, activation="sigmoid")(features)
@@ -142,7 +141,7 @@ class SGAN():
             imgs = X_train[idx]
 
             # Sample noise and generate a half batch of new images
-            noise = np.random.normal(0, 1, (half_batch, 100))
+            noise = np.random.normal(0, 1, (half_batch, self.latent_dim))
             gen_imgs = self.generator.predict(noise)
 
             valid = np.ones((half_batch, 1))
@@ -161,7 +160,7 @@ class SGAN():
             #  Train Generator
             # ---------------------
 
-            noise = np.random.normal(0, 1, (batch_size, 100))
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
             validity = np.ones((batch_size, 1))
 
             # Train the generator
@@ -176,7 +175,7 @@ class SGAN():
 
     def sample_images(self, epoch):
         r, c = 5, 5
-        noise = np.random.normal(0, 1, (r * c, 100))
+        noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
 
         # Rescale images 0 - 1

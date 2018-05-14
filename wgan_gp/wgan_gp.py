@@ -128,7 +128,7 @@ class WGANGP():
 
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_shape=(self.latent_dim,)))
+        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
         model.add(Reshape((7, 7, 128)))
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=4, padding="same"))
@@ -143,7 +143,7 @@ class WGANGP():
 
         model.summary()
 
-        noise = Input(shape=noise_shape)
+        noise = Input(shape=(self.latent_dim,))
         img = model(noise)
 
         return Model(noise, img)
@@ -173,7 +173,7 @@ class WGANGP():
 
         model.summary()
 
-        img = Input(shape=img_shape)
+        img = Input(shape=self.img_shape)
         validity = model(img)
 
         return Model(img, validity)

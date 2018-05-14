@@ -20,6 +20,7 @@ class GAN():
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
+        self.latent_dim = 100
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -54,7 +55,7 @@ class GAN():
 
         model = Sequential()
 
-        model.add(Dense(256, input_shape=noise_shape))
+        model.add(Dense(256, input_dim=self.latent_dim))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(512))
@@ -68,18 +69,16 @@ class GAN():
 
         model.summary()
 
-        noise = Input(shape=noise_shape)
+        noise = Input(shape=(self.latent_dim,))
         img = model(noise)
 
         return Model(noise, img)
 
     def build_discriminator(self):
-
-        img_shape = (self.img_rows, self.img_cols, self.channels)
-
+        
         model = Sequential()
 
-        model.add(Flatten(input_shape=img_shape))
+        model.add(Flatten(input_shape=self.img_shape))
         model.add(Dense(512))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(256))
@@ -87,7 +86,7 @@ class GAN():
         model.add(Dense(1, activation='sigmoid'))
         model.summary()
 
-        img = Input(shape=img_shape)
+        img = Input(shape=self.img_shape)
         validity = model(img)
 
         return Model(img, validity)
