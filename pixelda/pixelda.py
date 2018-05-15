@@ -158,20 +158,21 @@ class PixelDA():
         # Classification accuracy on 100 last batches of domain B
         test_accs = []
 
+        # Adversarial ground truths
+        valid = np.ones((batch_size, *self.disc_patch))
+        fake = np.zeros((batch_size, *self.disc_patch))
+
         for epoch in range(epochs):
 
             # ---------------------
             #  Train Discriminator
             # ---------------------
 
-            imgs_A, _ = self.data_loader.load_data(domain="A", batch_size=half_batch)
-            imgs_B, _ = self.data_loader.load_data(domain="B", batch_size=half_batch)
+            imgs_A, labels_A = self.data_loader.load_data(domain="A", batch_size=batch_size)
+            imgs_B, labels_B = self.data_loader.load_data(domain="B", batch_size=batch_size)
 
             # Translate images from domain A to domain B
             fake_B = self.generator.predict(imgs_A)
-
-            valid = np.ones((half_batch,) + self.disc_patch)
-            fake = np.zeros((half_batch,) + self.disc_patch)
 
             # Train the discriminators (original images = real / translated = Fake)
             d_loss_real = self.discriminator.train_on_batch(imgs_B, valid)
@@ -183,15 +184,8 @@ class PixelDA():
             #  Train Generator and Classifier
             # --------------------------------
 
-            # Sample a batch of images from both domains
-            imgs_A, labels_A = self.data_loader.load_data(domain="A", batch_size=batch_size)
-            imgs_B, labels_B = self.data_loader.load_data(domain="B", batch_size=batch_size)
-
             # One-hot encoding of labels
             labels_A = to_categorical(labels_A, num_classes=self.num_classes)
-
-            # The generators want the discriminators to label the translated images as real
-            valid = np.ones((batch_size,) + self.disc_patch)
 
             # Train the generator and classifier
             g_loss = self.combined.train_on_batch(imgs_A, [valid, labels_A])

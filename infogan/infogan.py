@@ -150,7 +150,9 @@ class INFOGAN():
         X_train = np.expand_dims(X_train, axis=3)
         y_train = y_train.reshape(-1, 1)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -159,17 +161,15 @@ class INFOGAN():
             # ---------------------
 
             # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
             # Sample noise and categorical labels
-            sampled_noise, sampled_labels = self.sample_generator_input(half_batch)
+            sampled_noise, sampled_labels = self.sample_generator_input(batch_size)
             gen_input = np.concatenate((sampled_noise, sampled_labels), axis=1)
+
             # Generate a half batch of new images
             gen_imgs = self.generator.predict(gen_input)
-
-            valid = np.ones((half_batch, 1))
-            fake = np.zeros((half_batch, 1))
 
             # Train on real and generated data
             d_loss_real = self.discriminator.train_on_batch(imgs, valid)
@@ -182,14 +182,6 @@ class INFOGAN():
             #  Train Generator and Q-network
             # ---------------------
 
-            # Generator wants to fool the discriminator into believing that the generated
-            # samples are real
-            valid = np.ones((batch_size, 1))
-            # Sample noise and categorical labels
-            sampled_noise, sampled_labels = self.sample_generator_input(batch_size)
-            gen_input = np.concatenate((sampled_noise, sampled_labels), axis=1)
-
-            # Train the generator
             g_loss = self.combined.train_on_batch(gen_input, [valid, sampled_labels])
 
             # Plot the progress
@@ -212,7 +204,7 @@ class INFOGAN():
             for j in range(r):
                 axs[j,i].imshow(gen_imgs[j,:,:,0], cmap='gray')
                 axs[j,i].axis('off')
-        fig.savefig("images/mnist_%d.png" % epoch)
+        fig.savefig("images/%d.png" % epoch)
         plt.close()
 
     def save_model(self):
@@ -228,7 +220,6 @@ class INFOGAN():
 
         save(self.generator, "generator")
         save(self.discriminator, "discriminator")
-        save(self.combined, "adversarial")
 
 
 if __name__ == '__main__':

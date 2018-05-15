@@ -85,6 +85,7 @@ class CycleGAN():
         valid_A = self.d_A(fake_A)
         valid_B = self.d_B(fake_B)
 
+        # Combined model trains generators to fool discriminators
         self.combined = Model(inputs=[img_A, img_B],
                               outputs=[ valid_A, valid_B,
                                         reconstr_A, reconstr_B,

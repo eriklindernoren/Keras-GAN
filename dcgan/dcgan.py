@@ -45,6 +45,7 @@ class DCGAN():
         valid = self.discriminator(img)
 
         # The combined model  (stacked generator and discriminator)
+        # Trains the generator to fool the discriminator
         self.combined = Model(z, valid)
         self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
 
@@ -108,10 +109,12 @@ class DCGAN():
         (X_train, _), (_, _) = mnist.load_data()
 
         # Rescale -1 to 1
-        X_train = X_train.astype(np.float32) / 127.5 - 1.
+        X_train = X_train / 127.5 - 1.
         X_train = np.expand_dims(X_train, axis=3)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -119,28 +122,25 @@ class DCGAN():
             #  Train Discriminator
             # ---------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            # Select a random half of images
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            # Sample noise and generate a half batch of new images
-            noise = np.random.normal(0, 1, (half_batch, self.latent_dim))
+            # Sample noise and generate a batch of new images
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
             gen_imgs = self.generator.predict(noise)
 
             # Train the discriminator (real classified as ones and generated as zeros)
-            d_loss_real = self.discriminator.train_on_batch(imgs, np.ones((half_batch, 1)))
-            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, np.zeros((half_batch, 1)))
+            d_loss_real = self.discriminator.train_on_batch(imgs, valid)
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
             # ---------------------
             #  Train Generator
             # ---------------------
 
-            # Sample generator input
-            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
-
             # Train the generator (wants discriminator to mistake images as real)
-            g_loss = self.combined.train_on_batch(noise, np.ones((batch_size, 1)))
+            g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
@@ -158,7 +158,6 @@ class DCGAN():
         gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
-        #fig.suptitle("DCGAN: Generated digits", fontsize=12)
         cnt = 0
         for i in range(r):
             for j in range(c):

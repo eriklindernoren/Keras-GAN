@@ -120,7 +120,9 @@ class WGAN():
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
         X_train = np.expand_dims(X_train, axis=3)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = -np.ones((batch_size, 1))
+        fake = np.ones((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -130,18 +132,19 @@ class WGAN():
                 #  Train Discriminator
                 # ---------------------
 
-                # Select a random half batch of images
-                idx = np.random.randint(0, X_train.shape[0], half_batch)
+                # Select a random batch of images
+                idx = np.random.randint(0, X_train.shape[0], batch_size)
                 imgs = X_train[idx]
+                
+                # Sample noise as generator input
+                noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
 
-                noise = np.random.normal(0, 1, (half_batch, self.latent_dim))
-
-                # Generate a half batch of new images
+                # Generate a batch of new images
                 gen_imgs = self.generator.predict(noise)
 
                 # Train the critic
-                d_loss_real = self.critic.train_on_batch(imgs, -np.ones((half_batch, 1)))
-                d_loss_fake = self.critic.train_on_batch(gen_imgs, np.ones((half_batch, 1)))
+                d_loss_real = self.critic.train_on_batch(imgs, valid)
+                d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
                 d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
 
                 # Clip critic weights
@@ -155,10 +158,7 @@ class WGAN():
             #  Train Generator
             # ---------------------
 
-            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
-
-            # Train the generator
-            g_loss = self.combined.train_on_batch(noise, -np.ones((batch_size, 1)))
+            g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
             print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1 - d_loss[0], 1 - g_loss[0]))

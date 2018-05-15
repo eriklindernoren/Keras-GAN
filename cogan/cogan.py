@@ -22,6 +22,7 @@ class COGAN():
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
+        self.latent_dim = 100
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -50,37 +51,35 @@ class COGAN():
         valid1 = self.d1(img1)
         valid2 = self.d2(img2)
 
-        # The combined model  (stacked generators and discriminators) takes
-        # noise as input => generates images => determines validity
+        # The combined model  (stacked generators and discriminators)
+        # Trains generators to fool discriminators
         self.combined = Model(z, [valid1, valid2])
         self.combined.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
                                     optimizer=optimizer)
 
     def build_generators(self):
 
-        noise_shape = (100,)
-        noise = Input(shape=noise_shape)
-
         # Shared weights between generators
         model = Sequential()
-        model.add(Dense(256, input_shape=noise_shape))
+        model.add(Dense(256, input_dim=self.latent_dim))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(512))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
 
-        latent = model(noise)
+        noise = Input(shape=(self.latent_dim,))
+        feature_repr = model(noise)
 
         # Generator 1
-        g1 = Dense(1024)(latent)
+        g1 = Dense(1024)(feature_repr)
         g1 = LeakyReLU(alpha=0.2)(g1)
         g1 = BatchNormalization(momentum=0.8)(g1)
         g1 = Dense(np.prod(self.img_shape), activation='tanh')(g1)
         img1 = Reshape(self.img_shape)(g1)
 
         # Generator 2
-        g2 = Dense(1024)(latent)
+        g2 = Dense(1024)(feature_repr)
         g2 = LeakyReLU(alpha=0.2)(g2)
         g2 = BatchNormalization(momentum=0.8)(g2)
         g2 = Dense(np.prod(self.img_shape), activation='tanh')(g2)
@@ -92,13 +91,12 @@ class COGAN():
 
     def build_discriminators(self):
 
-        img_shape = (self.img_rows, self.img_cols, self.channels)
-        img1 = Input(shape=img_shape)
-        img2 = Input(shape=img_shape)
+        img1 = Input(shape=self.img_shape)
+        img2 = Input(shape=self.img_shape)
 
         # Shared discriminator layers
         model = Sequential()
-        model.add(Flatten(input_shape=img_shape))
+        model.add(Flatten(input_shape=self.img_shape))
         model.add(Dense(512))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(256))
@@ -128,7 +126,9 @@ class COGAN():
         X2 = X_train[int(X_train.shape[0]/2):]
         X2 = scipy.ndimage.interpolation.rotate(X2, 90, axes=(1, 2))
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -136,22 +136,23 @@ class COGAN():
             #  Train Discriminators
             # ----------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X1.shape[0], half_batch)
+            # Select a random batch of images
+            idx = np.random.randint(0, X1.shape[0], batch_size)
             imgs1 = X1[idx]
             imgs2 = X2[idx]
 
-            noise = np.random.normal(0, 1, (half_batch, 100))
+            # Sample noise as generator input
+            noise = np.random.normal(0, 1, (batch_size, 100))
 
-            # Generate a half batch of new images
+            # Generate a batch of new images
             gen_imgs1 = self.g1.predict(noise)
             gen_imgs2 = self.g2.predict(noise)
 
             # Train the discriminators
-            d1_loss_real = self.d1.train_on_batch(imgs1, np.ones((half_batch, 1)))
-            d2_loss_real = self.d2.train_on_batch(imgs2, np.ones((half_batch, 1)))
-            d1_loss_fake = self.d1.train_on_batch(gen_imgs1, np.zeros((half_batch, 1)))
-            d2_loss_fake = self.d2.train_on_batch(gen_imgs2, np.zeros((half_batch, 1)))
+            d1_loss_real = self.d1.train_on_batch(imgs1, valid)
+            d2_loss_real = self.d2.train_on_batch(imgs2, valid)
+            d1_loss_fake = self.d1.train_on_batch(gen_imgs1, fake)
+            d2_loss_fake = self.d2.train_on_batch(gen_imgs2, fake)
             d1_loss = 0.5 * np.add(d1_loss_real, d1_loss_fake)
             d2_loss = 0.5 * np.add(d2_loss_real, d2_loss_fake)
 
@@ -160,13 +161,6 @@ class COGAN():
             #  Train Generators
             # ------------------
 
-            noise = np.random.normal(0, 1, (batch_size, 100))
-
-            # The generators wants the discriminators to label the generated samples
-            # as valid (ones)
-            valid = np.array([1] * batch_size)
-
-            # Train the generators
             g_loss = self.combined.train_on_batch(noise, [valid, valid])
 
             # Plot the progress

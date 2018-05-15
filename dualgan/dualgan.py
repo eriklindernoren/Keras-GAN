@@ -27,12 +27,12 @@ class DUALGAN():
         optimizer = Adam(0.0002, 0.5)
 
         # Build and compile the discriminators
-        self.d1 = self.build_discriminator()
-        self.d1.compile(loss=self.wasserstein_loss,
+        self.D_A = self.build_discriminator()
+        self.D_A.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
             metrics=['accuracy'])
-        self.d2 = self.build_discriminator()
-        self.d2.compile(loss=self.wasserstein_loss,
+        self.D_B = self.build_discriminator()
+        self.D_B.compile(loss=self.wasserstein_loss,
             optimizer=optimizer,
             metrics=['accuracy'])
 
@@ -42,31 +42,31 @@ class DUALGAN():
         #-------------------------
 
         # Build the generators
-        self.g1 = self.build_generator()
-        self.g2 = self.build_generator()
+        self.G_AB = self.build_generator()
+        self.G_BA = self.build_generator()
 
         # For the combined model we will only train the generators
-        self.d1.trainable = False
-        self.d2.trainable = False
+        self.D_A.trainable = False
+        self.D_B.trainable = False
 
         # The generator takes images from their respective domains as inputs
-        X1 = Input(shape=(self.img_dim,))
-        X2 = Input(shape=(self.img_dim,))
+        imgs_A = Input(shape=(self.img_dim,))
+        imgs_B = Input(shape=(self.img_dim,))
 
         # Generators translates the images to the opposite domain
-        X1_translated = self.g1(X1)
-        X2_translated = self.g2(X2)
+        fake_B = self.G_AB(imgs_A)
+        fake_A = self.G_BA(imgs_B)
 
         # The discriminators determines validity of translated images
-        valid1 = self.d1(X2_translated)
-        valid2 = self.d2(X1_translated)
+        valid_A = self.D_A(fake_A)
+        valid_B = self.D_B(fake_B)
 
         # Generators translate the images back to their original domain
-        X1_recon = self.g2(X1_translated)
-        X2_recon = self.g1(X2_translated)
+        recov_A = self.G_BA(fake_B)
+        recov_B = self.G_AB(fake_A)
 
         # The combined model  (stacked generators and discriminators)
-        self.combined = Model(inputs=[X1, X2], outputs=[valid1, valid2, X1_recon, X2_recon])
+        self.combined = Model(inputs=[imgs_A, imgs_B], outputs=[valid_A, valid_B, recov_A, recov_B])
         self.combined.compile(loss=[self.wasserstein_loss, self.wasserstein_loss, 'mae', 'mae'],
                             optimizer=optimizer,
                             loss_weights=[1, 1, 100, 100])
@@ -104,7 +104,7 @@ class DUALGAN():
         model.add(Dense(256))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(self.channels))
+        model.add(Dense(1))
 
         validity = model(img)
 
@@ -127,15 +127,18 @@ class DUALGAN():
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
         # Domain A and B (rotated)
-        X1 = X_train[:int(X_train.shape[0]/2)]
-        X2 = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 90, axes=(1, 2))
+        X_A = X_train[:int(X_train.shape[0]/2)]
+        X_B = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 90, axes=(1, 2))
 
-        X1 = X1.reshape(X1.shape[0], self.img_dim)
-        X2 = X2.reshape(X2.shape[0], self.img_dim)
+        X_A = X_A.reshape(X_A.shape[0], self.img_dim)
+        X_B = X_B.reshape(X_B.shape[0], self.img_dim)
 
-        clip_value = 0.1
+        clip_value = 0.01
         n_critic = 4
-        half_batch = int(batch_size / 2)
+
+        # Adversarial ground truths
+        valid = -np.ones((batch_size, 1))
+        fake = np.ones((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -147,28 +150,25 @@ class DUALGAN():
                 # ----------------------
 
                 # Sample generator inputs
-                imgs1 = self.sample_generator_input(X1, half_batch)
-                imgs2 = self.sample_generator_input(X2, half_batch)
+                imgs_A = self.sample_generator_input(X_A, batch_size)
+                imgs_B = self.sample_generator_input(X_B, batch_size)
 
                 # Translate images to their opposite domain
-                X1_translated = self.g1.predict(imgs1)
-                X2_translated = self.g2.predict(imgs2)
-
-                valid = np.ones((half_batch, 1))
-                fake = np.zeros((half_batch, 1))
+                fake_B = self.G_AB.predict(imgs_A)
+                fake_A = self.G_BA.predict(imgs_B)
 
                 # Train the discriminators
-                d1_loss_real = self.d1.train_on_batch(imgs1, valid)
-                d1_loss_fake = self.d1.train_on_batch(X2_translated, fake)
+                D_A_loss_real = self.D_A.train_on_batch(imgs_A, valid)
+                D_A_loss_fake = self.D_A.train_on_batch(fake_A, fake)
 
-                d2_loss_real = self.d2.train_on_batch(imgs2, valid)
-                d2_loss_fake = self.d2.train_on_batch(X1_translated, fake)
+                D_B_loss_real = self.D_B.train_on_batch(imgs_B, valid)
+                D_B_loss_fake = self.D_B.train_on_batch(fake_B, fake)
 
-                d1_loss = 0.5 * np.add(d1_loss_real, d1_loss_fake)
-                d2_loss = 0.5 * np.add(d2_loss_real, d2_loss_fake)
+                D_A_loss = 0.5 * np.add(D_A_loss_real, D_A_loss_fake)
+                D_B_loss = 0.5 * np.add(D_B_loss_real, D_B_loss_fake)
 
                 # Clip discriminator weights
-                for d in [self.d1, self.d2]:
+                for d in [self.D_A, self.D_B]:
                     for l in d.layers:
                         weights = l.get_weights()
                         weights = [np.clip(w, -clip_value, clip_value) for w in weights]
@@ -178,37 +178,30 @@ class DUALGAN():
             #  Train Generators
             # ------------------
 
-            # Sample generator inputs from each domain
-            imgs1 = self.sample_generator_input(X1, batch_size)
-            imgs2 = self.sample_generator_input(X2, batch_size)
-
-            # The generators wants the discriminators to label the generated samples
-            # as valid (ones)
-            valid = np.ones((batch_size, 1))
-
             # Train the generators
-            g_loss = self.combined.train_on_batch([imgs1, imgs2], [valid, valid, imgs1, imgs2])
+            g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B])
 
             # Plot the progress
-            print ("%d [D1 loss: %f, acc.: %.2f%%] [D2 loss: %f, acc.: %.2f%%] [G loss: %f]" \
-                % (epoch, d1_loss[0], 100*d1_loss[1], d2_loss[0], 100*d2_loss[1], g_loss[0]))
+            print ("%d [D1 loss: %f] [D2 loss: %f] [G loss: %f]" \
+                % (epoch, D_A_loss[0], D_B_loss[0], g_loss[0]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                self.save_imgs(epoch, X1)
+                self.save_imgs(epoch, X_A, X_B)
 
-    def save_imgs(self, epoch, X):
-        r, c = 3, 4
+    def save_imgs(self, epoch, X_A, X_B):
+        r, c = 4, 4
 
-        # Original images
-        imgs = self.sample_generator_input(X, c)
+        # Sample generator inputs
+        imgs_A = self.sample_generator_input(X_A, c)
+        imgs_B = self.sample_generator_input(X_B, c)
+
         # Images translated to their opposite domain
-        X_translated = self.g1.predict(imgs)
-        # Images translated back to their original domain
-        X_recon = self.g2.predict(X_translated)
+        fake_B = self.G_AB.predict(imgs_A)
+        fake_A = self.G_BA.predict(imgs_B)
 
-        gen_imgs = np.concatenate([imgs, X_translated, X_recon])
-        gen_imgs = gen_imgs.reshape((3, 4, self.img_rows, self.img_cols, 1))
+        gen_imgs = np.concatenate([imgs_A, fake_B, imgs_B, fake_A])
+        gen_imgs = gen_imgs.reshape((r, c, self.img_rows, self.img_cols, 1))
 
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5

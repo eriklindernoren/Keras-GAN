@@ -50,8 +50,8 @@ class ContextEncoder():
         # if it is generated or if it is a real image
         valid = self.discriminator(gen_missing)
 
-        # The combined model  (stacked generator and discriminator) takes
-        # masked_img as input => generates missing image => determines validity
+        # The combined model  (stacked generator and discriminator)
+        # Trains generator to fool discriminator
         self.combined = Model(masked_img , [gen_missing, valid])
         self.combined.compile(loss=['mse', 'binary_crossentropy'],
             loss_weights=[0.999, 0.001],
@@ -140,10 +140,7 @@ class ContextEncoder():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, y_train), (X_test, y_test) = cifar10.load_data()
-
-        X_train = np.vstack((X_train, X_test))
-        y_train = np.vstack((y_train, y_test))
+        (X_train, y_train), (_, _) = cifar10.load_data()
 
         # Extract dogs and cats
         X_cats = X_train[(y_train == 3).flatten()]
@@ -151,33 +148,30 @@ class ContextEncoder():
         X_train = np.vstack((X_cats, X_dogs))
 
         # Rescale -1 to 1
-        X_train = X_train / 255
-        X_train = 2 * X_train - 1
+        X_train = X_train / 175.5 - 1.
         y_train = y_train.reshape(-1, 1)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
-
 
             # ---------------------
             #  Train Discriminator
             # ---------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            # Select a random batch of images
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            masked_imgs, missing, _ = self.mask_randomly(imgs)
+            masked_imgs, missing_parts, _ = self.mask_randomly(imgs)
 
-            # Generate a half batch of new images
+            # Generate a batch of new images
             gen_missing = self.generator.predict(masked_imgs)
 
-            valid = np.ones((half_batch, 1))
-            fake = np.zeros((half_batch, 1))
-
             # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch(missing, valid)
+            d_loss_real = self.discriminator.train_on_batch(missing_parts, valid)
             d_loss_fake = self.discriminator.train_on_batch(gen_missing, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
@@ -185,16 +179,6 @@ class ContextEncoder():
             #  Train Generator
             # ---------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
-            imgs = X_train[idx]
-
-            masked_imgs, missing_parts, _ = self.mask_randomly(imgs)
-
-            # Generator wants the discriminator to label the generated images as valid
-            valid = np.ones((batch_size, 1))
-
-            # Train the generator
             g_loss = self.combined.train_on_batch(masked_imgs, [missing_parts, valid])
 
             # Plot the progress
@@ -202,7 +186,6 @@ class ContextEncoder():
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                # Select a random half batch of images
                 idx = np.random.randint(0, X_train.shape[0], 6)
                 imgs = X_train[idx]
                 self.sample_images(epoch, imgs)
@@ -227,7 +210,7 @@ class ContextEncoder():
             filled_in[y1[i]:y2[i], x1[i]:x2[i], :] = gen_missing[i]
             axs[2,i].imshow(filled_in)
             axs[2,i].axis('off')
-        fig.savefig("images/cifar_%d.png" % epoch)
+        fig.savefig("images/%d.png" % epoch)
         plt.close()
 
     def save_model(self):
@@ -241,8 +224,8 @@ class ContextEncoder():
             open(options['file_arch'], 'w').write(json_string)
             model.save_weights(options['file_weight'])
 
-        save(self.generator, "context_encoder_generator")
-        save(self.discriminator, "context_encoder_discriminator")
+        save(self.generator, "generator")
+        save(self.discriminator, "discriminator")
 
 
 if __name__ == '__main__':

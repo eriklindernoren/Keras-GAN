@@ -254,20 +254,6 @@ $ python3 gan.py
     <img src="http://eriklindernoren.se/images/gan_mnist5.gif" width="640"\>
 </p>
 
-GAN on RGB face images
-[Code](gan/gan_rgb.py)
-
-#### Example
-```
-$ cd gan/
-<follow steps at the top of gan_rgb.py>
-$ python3 gan_rgb.py
-```
-
-<p align="center">
-    <img src="gan/etc/adam.gif" width="640"\>
-</p>
-
 ### InfoGAN
 Implementation of _InfoGAN: Interpretable Representation Learning by Information Maximizing Generative Adversarial Nets_.
 

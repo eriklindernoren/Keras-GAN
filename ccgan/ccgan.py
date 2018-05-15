@@ -22,12 +22,11 @@ class CCGAN():
     def __init__(self):
         self.img_rows = 32
         self.img_cols = 32
+        self.channels = 1
+        self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.mask_height = 10
         self.mask_width = 10
-        self.channels = 1
         self.num_classes = 10
-        self.img_shape = (self.img_rows, self.img_cols, self.channels)
-
 
         # Number of filters in first layer of generator and discriminator
         self.gf = 32
@@ -55,8 +54,8 @@ class CCGAN():
         # The valid takes generated images as input and determines validity
         valid, _ = self.discriminator(gen_img)
 
-        # The combined model  (stacked generator and discriminator) takes
-        # masked_img as input => generates images => determines validity
+        # The combined model  (stacked generator and discriminator)
+        # Trains the generator to fool the discriminator
         self.combined = Model(masked_img , valid)
         self.combined.compile(loss=['mse'],
             optimizer=optimizer)
@@ -146,8 +145,6 @@ class CCGAN():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-
-        # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
 
         # Rescale MNIST to 32x32
@@ -158,17 +155,18 @@ class CCGAN():
         X_train = np.expand_dims(X_train, axis=3)
         y_train = y_train.reshape(-1, 1)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 4, 4, 1))
+        fake = np.zeros((batch_size, 4, 4, 1))
 
         for epoch in range(epochs):
-
 
             # ---------------------
             #  Train Discriminator
             # ---------------------
 
             # Sample half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
             labels = y_train[idx]
 
@@ -177,30 +175,18 @@ class CCGAN():
             # Generate a half batch of new images
             gen_imgs = self.generator.predict(masked_imgs)
 
-            valid = np.ones((half_batch, 4, 4, 1))
-            fake = np.zeros((half_batch, 4, 4, 1))
-
+            # One-hot encoding of labels
             labels = to_categorical(labels, num_classes=self.num_classes+1)
-            fake_labels = to_categorical(np.full((half_batch, 1), self.num_classes), num_classes=self.num_classes+1)
+            fake_labels = to_categorical(np.full((batch_size, 1), self.num_classes), num_classes=self.num_classes+1)
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(imgs, [valid, labels])
             d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels])
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
-
             # ---------------------
             #  Train Generator
             # ---------------------
-
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
-            imgs = X_train[idx]
-
-            masked_imgs = self.mask_randomly(imgs)
-
-            # Generator wants the discriminator to label the generated images as valid
-            valid = np.ones((batch_size, 4, 4, 1))
 
             # Train the generator
             g_loss = self.combined.train_on_batch(masked_imgs, valid)
@@ -215,7 +201,6 @@ class CCGAN():
                 imgs = X_train[idx]
                 self.sample_images(epoch, imgs)
                 self.save_model()
-
 
     def sample_images(self, epoch, imgs):
         r, c = 3, 6

@@ -47,8 +47,8 @@ class ACGAN():
         # and the label of that image
         valid, target_label = self.discriminator(img)
 
-        # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity
+        # The combined model  (stacked generator and discriminator)
+        # Trains the generator to fool the discriminator
         self.combined = Model([noise, label], [valid, target_label])
         self.combined.compile(loss=losses,
             optimizer=optimizer)
@@ -75,11 +75,9 @@ class ACGAN():
 
         noise = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,), dtype='int32')
-
         label_embedding = Flatten()(Embedding(self.num_classes, 100)(label))
 
         model_input = multiply([noise, label_embedding])
-
         img = model(model_input)
 
         return Model([noise, label], img)
@@ -123,12 +121,14 @@ class ACGAN():
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
 
-        # Rescale -1 to 1
+        # Configure inputs
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
         X_train = np.expand_dims(X_train, axis=3)
         y_train = y_train.reshape(-1, 1)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -136,25 +136,23 @@ class ACGAN():
             #  Train Discriminator
             # ---------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            # Select a random batch of images
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            noise = np.random.normal(0, 1, (half_batch, 100))
+            # Sample noise as generator input
+            noise = np.random.normal(0, 1, (batch_size, 100))
 
             # The labels of the digits that the generator tries to create an
             # image representation of
-            sampled_labels = np.random.randint(0, 10, half_batch).reshape(-1, 1)
+            sampled_labels = np.random.randint(0, 10, (batch_size, 1))
 
             # Generate a half batch of new images
             gen_imgs = self.generator.predict([noise, sampled_labels])
 
-            valid = np.ones((half_batch, 1))
-            fake = np.zeros((half_batch, 1))
-
             # Image labels. 0-9 if image is valid or 10 if it is generated (fake)
             img_labels = y_train[idx]
-            fake_labels = 10 * np.ones(half_batch).reshape(-1, 1)
+            fake_labels = 10 * np.ones(img_labels.shape)
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(imgs, [valid, img_labels])
@@ -164,14 +162,6 @@ class ACGAN():
             # ---------------------
             #  Train Generator
             # ---------------------
-
-            # Sample generator input
-            noise = np.random.normal(0, 1, (batch_size, 100))
-
-            valid = np.ones((batch_size, 1))
-            # Generator wants discriminator to label the generated images as the intended
-            # digits
-            sampled_labels = np.random.randint(0, 10, batch_size).reshape(-1, 1)
 
             # Train the generator
             g_loss = self.combined.train_on_batch([noise, sampled_labels], [valid, sampled_labels])
@@ -188,9 +178,7 @@ class ACGAN():
         r, c = 10, 10
         noise = np.random.normal(0, 1, (r * c, 100))
         sampled_labels = np.array([num for _ in range(r) for num in range(c)])
-
         gen_imgs = self.generator.predict([noise, sampled_labels])
-
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5
 
@@ -215,9 +203,8 @@ class ACGAN():
             open(options['file_arch'], 'w').write(json_string)
             model.save_weights(options['file_weight'])
 
-        save(self.generator, "mnist_acgan_generator")
-        save(self.discriminator, "mnist_acgan_discriminator")
-        save(self.combined, "mnist_acgan_adversarial")
+        save(self.generator, "generator")
+        save(self.discriminator, "discriminator")
 
 
 if __name__ == '__main__':

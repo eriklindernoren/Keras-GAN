@@ -46,8 +46,8 @@ class CGAN():
         # and the label of that image
         valid = self.discriminator([img, label])
 
-        # The combined model  (stacked generator and discriminator) takes
-        # noise as input => generates images => determines validity
+        # The combined model  (stacked generator and discriminator)
+        # Trains generator to fool discriminator
         self.combined = Model([noise, label], valid)
         self.combined.compile(loss=['binary_crossentropy'],
             optimizer=optimizer)
@@ -72,11 +72,9 @@ class CGAN():
 
         noise = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,), dtype='int32')
-
         label_embedding = Flatten()(Embedding(self.num_classes, self.latent_dim)(label))
 
         model_input = multiply([noise, label_embedding])
-
         img = model(model_input)
 
         return Model([noise, label], img)
@@ -113,12 +111,14 @@ class CGAN():
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
 
-        # Rescale -1 to 1
+        # Configure input
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
         X_train = np.expand_dims(X_train, axis=3)
         y_train = y_train.reshape(-1, 1)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -127,16 +127,14 @@ class CGAN():
             # ---------------------
 
             # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs, labels = X_train[idx], y_train[idx]
 
-            noise = np.random.normal(0, 1, (half_batch, 100))
+            # Sample noise as generator input
+            noise = np.random.normal(0, 1, (batch_size, 100))
 
             # Generate a half batch of new images
             gen_imgs = self.generator.predict([noise, labels])
-
-            valid = np.ones((half_batch, 1))
-            fake = np.zeros((half_batch, 1))
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch([imgs, labels], valid)
@@ -147,11 +145,7 @@ class CGAN():
             #  Train Generator
             # ---------------------
 
-            noise = np.random.normal(0, 1, (batch_size, 100))
-
-            valid = np.ones((batch_size, 1))
-            # Generator wants discriminator to label the generated images as the intended
-            # digits
+            # Condition on labels
             sampled_labels = np.random.randint(0, 10, batch_size).reshape(-1, 1)
 
             # Train the generator

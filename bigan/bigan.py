@@ -34,7 +34,7 @@ class BIGAN():
 
         # Build the generator
         self.generator = self.build_generator()
-        
+
         # Build the encoder
         self.encoder = self.build_encoder()
 
@@ -54,6 +54,7 @@ class BIGAN():
         valid = self.discriminator([z_, img])
 
         # Set up and compile the combined model
+        # Trains generator to fool the discriminator
         self.bigan_generator = Model([z, img], [fake, valid])
         self.bigan_generator.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
             optimizer=optimizer)
@@ -125,7 +126,9 @@ class BIGAN():
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
         X_train = np.expand_dims(X_train, axis=3)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
 
@@ -135,16 +138,13 @@ class BIGAN():
             # ---------------------
 
             # Sample noise and generate img
-            z = np.random.normal(size=(half_batch, self.latent_dim))
+            z = np.random.normal(size=(batch_size, self.latent_dim))
             imgs_ = self.generator.predict(z)
 
-            # Select a random half batch of images and encode
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            # Select a random batch of images and encode
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
             z_ = self.encoder.predict(imgs)
-
-            valid = np.ones((half_batch, 1))
-            fake = np.zeros((half_batch, 1))
 
             # Train the discriminator (img -> z is valid, z -> img is fake)
             d_loss_real = self.discriminator.train_on_batch([z_, imgs], valid)
@@ -155,16 +155,6 @@ class BIGAN():
             #  Train Generator
             # ---------------------
 
-            # Sample gaussian noise
-            z = np.random.normal(size=(batch_size, self.latent_dim))
-
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
-            imgs = X_train[idx]
-
-            valid = np.ones((batch_size, 1))
-            fake = np.zeros((batch_size, 1))
-
             # Train the generator (z -> img is valid and img -> z is is invalid)
             g_loss = self.bigan_generator.train_on_batch([z, imgs], [valid, fake])
 
@@ -173,7 +163,6 @@ class BIGAN():
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                # Select a random half batch of images
                 self.sample_interval(epoch)
 
     def sample_interval(self, epoch):

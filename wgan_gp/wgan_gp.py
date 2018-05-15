@@ -212,9 +212,6 @@ class WGANGP():
             #  Train Generator
             # ---------------------
 
-            # Sample generator input
-            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
-            # Train the generator
             g_loss = self.generator_model.train_on_batch(noise, valid)
 
             # Plot the progress

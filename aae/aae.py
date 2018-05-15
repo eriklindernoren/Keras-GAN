@@ -74,20 +74,20 @@ class AdversarialAutoencoder():
         return Model(img, latent_repr)
 
     def build_decoder(self):
-        # Decoder
-        decoder = Sequential()
 
-        decoder.add(Dense(512, input_dim=self.latent_dim))
-        decoder.add(LeakyReLU(alpha=0.2))
-        decoder.add(Dense(512))
-        decoder.add(LeakyReLU(alpha=0.2))
-        decoder.add(Dense(np.prod(self.img_shape), activation='tanh'))
-        decoder.add(Reshape(self.img_shape))
+        model = Sequential()
 
-        decoder.summary()
+        model.add(Dense(512, input_dim=self.latent_dim))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(np.prod(self.img_shape), activation='tanh'))
+        model.add(Reshape(self.img_shape))
+
+        model.summary()
 
         z = Input(shape=(self.latent_dim,))
-        img = decoder(z)
+        img = model(z)
 
         return Model(z, img)
 
@@ -116,38 +116,34 @@ class AdversarialAutoencoder():
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
         X_train = np.expand_dims(X_train, axis=3)
 
-        half_batch = int(batch_size / 2)
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
-
 
             # ---------------------
             #  Train Discriminator
             # ---------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], half_batch)
+            # Select a random batch of images
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
             latent_fake = self.encoder.predict(imgs)
-            latent_real = np.random.normal(size=(half_batch, self.latent_dim))
+            latent_real = np.random.normal(size=(batch_size, self.latent_dim))
 
             # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch(latent_real, np.ones((half_batch, 1)))
-            d_loss_fake = self.discriminator.train_on_batch(latent_fake, np.zeros((half_batch, 1)))
+            d_loss_real = self.discriminator.train_on_batch(latent_real, valid)
+            d_loss_fake = self.discriminator.train_on_batch(latent_fake, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
-
 
             # ---------------------
             #  Train Generator
             # ---------------------
 
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
-            imgs = X_train[idx]
-
             # Train the generator
-            g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, np.ones((batch_size, 1))])
+            g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid])
 
             # Plot the progress
             print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
