@@ -285,7 +285,7 @@ $ python3 lsgan.py
 ```
 
 ### Pix2Pix
-Implementation of _Unpaired Image-to-Image Translation with Conditional Adversarial Networks_.
+Implementation of _Paired Image-to-Image Translation with Conditional Adversarial Networks_.
 
 [Code](pix2pix/pix2pix.py)
 
