@@ -4,7 +4,8 @@ matplotlib
 numpy
 scipy
 pillow
-urllib
-skimage
-gzip
-pickle
+#urllib
+#skimage
+scikit-image
+#gzip
+#pickle
