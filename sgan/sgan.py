@@ -123,6 +123,7 @@ class SGAN():
         # To balance the difference in occurences of digit class labels.
         # 50% of labels that the discriminator trains on are 'fake'.
         # Weight = 1 / frequency
+        half_batch = batch_size // 2
         cw1 = {0: 1, 1: 1}
         cw2 = {i: self.num_classes / half_batch for i in range(self.num_classes)}
         cw2[self.num_classes] = 1 / half_batch
