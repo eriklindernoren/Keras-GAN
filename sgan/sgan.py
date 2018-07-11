@@ -159,7 +159,7 @@ class SGAN():
             # ---------------------
             #  Train Generator
             # ---------------------
-
+            validity = model(img)
             g_loss = self.combined.train_on_batch(noise, validity, class_weight=[cw1, cw2])
 
             # Plot the progress
