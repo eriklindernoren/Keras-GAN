@@ -146,7 +146,7 @@ class AdversarialAutoencoder():
             g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[1], g_loss[0]))
+            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[2], g_loss[1]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
