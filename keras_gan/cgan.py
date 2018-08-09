@@ -9,8 +9,10 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
+from .gan_base import GANBase
 
-class CGAN():
+
+class CGAN(GANBase):
     def __init__(self):
         # Input shape
         self.img_rows = 28

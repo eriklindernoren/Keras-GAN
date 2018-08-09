@@ -5,7 +5,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from data_loader import DataLoader
 from keras.layers import BatchNormalization
 from keras.layers import Input, Dropout, Concatenate
 from keras.layers.advanced_activations import LeakyReLU
@@ -13,8 +12,11 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Model
 from keras.optimizers import Adam
 
+from .data_loaders.pix2pix.data_loader import DataLoader
+from .gan_base import GANBase
 
-class Pix2Pix():
+
+class Pix2Pix(GANBase):
     def __init__(self):
         # Input shape
         self.img_rows = 256

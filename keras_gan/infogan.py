@@ -12,8 +12,10 @@ from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from keras.utils import to_categorical
 
+from .gan_base import GANBase
 
-class INFOGAN():
+
+class INFOGAN(GANBase):
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28

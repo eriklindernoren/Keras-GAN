@@ -10,8 +10,10 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
+from .gan_base import GANBase
 
-class BGAN():
+
+class BGAN(GANBase):
     """Reference: https://wiseodd.github.io/techblog/2017/03/07/boundary-seeking-gan/"""
     def __init__(self):
         self.img_rows = 28

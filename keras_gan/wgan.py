@@ -11,8 +11,10 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import RMSprop
 
+from .gan_base import GANBase
 
-class WGAN():
+
+class WGAN(GANBase):
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28

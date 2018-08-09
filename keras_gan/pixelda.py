@@ -2,7 +2,6 @@ from __future__ import print_function, division
 
 import matplotlib.pyplot as plt
 import numpy as np
-from data_loader import DataLoader
 from keras.layers import BatchNormalization, Activation, Add
 from keras.layers import Input, Dense, Flatten
 from keras.layers.advanced_activations import LeakyReLU
@@ -12,8 +11,11 @@ from keras.optimizers import Adam
 from keras.utils import to_categorical
 from keras_contrib.layers.normalization import InstanceNormalization
 
+from .data_loaders.pixelda.data_loader import DataLoader
+from .gan_base import GANBase
 
-class PixelDA():
+
+class PixelDA(GANBase):
     def __init__(self):
         # Input shape
         self.img_rows = 32

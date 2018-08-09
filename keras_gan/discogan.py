@@ -5,7 +5,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from data_loader import DataLoader
 from keras.layers import Input, Dropout, Concatenate
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
@@ -13,8 +12,11 @@ from keras.models import Model
 from keras.optimizers import Adam
 from keras_contrib.layers.normalization import InstanceNormalization
 
+from .data_loaders.discogan.data_loader import DataLoader
+from .gan_base import GANBase
 
-class DiscoGAN():
+
+class DiscoGAN(GANBase):
     def __init__(self):
         # Input shape
         self.img_rows = 128
@@ -26,7 +28,6 @@ class DiscoGAN():
         self.dataset_name = 'edges2shoes'
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
-
 
         # Calculate output shape of D (PatchGAN)
         patch = int(self.img_rows / 2**4)

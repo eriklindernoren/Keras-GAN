@@ -14,8 +14,10 @@ from keras.optimizers import Adam
 from keras.utils import to_categorical
 from keras_contrib.layers.normalization import InstanceNormalization
 
+from .gan_base import GANBase
 
-class CCGAN():
+
+class CCGAN(GANBase):
     def __init__(self):
         self.img_rows = 32
         self.img_cols = 32

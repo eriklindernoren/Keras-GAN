@@ -5,7 +5,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from data_loader import DataLoader
 from keras.layers import Input, Dropout, Concatenate
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
@@ -13,8 +12,11 @@ from keras.models import Model
 from keras.optimizers import Adam
 from keras_contrib.layers.normalization import InstanceNormalization
 
+from .data_loaders.cyclegan.data_loader import DataLoader
+from .gan_base import GANBase
 
-class CycleGAN():
+
+class CycleGAN(GANBase):
     def __init__(self):
         # Input shape
         self.img_rows = 128

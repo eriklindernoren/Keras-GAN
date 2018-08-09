@@ -10,8 +10,10 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
+from .gan_base import GANBase
 
-class ContextEncoder():
+
+class ContextEncoder(GANBase):
     def __init__(self):
         self.img_rows = 32
         self.img_cols = 32

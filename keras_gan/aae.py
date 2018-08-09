@@ -10,8 +10,10 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
+from .gan_base import GANBase
 
-class AdversarialAutoencoder():
+
+class AdversarialAutoencoder(GANBase):
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28

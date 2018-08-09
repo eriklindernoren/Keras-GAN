@@ -10,8 +10,10 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
+from .gan_base import GANBase
 
-class COGAN():
+
+class COGAN(GANBase):
     """Reference: https://wiseodd.github.io/techblog/2017/02/18/coupled_gan/"""
     def __init__(self):
         self.img_rows = 28

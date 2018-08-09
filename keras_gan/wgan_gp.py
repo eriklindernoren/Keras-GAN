@@ -19,6 +19,8 @@ from keras.layers.merge import _Merge
 from keras.models import Sequential, Model
 from keras.optimizers import RMSprop
 
+from .gan_base import GANBase
+
 
 class RandomWeightedAverage(_Merge):
     """Provides a (random) weighted average between real and generated image samples"""
@@ -26,7 +28,8 @@ class RandomWeightedAverage(_Merge):
         alpha = K.random_uniform((32, 1, 1, 1))
         return (alpha * inputs[0]) + ((1 - alpha) * inputs[1])
 
-class WGANGP():
+
+class WGANGP(GANBase):
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28

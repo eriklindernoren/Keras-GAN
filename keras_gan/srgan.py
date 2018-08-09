@@ -16,7 +16,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from data_loader import DataLoader
 from keras.applications import VGG19
 from keras.layers import BatchNormalization, Activation, Add
 from keras.layers import Input, Dense
@@ -25,8 +24,11 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Model
 from keras.optimizers import Adam
 
+from .data_loaders.srgan.data_loader import DataLoader
+from .gan_base import GANBase
 
-class SRGAN():
+
+class SRGAN(GANBase):
     def __init__(self):
         # Input shape
         self.channels = 3

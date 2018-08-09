@@ -10,8 +10,10 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
+from .gan_base import GANBase
 
-class DCGAN():
+
+class DCGAN(GANBase):
     def __init__(self):
         # Input shape
         self.img_rows = 28
