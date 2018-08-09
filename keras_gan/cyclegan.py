@@ -42,7 +42,7 @@ class CycleGAN(GANBase):
         self.lambda_cycle = 10.0  # Cycle-consistency loss
         self.lambda_id = 0.1 * self.lambda_cycle  # Identity loss
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
 
         # Build and compile the discriminators
         self.d_A = self.build_discriminator()

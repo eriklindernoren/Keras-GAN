@@ -43,7 +43,7 @@ class SRGAN(GANBase):
         # Number of residual blocks in the generator
         self.n_residual_blocks = 16
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
 
         # We use a pre-trained VGG19 model to extract image features from the high resolution
         # and the generated high resolution images and minimize the mse between them

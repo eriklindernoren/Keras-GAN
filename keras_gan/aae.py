@@ -22,7 +22,7 @@ class AdversarialAutoencoder(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 10
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
@@ -184,5 +184,6 @@ class AdversarialAutoencoder(GANBase):
 
 
 if __name__ == '__main__':
+    optimizer = Adam(0.0002, 0.5)
     aae = AdversarialAutoencoder()
     aae.train(epochs=20000, batch_size=32, sample_interval=200)

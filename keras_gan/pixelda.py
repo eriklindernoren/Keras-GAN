@@ -39,7 +39,7 @@ class PixelDA(GANBase):
         # Number of residual blocks in the generator
         self.residual_blocks = 6
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
 
         # Number of filters in first layer of discriminator and classifier
         self.df = 64

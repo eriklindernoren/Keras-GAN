@@ -25,7 +25,7 @@ class INFOGAN(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 72
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
         losses = ['binary_crossentropy', self.mutual_info_loss]
 
         # Build and the discriminator and recognition network

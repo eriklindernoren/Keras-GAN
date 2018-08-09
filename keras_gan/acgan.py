@@ -24,7 +24,7 @@ class ACGAN(GANBase):
         self.num_classes = 10
         self.latent_dim = 100
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
         losses = ['binary_crossentropy', 'sparse_categorical_crossentropy']
 
         # Build and compile the discriminator

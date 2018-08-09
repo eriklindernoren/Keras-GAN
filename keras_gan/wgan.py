@@ -15,8 +15,8 @@ from .gan_base import GANBase
 
 
 class WGAN(GANBase):
-    def __init__(self, *args, **kwargs):
-        super(WGAN, self).super(*args, **kwargs)
+    def __init__(self, optimizer=RMSprop(lr=0.00005), *args, **kwargs):
+        super(WGAN, self).super(optimizer=optimizer, *args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
@@ -26,7 +26,7 @@ class WGAN(GANBase):
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
         self.clip_value = 0.01
-        optimizer = RMSprop(lr=0.00005)
+        optimizer = self.get_optimizer()
 
         # Build and compile the critic
         self.critic = self.build_critic()

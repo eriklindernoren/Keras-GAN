@@ -22,7 +22,7 @@ class DUALGAN(GANBase):
         self.channels = 1
         self.img_dim = self.img_rows * self.img_cols
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
 
         # Build and compile the discriminators
         self.D_A = self.build_discriminator()

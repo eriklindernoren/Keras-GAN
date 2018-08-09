@@ -1,8 +1,10 @@
+from keras.optimizers import Adam
+
+
 class GANBase(object):
 
-    def __init__(self, optimizer=None):
+    def __init__(self, optimizer=Adam(0.0002, 0.5)):
         self.optimizer = optimizer
-        pass
 
     def get_optimizer(self):
         return self.optimizer

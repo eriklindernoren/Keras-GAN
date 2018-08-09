@@ -30,8 +30,8 @@ class RandomWeightedAverage(_Merge):
 
 
 class WGANGP(GANBase):
-    def __init__(self, *args, **kwargs):
-        super(WGANGP, self).super(*args, **kwargs)
+    def __init__(self, optimizer=RMSprop(lr=0.00005), *args, **kwargs):
+        super(WGANGP, self).super(optimizer=optimizer, *args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
@@ -40,7 +40,7 @@ class WGANGP(GANBase):
 
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
-        optimizer = RMSprop(lr=0.00005)
+        optimizer = self.get_optimizer()
 
         # Build the generator and critic
         self.generator = self.build_generator()

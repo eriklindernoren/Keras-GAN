@@ -23,7 +23,7 @@ class SGAN(GANBase):
         self.num_classes = 10
         self.latent_dim = 100
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()

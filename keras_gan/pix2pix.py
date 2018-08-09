@@ -38,7 +38,7 @@ class Pix2Pix(GANBase):
         self.gf = 64
         self.df = 64
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = self.get_optimizer()
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
