@@ -26,8 +26,8 @@ class AdversarialAutoencoder(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the encoder / decoder
         self.encoder = self.build_encoder()
@@ -48,9 +48,8 @@ class AdversarialAutoencoder(GANBase):
         # The adversarial_autoencoder model  (stacked generator and discriminator)
         self.adversarial_autoencoder = Model(img, [reconstructed_img, validity])
         self.adversarial_autoencoder.compile(loss=['mse', 'binary_crossentropy'],
-            loss_weights=[0.999, 0.001],
-            optimizer=optimizer)
-
+                                             loss_weights=[0.999, 0.001],
+                                             optimizer=optimizer)
 
     def build_encoder(self):
         # Encoder
@@ -65,8 +64,8 @@ class AdversarialAutoencoder(GANBase):
         mu = Dense(self.latent_dim)(h)
         log_var = Dense(self.latent_dim)(h)
         latent_repr = merge([mu, log_var],
-                mode=lambda p: p[0] + K.random_normal(K.shape(p[0])) * K.exp(p[1] / 2),
-                output_shape=lambda p: p[0])
+                            mode=lambda p: p[0] + K.random_normal(K.shape(p[0])) * K.exp(p[1] / 2),
+                            output_shape=lambda p: p[0])
 
         return Model(img, latent_repr)
 
@@ -99,7 +98,7 @@ class AdversarialAutoencoder(GANBase):
         model.add(Dense(1, activation="sigmoid"))
         model.summary()
 
-        encoded_repr = Input(shape=(self.latent_dim, ))
+        encoded_repr = Input(shape=(self.latent_dim,))
         validity = model(encoded_repr)
 
         return Model(encoded_repr, validity)
@@ -143,7 +142,8 @@ class AdversarialAutoencoder(GANBase):
             g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
+            print("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (
+            epoch, d_loss[0], 100 * d_loss[1], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -152,7 +152,7 @@ class AdversarialAutoencoder(GANBase):
     def sample_images(self, epoch):
         r, c = 5, 5
 
-        z = np.random.normal(size=(r*c, self.latent_dim))
+        z = np.random.normal(size=(r * c, self.latent_dim))
         gen_imgs = self.decoder.predict(z)
 
         gen_imgs = 0.5 * gen_imgs + 0.5
@@ -161,8 +161,8 @@ class AdversarialAutoencoder(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
@@ -173,7 +173,7 @@ class AdversarialAutoencoder(GANBase):
             model_path = "saved_model/%s.json" % model_name
             weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
-                        "file_weight": weights_path}
+                       "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
             model.save_weights(options['file_weight'])

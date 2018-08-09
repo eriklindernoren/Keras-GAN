@@ -1,4 +1,3 @@
-
 class GANBase(object):
 
     def __init__(self):
@@ -24,4 +23,3 @@ class GANBase(object):
 
     def save_model(self):
         raise NotImplemented
-

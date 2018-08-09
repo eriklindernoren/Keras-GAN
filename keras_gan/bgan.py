@@ -15,6 +15,7 @@ from .gan_base import GANBase
 
 class BGAN(GANBase):
     """Reference: https://wiseodd.github.io/techblog/2017/03/07/boundary-seeking-gan/"""
+
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
@@ -27,8 +28,8 @@ class BGAN(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -93,7 +94,7 @@ class BGAN(GANBase):
         Boundary seeking loss.
         Reference: https://wiseodd.github.io/techblog/2017/03/07/boundary-seeking-gan/
         """
-        return 0.5 * K.mean((K.log(y_pred) - K.log(1 - y_pred))**2)
+        return 0.5 * K.mean((K.log(y_pred) - K.log(1 - y_pred)) ** 2)
 
     def train(self, epochs, batch_size=128, sample_interval=50):
 
@@ -128,7 +129,6 @@ class BGAN(GANBase):
             d_loss_fake = self.discriminator.train_on_batch(gen_imgs, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
-
             # ---------------------
             #  Train Generator
             # ---------------------
@@ -136,7 +136,7 @@ class BGAN(GANBase):
             g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
+            print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100 * d_loss[1], g_loss))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -153,8 +153,8 @@ class BGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()

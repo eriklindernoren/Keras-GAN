@@ -29,8 +29,8 @@ class ContextEncoder(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -49,13 +49,12 @@ class ContextEncoder(GANBase):
 
         # The combined model  (stacked generator and discriminator)
         # Trains generator to fool discriminator
-        self.combined = Model(masked_img , [gen_missing, valid])
+        self.combined = Model(masked_img, [gen_missing, valid])
         self.combined.compile(loss=['mse', 'binary_crossentropy'],
-            loss_weights=[0.999, 0.001],
-            optimizer=optimizer)
+                              loss_weights=[0.999, 0.001],
+                              optimizer=optimizer)
 
     def build_generator(self):
-
 
         model = Sequential()
 
@@ -132,8 +131,6 @@ class ContextEncoder(GANBase):
 
         return masked_imgs, missing_parts, (y1, y2, x1, x2)
 
-
-
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
@@ -179,7 +176,8 @@ class ContextEncoder(GANBase):
             g_loss = self.combined.train_on_batch(masked_imgs, [missing_parts, valid])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0], g_loss[1]))
+            print("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (
+            epoch, d_loss[0], 100 * d_loss[1], g_loss[0], g_loss[1]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -199,14 +197,14 @@ class ContextEncoder(GANBase):
 
         fig, axs = plt.subplots(r, c)
         for i in range(c):
-            axs[0,i].imshow(imgs[i, :,:])
-            axs[0,i].axis('off')
-            axs[1,i].imshow(masked_imgs[i, :,:])
-            axs[1,i].axis('off')
+            axs[0, i].imshow(imgs[i, :, :])
+            axs[0, i].axis('off')
+            axs[1, i].imshow(masked_imgs[i, :, :])
+            axs[1, i].axis('off')
             filled_in = imgs[i].copy()
             filled_in[y1[i]:y2[i], x1[i]:x2[i], :] = gen_missing[i]
-            axs[2,i].imshow(filled_in)
-            axs[2,i].axis('off')
+            axs[2, i].imshow(filled_in)
+            axs[2, i].axis('off')
         fig.savefig("images/%d.png" % epoch)
         plt.close()
 
@@ -216,7 +214,7 @@ class ContextEncoder(GANBase):
             model_path = "saved_model/%s.json" % model_name
             weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
-                        "file_weight": weights_path}
+                       "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
             model.save_weights(options['file_weight'])

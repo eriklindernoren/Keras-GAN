@@ -36,9 +36,9 @@ class CCGAN(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['mse', 'categorical_crossentropy'],
-            loss_weights=[0.5, 0.5],
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   loss_weights=[0.5, 0.5],
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -55,10 +55,9 @@ class CCGAN(GANBase):
 
         # The combined model  (stacked generator and discriminator)
         # Trains the generator to fool the discriminator
-        self.combined = Model(masked_img , valid)
+        self.combined = Model(masked_img, valid)
         self.combined.compile(loss=['mse'],
-            optimizer=optimizer)
-
+                              optimizer=optimizer)
 
     def build_generator(self):
         """U-Net Generator"""
@@ -85,13 +84,13 @@ class CCGAN(GANBase):
 
         # Downsampling
         d1 = conv2d(img, self.gf, bn=False)
-        d2 = conv2d(d1, self.gf*2)
-        d3 = conv2d(d2, self.gf*4)
-        d4 = conv2d(d3, self.gf*8)
+        d2 = conv2d(d1, self.gf * 2)
+        d3 = conv2d(d2, self.gf * 4)
+        d4 = conv2d(d3, self.gf * 8)
 
         # Upsampling
-        u1 = deconv2d(d4, d3, self.gf*4)
-        u2 = deconv2d(u1, d2, self.gf*2)
+        u1 = deconv2d(d4, d3, self.gf * 4)
+        u2 = deconv2d(u1, d2, self.gf * 2)
         u3 = deconv2d(u2, d1, self.gf)
 
         u4 = UpSampling2D(size=2)(u3)
@@ -121,7 +120,7 @@ class CCGAN(GANBase):
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(features)
 
         label = Flatten()(features)
-        label = Dense(self.num_classes+1, activation="softmax")(label)
+        label = Dense(self.num_classes + 1, activation="softmax")(label)
 
         return Model(img, [validity, label])
 
@@ -139,7 +138,6 @@ class CCGAN(GANBase):
             masked_imgs[i] = masked_img
 
         return masked_imgs
-
 
     def train(self, epochs, batch_size=128, sample_interval=50):
 
@@ -175,8 +173,8 @@ class CCGAN(GANBase):
             gen_imgs = self.generator.predict(masked_imgs)
 
             # One-hot encoding of labels
-            labels = to_categorical(labels, num_classes=self.num_classes+1)
-            fake_labels = to_categorical(np.full((batch_size, 1), self.num_classes), num_classes=self.num_classes+1)
+            labels = to_categorical(labels, num_classes=self.num_classes + 1)
+            fake_labels = to_categorical(np.full((batch_size, 1), self.num_classes), num_classes=self.num_classes + 1)
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(imgs, [valid, labels])
@@ -191,7 +189,7 @@ class CCGAN(GANBase):
             g_loss = self.combined.train_on_batch(masked_imgs, valid)
 
             # Plot the progress
-            print ("%d [D loss: %f, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[4], g_loss))
+            print("%d [D loss: %f, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100 * d_loss[4], g_loss))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -215,12 +213,12 @@ class CCGAN(GANBase):
 
         fig, axs = plt.subplots(r, c)
         for i in range(c):
-            axs[0,i].imshow(imgs[i, :, :, 0], cmap='gray')
-            axs[0,i].axis('off')
-            axs[1,i].imshow(masked_imgs[i, :, :, 0], cmap='gray')
-            axs[1,i].axis('off')
-            axs[2,i].imshow(gen_imgs[i, :, :, 0], cmap='gray')
-            axs[2,i].axis('off')
+            axs[0, i].imshow(imgs[i, :, :, 0], cmap='gray')
+            axs[0, i].axis('off')
+            axs[1, i].imshow(masked_imgs[i, :, :, 0], cmap='gray')
+            axs[1, i].axis('off')
+            axs[2, i].imshow(gen_imgs[i, :, :, 0], cmap='gray')
+            axs[2, i].axis('off')
         fig.savefig("images/%d.png" % epoch)
         plt.close()
 
@@ -230,7 +228,7 @@ class CCGAN(GANBase):
             model_path = "saved_model/%s.json" % model_name
             weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
-                        "file_weight": weights_path}
+                       "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
             model.save_weights(options['file_weight'])

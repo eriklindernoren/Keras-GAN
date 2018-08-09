@@ -32,7 +32,7 @@ class PixelDA(GANBase):
         lambda_clf = 1
 
         # Calculate output shape of D (PatchGAN)
-        patch = int(self.img_rows / 2**4)
+        patch = int(self.img_rows / 2 ** 4)
         self.disc_patch = (patch, patch, 1)
 
         # Number of residual blocks in the generator
@@ -47,8 +47,8 @@ class PixelDA(GANBase):
         # Build and compile the discriminators
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -74,9 +74,9 @@ class PixelDA(GANBase):
 
         self.combined = Model(img_A, [valid, class_pred])
         self.combined.compile(loss=['mse', 'categorical_crossentropy'],
-                                    loss_weights=[lambda_adv, lambda_clf],
-                                    optimizer=optimizer,
-                                    metrics=['accuracy'])
+                              loss_weights=[lambda_adv, lambda_clf],
+                              optimizer=optimizer,
+                              metrics=['accuracy'])
 
     def build_generator(self):
         """Resnet Generator"""
@@ -105,7 +105,6 @@ class PixelDA(GANBase):
 
         return Model(img, output_img)
 
-
     def build_discriminator(self):
 
         def d_layer(layer_input, filters, f_size=4, normalization=True):
@@ -119,9 +118,9 @@ class PixelDA(GANBase):
         img = Input(shape=self.img_shape)
 
         d1 = d_layer(img, self.df, normalization=False)
-        d2 = d_layer(d1, self.df*2)
-        d3 = d_layer(d2, self.df*4)
-        d4 = d_layer(d3, self.df*8)
+        d2 = d_layer(d1, self.df * 2)
+        d3 = d_layer(d2, self.df * 4)
+        d4 = d_layer(d3, self.df * 8)
 
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
@@ -140,10 +139,10 @@ class PixelDA(GANBase):
         img = Input(shape=self.img_shape)
 
         c1 = clf_layer(img, self.cf, normalization=False)
-        c2 = clf_layer(c1, self.cf*2)
-        c3 = clf_layer(c2, self.cf*4)
-        c4 = clf_layer(c3, self.cf*8)
-        c5 = clf_layer(c4, self.cf*8)
+        c2 = clf_layer(c1, self.cf * 2)
+        c3 = clf_layer(c2, self.cf * 4)
+        c4 = clf_layer(c3, self.cf * 8)
+        c5 = clf_layer(c4, self.cf * 8)
 
         class_pred = Dense(self.num_classes, activation='softmax')(Flatten()(c5))
 
@@ -177,7 +176,6 @@ class PixelDA(GANBase):
             d_loss_fake = self.discriminator.train_on_batch(fake_B, fake)
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
-
             # --------------------------------
             #  Train Generator and Classifier
             # --------------------------------
@@ -188,9 +186,9 @@ class PixelDA(GANBase):
             # Train the generator and classifier
             g_loss = self.combined.train_on_batch(imgs_A, [valid, labels_A])
 
-            #-----------------------
+            # -----------------------
             # Evaluation (domain B)
-            #-----------------------
+            # -----------------------
 
             pred_B = self.clf.predict(imgs_B)
             test_acc = np.mean(np.argmax(pred_B, axis=1) == labels_B)
@@ -200,13 +198,12 @@ class PixelDA(GANBase):
             if len(test_accs) > 100:
                 test_accs.pop(0)
 
-
             # Plot the progress
-            print ( "%d : [D - loss: %.5f, acc: %3d%%], [G - loss: %.5f], [clf - loss: %.5f, acc: %3d%%, test_acc: %3d%% (%3d%%)]" % \
-                                            (epoch, d_loss[0], 100*float(d_loss[1]),
-                                            g_loss[1], g_loss[2], 100*float(g_loss[-1]),
-                                            100*float(test_acc), 100*float(np.mean(test_accs))))
-
+            print(
+                "%d : [D - loss: %.5f, acc: %3d%%], [G - loss: %.5f], [clf - loss: %.5f, acc: %3d%%, test_acc: %3d%% (%3d%%)]" % \
+                (epoch, d_loss[0], 100 * float(d_loss[1]),
+                 g_loss[1], g_loss[2], 100 * float(g_loss[-1]),
+                 100 * float(test_acc), 100 * float(np.mean(test_accs))))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -225,14 +222,14 @@ class PixelDA(GANBase):
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5
 
-        #titles = ['Original', 'Translated']
+        # titles = ['Original', 'Translated']
         fig, axs = plt.subplots(r, c)
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt])
-                #axs[i, j].set_title(titles[i])
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt])
+                # axs[i, j].set_title(titles[i])
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/%d.png" % (epoch))
         plt.close()

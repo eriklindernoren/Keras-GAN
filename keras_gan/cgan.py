@@ -27,8 +27,8 @@ class CGAN(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -50,7 +50,7 @@ class CGAN(GANBase):
         # Trains generator to fool discriminator
         self.combined = Model([noise, label], valid)
         self.combined.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
+                              optimizer=optimizer)
 
     def build_generator(self):
 
@@ -152,7 +152,7 @@ class CGAN(GANBase):
             g_loss = self.combined.train_on_batch([noise, sampled_labels], valid)
 
             # Plot the progress
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
+            print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100 * d_loss[1], g_loss))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -172,9 +172,9 @@ class CGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt,:,:,0], cmap='gray')
-                axs[i,j].set_title("Digit: %d" % sampled_labels[cnt])
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].set_title("Digit: %d" % sampled_labels[cnt])
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/%d.png" % epoch)
         plt.close()

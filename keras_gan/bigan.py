@@ -26,8 +26,8 @@ class BIGAN(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -39,7 +39,7 @@ class BIGAN(GANBase):
         self.discriminator.trainable = False
 
         # Generate image from sampled noise
-        z = Input(shape=(self.latent_dim, ))
+        z = Input(shape=(self.latent_dim,))
         img_ = self.generator(z)
 
         # Encode image
@@ -54,8 +54,7 @@ class BIGAN(GANBase):
         # Trains generator to fool the discriminator
         self.bigan_generator = Model([z, img], [fake, valid])
         self.bigan_generator.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
-            optimizer=optimizer)
-
+                                     optimizer=optimizer)
 
     def build_encoder(self):
         model = Sequential()
@@ -97,7 +96,7 @@ class BIGAN(GANBase):
 
     def build_discriminator(self):
 
-        z = Input(shape=(self.latent_dim, ))
+        z = Input(shape=(self.latent_dim,))
         img = Input(shape=self.img_shape)
         d_in = concatenate([z, Flatten()(img)])
 
@@ -129,7 +128,6 @@ class BIGAN(GANBase):
 
         for epoch in range(epochs):
 
-
             # ---------------------
             #  Train Discriminator
             # ---------------------
@@ -156,7 +154,7 @@ class BIGAN(GANBase):
             g_loss = self.bigan_generator.train_on_batch([z, imgs], [valid, fake])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
+            print("%d [D loss: %f, acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100 * d_loss[1], g_loss[0]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -173,8 +171,8 @@ class BIGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()

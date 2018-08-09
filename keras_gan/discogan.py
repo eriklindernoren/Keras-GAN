@@ -30,7 +30,7 @@ class DiscoGAN(GANBase):
                                       img_res=(self.img_rows, self.img_cols))
 
         # Calculate output shape of D (PatchGAN)
-        patch = int(self.img_rows / 2**4)
+        patch = int(self.img_rows / 2 ** 4)
         self.disc_patch = (patch, patch, 1)
 
         # Number of filters in the first layer of G and D
@@ -43,16 +43,16 @@ class DiscoGAN(GANBase):
         self.d_A = self.build_discriminator()
         self.d_B = self.build_discriminator()
         self.d_A.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                         optimizer=optimizer,
+                         metrics=['accuracy'])
         self.d_B.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                         optimizer=optimizer,
+                         metrics=['accuracy'])
 
-        #-------------------------
+        # -------------------------
         # Construct Computational
         #   Graph of Generators
-        #-------------------------
+        # -------------------------
 
         # Build the generators
         self.g_AB = self.build_generator()
@@ -82,9 +82,9 @@ class DiscoGAN(GANBase):
         # + Translation: Minimize MAE between e.g. fake B and true B
         # + Cycle-consistency: Minimize MAE between reconstructed images and original
         self.combined = Model(inputs=[img_A, img_B],
-                              outputs=[ valid_A, valid_B,
-                                        fake_B, fake_A,
-                                        reconstr_A, reconstr_B ])
+                              outputs=[valid_A, valid_B,
+                                       fake_B, fake_A,
+                                       reconstr_A, reconstr_B])
         self.combined.compile(loss=['mse', 'mse',
                                     'mae', 'mae',
                                     'mae', 'mae'],
@@ -116,19 +116,19 @@ class DiscoGAN(GANBase):
 
         # Downsampling
         d1 = conv2d(d0, self.gf, normalize=False)
-        d2 = conv2d(d1, self.gf*2)
-        d3 = conv2d(d2, self.gf*4)
-        d4 = conv2d(d3, self.gf*8)
-        d5 = conv2d(d4, self.gf*8)
-        d6 = conv2d(d5, self.gf*8)
-        d7 = conv2d(d6, self.gf*8)
+        d2 = conv2d(d1, self.gf * 2)
+        d3 = conv2d(d2, self.gf * 4)
+        d4 = conv2d(d3, self.gf * 8)
+        d5 = conv2d(d4, self.gf * 8)
+        d6 = conv2d(d5, self.gf * 8)
+        d7 = conv2d(d6, self.gf * 8)
 
         # Upsampling
-        u1 = deconv2d(d7, d6, self.gf*8)
-        u2 = deconv2d(u1, d5, self.gf*8)
-        u3 = deconv2d(u2, d4, self.gf*8)
-        u4 = deconv2d(u3, d3, self.gf*4)
-        u5 = deconv2d(u4, d2, self.gf*2)
+        u1 = deconv2d(d7, d6, self.gf * 8)
+        u2 = deconv2d(u1, d5, self.gf * 8)
+        u3 = deconv2d(u2, d4, self.gf * 8)
+        u4 = deconv2d(u3, d3, self.gf * 4)
+        u5 = deconv2d(u4, d2, self.gf * 2)
         u6 = deconv2d(u5, d1, self.gf)
 
         u7 = UpSampling2D(size=2)(u6)
@@ -150,9 +150,9 @@ class DiscoGAN(GANBase):
         img = Input(shape=self.img_shape)
 
         d1 = d_layer(img, self.df, normalization=False)
-        d2 = d_layer(d1, self.df*2)
-        d3 = d_layer(d2, self.df*4)
-        d4 = d_layer(d3, self.df*8)
+        d2 = d_layer(d1, self.df * 2)
+        d3 = d_layer(d2, self.df * 4)
+        d4 = d_layer(d3, self.df * 8)
 
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
@@ -201,10 +201,10 @@ class DiscoGAN(GANBase):
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[%d] [%d/%d] time: %s, [d_loss: %f, g_loss: %f]" % (epoch, batch_i,
-                                                                        self.data_loader.n_batches,
-                                                                        elapsed_time,
-                                                                        d_loss[0], g_loss[0]))
+                print("[%d] [%d/%d] time: %s, [d_loss: %f, g_loss: %f]" % (epoch, batch_i,
+                                                                           self.data_loader.n_batches,
+                                                                           elapsed_time,
+                                                                           d_loss[0], g_loss[0]))
 
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
@@ -233,9 +233,9 @@ class DiscoGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt])
+                axs[i, j].imshow(gen_imgs[cnt])
                 axs[i, j].set_title(titles[j])
-                axs[i,j].axis('off')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()

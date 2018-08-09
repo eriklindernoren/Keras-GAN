@@ -1,4 +1,3 @@
-
 # Large amount of credit goes to:
 # https://github.com/keras-team/keras-contrib/blob/master/examples/improved_wgan.py
 # which I've used as a reference for this implementation
@@ -24,6 +23,7 @@ from .gan_base import GANBase
 
 class RandomWeightedAverage(_Merge):
     """Provides a (random) weighted average between real and generated image samples"""
+
     def _merge_function(self, inputs):
         alpha = K.random_uniform((32, 1, 1, 1))
         return (alpha * inputs[0]) + ((1 - alpha) * inputs[1])
@@ -45,10 +45,10 @@ class WGANGP(GANBase):
         self.generator = self.build_generator()
         self.critic = self.build_critic()
 
-        #-------------------------------
+        # -------------------------------
         # Construct Computational Graph
         #       for the Critic
-        #-------------------------------
+        # -------------------------------
 
         # Freeze generator's layers while training critic
         self.generator.trainable = False
@@ -73,20 +73,20 @@ class WGANGP(GANBase):
         # Use Python partial to provide loss function with additional
         # 'averaged_samples' argument
         partial_gp_loss = partial(self.gradient_penalty_loss,
-                          averaged_samples=interpolated_img)
-        partial_gp_loss.__name__ = 'gradient_penalty' # Keras requires function names
+                                  averaged_samples=interpolated_img)
+        partial_gp_loss.__name__ = 'gradient_penalty'  # Keras requires function names
 
         self.critic_model = Model(inputs=[real_img, z_disc],
-                            outputs=[valid, fake, validity_interpolated])
+                                  outputs=[valid, fake, validity_interpolated])
         self.critic_model.compile(loss=[self.wasserstein_loss,
-                                              self.wasserstein_loss,
-                                              partial_gp_loss],
-                                        optimizer=optimizer,
-                                        loss_weights=[1, 1, 10])
-        #-------------------------------
+                                        self.wasserstein_loss,
+                                        partial_gp_loss],
+                                  optimizer=optimizer,
+                                  loss_weights=[1, 1, 10])
+        # -------------------------------
         # Construct Computational Graph
         #         for Generator
-        #-------------------------------
+        # -------------------------------
 
         # For the generator we freeze the critic's layers
         self.critic.trainable = False
@@ -101,7 +101,6 @@ class WGANGP(GANBase):
         # Defines generator model
         self.generator_model = Model(z_gen, valid)
         self.generator_model.compile(loss=self.wasserstein_loss, optimizer=optimizer)
-
 
     def gradient_penalty_loss(self, y_true, y_pred, averaged_samples):
         """
@@ -119,7 +118,6 @@ class WGANGP(GANBase):
         gradient_penalty = K.square(1 - gradient_l2_norm)
         # return the mean as loss over all the batch samples
         return K.mean(gradient_penalty)
-
 
     def wasserstein_loss(self, y_true, y_pred):
         return K.mean(y_true * y_pred)
@@ -156,7 +154,7 @@ class WGANGP(GANBase):
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(32, kernel_size=3, strides=2, padding="same"))
-        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
         model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
@@ -189,12 +187,11 @@ class WGANGP(GANBase):
 
         # Adversarial ground truths
         valid = -np.ones((batch_size, 1))
-        fake =  np.ones((batch_size, 1))
-        dummy = np.zeros((batch_size, 1)) # Dummy gt for gradient penalty
+        fake = np.ones((batch_size, 1))
+        dummy = np.zeros((batch_size, 1))  # Dummy gt for gradient penalty
         for epoch in range(epochs):
 
             for _ in range(self.n_critic):
-
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
@@ -206,7 +203,7 @@ class WGANGP(GANBase):
                 noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
                 # Train the critic
                 d_loss = self.critic_model.train_on_batch([imgs, noise],
-                                                                [valid, fake, dummy])
+                                                          [valid, fake, dummy])
 
             # ---------------------
             #  Train Generator
@@ -215,7 +212,7 @@ class WGANGP(GANBase):
             g_loss = self.generator_model.train_on_batch(noise, valid)
 
             # Plot the progress
-            print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss))
+            print("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -233,8 +230,8 @@ class WGANGP(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()

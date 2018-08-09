@@ -29,9 +29,8 @@ class CycleGAN(GANBase):
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
-
         # Calculate output shape of D (PatchGAN)
-        patch = int(self.img_rows / 2**4)
+        patch = int(self.img_rows / 2 ** 4)
         self.disc_patch = (patch, patch, 1)
 
         # Number of filters in the first layer of G and D
@@ -39,8 +38,8 @@ class CycleGAN(GANBase):
         self.df = 64
 
         # Loss weights
-        self.lambda_cycle = 10.0                    # Cycle-consistency loss
-        self.lambda_id = 0.1 * self.lambda_cycle    # Identity loss
+        self.lambda_cycle = 10.0  # Cycle-consistency loss
+        self.lambda_id = 0.1 * self.lambda_cycle  # Identity loss
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -48,16 +47,16 @@ class CycleGAN(GANBase):
         self.d_A = self.build_discriminator()
         self.d_B = self.build_discriminator()
         self.d_A.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                         optimizer=optimizer,
+                         metrics=['accuracy'])
         self.d_B.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                         optimizer=optimizer,
+                         metrics=['accuracy'])
 
-        #-------------------------
+        # -------------------------
         # Construct Computational
         #   Graph of Generators
-        #-------------------------
+        # -------------------------
 
         # Build the generators
         self.g_AB = self.build_generator()
@@ -87,16 +86,16 @@ class CycleGAN(GANBase):
 
         # Combined model trains generators to fool discriminators
         self.combined = Model(inputs=[img_A, img_B],
-                              outputs=[ valid_A, valid_B,
-                                        reconstr_A, reconstr_B,
-                                        img_A_id, img_B_id ])
+                              outputs=[valid_A, valid_B,
+                                       reconstr_A, reconstr_B,
+                                       img_A_id, img_B_id])
         self.combined.compile(loss=['mse', 'mse',
                                     'mae', 'mae',
                                     'mae', 'mae'],
-                            loss_weights=[  1, 1,
+                              loss_weights=[1, 1,
                                             self.lambda_cycle, self.lambda_cycle,
-                                            self.lambda_id, self.lambda_id ],
-                            optimizer=optimizer)
+                                            self.lambda_id, self.lambda_id],
+                              optimizer=optimizer)
 
     def build_generator(self):
         """U-Net Generator"""
@@ -123,13 +122,13 @@ class CycleGAN(GANBase):
 
         # Downsampling
         d1 = conv2d(d0, self.gf)
-        d2 = conv2d(d1, self.gf*2)
-        d3 = conv2d(d2, self.gf*4)
-        d4 = conv2d(d3, self.gf*8)
+        d2 = conv2d(d1, self.gf * 2)
+        d3 = conv2d(d2, self.gf * 4)
+        d4 = conv2d(d3, self.gf * 8)
 
         # Upsampling
-        u1 = deconv2d(d4, d3, self.gf*4)
-        u2 = deconv2d(u1, d2, self.gf*2)
+        u1 = deconv2d(d4, d3, self.gf * 4)
+        u2 = deconv2d(u1, d2, self.gf * 2)
         u3 = deconv2d(u2, d1, self.gf)
 
         u4 = UpSampling2D(size=2)(u3)
@@ -150,9 +149,9 @@ class CycleGAN(GANBase):
         img = Input(shape=self.img_shape)
 
         d1 = d_layer(img, self.df, normalization=False)
-        d2 = d_layer(d1, self.df*2)
-        d3 = d_layer(d2, self.df*4)
-        d4 = d_layer(d3, self.df*8)
+        d2 = d_layer(d1, self.df * 2)
+        d3 = d_layer(d2, self.df * 4)
+        d4 = d_layer(d3, self.df * 8)
 
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
@@ -189,29 +188,29 @@ class CycleGAN(GANBase):
                 # Total disciminator loss
                 d_loss = 0.5 * np.add(dA_loss, dB_loss)
 
-
                 # ------------------
                 #  Train Generators
                 # ------------------
 
                 # Train the generators
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B],
-                                                        [valid, valid,
-                                                        imgs_A, imgs_B,
-                                                        imgs_A, imgs_B])
+                                                      [valid, valid,
+                                                       imgs_A, imgs_B,
+                                                       imgs_A, imgs_B])
 
                 elapsed_time = datetime.datetime.now() - start_time
 
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %05f, adv: %05f, recon: %05f, id: %05f] time: %s " \
-                                                                        % ( epoch, epochs,
-                                                                            batch_i, self.data_loader.n_batches,
-                                                                            d_loss[0], 100*d_loss[1],
-                                                                            g_loss[0],
-                                                                            np.mean(g_loss[1:3]),
-                                                                            np.mean(g_loss[3:5]),
-                                                                            np.mean(g_loss[5:6]),
-                                                                            elapsed_time))
+                print(
+                    "[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %05f, adv: %05f, recon: %05f, id: %05f] time: %s " \
+                    % (epoch, epochs,
+                       batch_i, self.data_loader.n_batches,
+                       d_loss[0], 100 * d_loss[1],
+                       g_loss[0],
+                       np.mean(g_loss[1:3]),
+                       np.mean(g_loss[3:5]),
+                       np.mean(g_loss[5:6]),
+                       elapsed_time))
 
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
@@ -225,8 +224,8 @@ class CycleGAN(GANBase):
         imgs_B = self.data_loader.load_data(domain="B", batch_size=1, is_testing=True)
 
         # Demo (for GIF)
-        #imgs_A = self.data_loader.load_img('datasets/apple2orange/testA/n07740461_1541.jpg')
-        #imgs_B = self.data_loader.load_img('datasets/apple2orange/testB/n07749192_4241.jpg')
+        # imgs_A = self.data_loader.load_img('datasets/apple2orange/testA/n07740461_1541.jpg')
+        # imgs_B = self.data_loader.load_img('datasets/apple2orange/testB/n07749192_4241.jpg')
 
         # Translate images to the other domain
         fake_B = self.g_AB.predict(imgs_A)
@@ -245,9 +244,9 @@ class CycleGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt])
+                axs[i, j].imshow(gen_imgs[cnt])
                 axs[i, j].set_title(titles[j])
-                axs[i,j].axis('off')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()

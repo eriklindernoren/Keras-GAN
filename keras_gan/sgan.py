@@ -27,9 +27,9 @@ class SGAN(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['binary_crossentropy', 'categorical_crossentropy'],
-            loss_weights=[0.5, 0.5],
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   loss_weights=[0.5, 0.5],
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -46,10 +46,9 @@ class SGAN(GANBase):
 
         # The combined model  (stacked generator and discriminator)
         # Trains generator to fool discriminator
-        self.combined = Model(noise , valid)
+        self.combined = Model(noise, valid)
         self.combined.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
-
+                              optimizer=optimizer)
 
     def build_generator(self):
 
@@ -84,7 +83,7 @@ class SGAN(GANBase):
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
@@ -103,7 +102,7 @@ class SGAN(GANBase):
 
         features = model(img)
         valid = Dense(1, activation="sigmoid")(features)
-        label = Dense(self.num_classes+1, activation="softmax")(features)
+        label = Dense(self.num_classes + 1, activation="softmax")(features)
 
         return Model(img, [valid, label])
 
@@ -144,14 +143,13 @@ class SGAN(GANBase):
             gen_imgs = self.generator.predict(noise)
 
             # One-hot encoding of labels
-            labels = to_categorical(y_train[idx], num_classes=self.num_classes+1)
-            fake_labels = to_categorical(np.full((batch_size, 1), self.num_classes), num_classes=self.num_classes+1)
+            labels = to_categorical(y_train[idx], num_classes=self.num_classes + 1)
+            fake_labels = to_categorical(np.full((batch_size, 1), self.num_classes), num_classes=self.num_classes + 1)
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(imgs, [valid, labels], class_weight=[cw1, cw2])
             d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels], class_weight=[cw1, cw2])
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
-
 
             # ---------------------
             #  Train Generator
@@ -160,7 +158,8 @@ class SGAN(GANBase):
             g_loss = self.combined.train_on_batch(noise, validity, class_weight=[cw1, cw2])
 
             # Plot the progress
-            print ("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[3], 100*d_loss[4], g_loss))
+            print("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f]" % (
+            epoch, d_loss[0], 100 * d_loss[3], 100 * d_loss[4], g_loss))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -178,8 +177,8 @@ class SGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
@@ -190,7 +189,7 @@ class SGAN(GANBase):
             model_path = "saved_model/%s.json" % model_name
             weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
-                        "file_weight": weights_path}
+                       "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
             model.save_weights(options['file_weight'])

@@ -19,24 +19,24 @@ class DUALGAN(GANBase):
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
-        self.img_dim = self.img_rows*self.img_cols
+        self.img_dim = self.img_rows * self.img_cols
 
         optimizer = Adam(0.0002, 0.5)
 
         # Build and compile the discriminators
         self.D_A = self.build_discriminator()
         self.D_A.compile(loss=self.wasserstein_loss,
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                         optimizer=optimizer,
+                         metrics=['accuracy'])
         self.D_B = self.build_discriminator()
         self.D_B.compile(loss=self.wasserstein_loss,
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                         optimizer=optimizer,
+                         metrics=['accuracy'])
 
-        #-------------------------
+        # -------------------------
         # Construct Computational
         #   Graph of Generators
-        #-------------------------
+        # -------------------------
 
         # Build the generators
         self.G_AB = self.build_generator()
@@ -65,8 +65,8 @@ class DUALGAN(GANBase):
         # The combined model  (stacked generators and discriminators)
         self.combined = Model(inputs=[imgs_A, imgs_B], outputs=[valid_A, valid_B, recov_A, recov_B])
         self.combined.compile(loss=[self.wasserstein_loss, self.wasserstein_loss, 'mae', 'mae'],
-                            optimizer=optimizer,
-                            loss_weights=[1, 1, 100, 100])
+                              optimizer=optimizer,
+                              loss_weights=[1, 1, 100, 100])
 
     def build_generator(self):
 
@@ -124,8 +124,8 @@ class DUALGAN(GANBase):
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
 
         # Domain A and B (rotated)
-        X_A = X_train[:int(X_train.shape[0]/2)]
-        X_B = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 90, axes=(1, 2))
+        X_A = X_train[:int(X_train.shape[0] / 2)]
+        X_B = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0] / 2):], 90, axes=(1, 2))
 
         X_A = X_A.reshape(X_A.shape[0], self.img_dim)
         X_B = X_B.reshape(X_B.shape[0], self.img_dim)
@@ -179,8 +179,8 @@ class DUALGAN(GANBase):
             g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B])
 
             # Plot the progress
-            print ("%d [D1 loss: %f] [D2 loss: %f] [G loss: %f]" \
-                % (epoch, D_A_loss[0], D_B_loss[0], g_loss[0]))
+            print("%d [D1 loss: %f] [D2 loss: %f] [G loss: %f]" \
+                  % (epoch, D_A_loss[0], D_B_loss[0], g_loss[0]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -207,8 +207,8 @@ class DUALGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[i, j, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[i, j, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()

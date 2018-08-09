@@ -32,11 +32,11 @@ class SRGAN(GANBase):
     def __init__(self):
         # Input shape
         self.channels = 3
-        self.lr_height = 64                 # Low resolution height
-        self.lr_width = 64                  # Low resolution width
+        self.lr_height = 64  # Low resolution height
+        self.lr_width = 64  # Low resolution width
         self.lr_shape = (self.lr_height, self.lr_width, self.channels)
-        self.hr_height = self.lr_height*4   # High resolution height
-        self.hr_width = self.lr_width*4     # High resolution width
+        self.hr_height = self.lr_height * 4  # High resolution height
+        self.hr_width = self.lr_width * 4  # High resolution width
         self.hr_shape = (self.hr_height, self.hr_width, self.channels)
 
         # Number of residual blocks in the generator
@@ -49,8 +49,8 @@ class SRGAN(GANBase):
         self.vgg = self.build_vgg()
         self.vgg.trainable = False
         self.vgg.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                         optimizer=optimizer,
+                         metrics=['accuracy'])
 
         # Configure data loader
         self.dataset_name = 'img_align_celeba'
@@ -58,7 +58,7 @@ class SRGAN(GANBase):
                                       img_res=(self.hr_height, self.hr_width))
 
         # Calculate output shape of D (PatchGAN)
-        patch = int(self.hr_height / 2**4)
+        patch = int(self.hr_height / 2 ** 4)
         self.disc_patch = (patch, patch, 1)
 
         # Number of filters in the first layer of G and D
@@ -68,8 +68,8 @@ class SRGAN(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -94,7 +94,6 @@ class SRGAN(GANBase):
         self.combined.compile(loss=['binary_crossentropy', 'mse'],
                               loss_weights=[1e-3, 1],
                               optimizer=optimizer)
-
 
     def build_vgg(self):
         """
@@ -173,14 +172,14 @@ class SRGAN(GANBase):
 
         d1 = d_block(d0, self.df, bn=False)
         d2 = d_block(d1, self.df, strides=2)
-        d3 = d_block(d2, self.df*2)
-        d4 = d_block(d3, self.df*2, strides=2)
-        d5 = d_block(d4, self.df*4)
-        d6 = d_block(d5, self.df*4, strides=2)
-        d7 = d_block(d6, self.df*8)
-        d8 = d_block(d7, self.df*8, strides=2)
+        d3 = d_block(d2, self.df * 2)
+        d4 = d_block(d3, self.df * 2, strides=2)
+        d5 = d_block(d4, self.df * 4)
+        d6 = d_block(d5, self.df * 4, strides=2)
+        d7 = d_block(d6, self.df * 8)
+        d8 = d_block(d7, self.df * 8, strides=2)
 
-        d9 = Dense(self.df*16)(d8)
+        d9 = Dense(self.df * 16)(d8)
         d10 = LeakyReLU(alpha=0.2)(d9)
         validity = Dense(1, activation='sigmoid')(d10)
 
@@ -228,7 +227,7 @@ class SRGAN(GANBase):
 
             elapsed_time = datetime.datetime.now() - start_time
             # Plot the progress
-            print ("%d time: %s" % (epoch, elapsed_time))
+            print("%d time: %s" % (epoch, elapsed_time))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -265,6 +264,7 @@ class SRGAN(GANBase):
             plt.imshow(imgs_lr[i])
             fig.savefig('images/%s/%d_lowres%d.png' % (self.dataset_name, epoch, i))
             plt.close()
+
 
 if __name__ == '__main__':
     gan = SRGAN()

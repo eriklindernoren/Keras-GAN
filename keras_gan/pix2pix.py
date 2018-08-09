@@ -29,9 +29,8 @@ class Pix2Pix(GANBase):
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
-
         # Calculate output shape of D (PatchGAN)
-        patch = int(self.img_rows / 2**4)
+        patch = int(self.img_rows / 2 ** 4)
         self.disc_patch = (patch, patch, 1)
 
         # Number of filters in the first layer of G and D
@@ -43,13 +42,13 @@ class Pix2Pix(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
-        #-------------------------
+        # -------------------------
         # Construct Computational
         #   Graph of Generator
-        #-------------------------
+        # -------------------------
 
         # Build the generator
         self.generator = self.build_generator()
@@ -98,19 +97,19 @@ class Pix2Pix(GANBase):
 
         # Downsampling
         d1 = conv2d(d0, self.gf, bn=False)
-        d2 = conv2d(d1, self.gf*2)
-        d3 = conv2d(d2, self.gf*4)
-        d4 = conv2d(d3, self.gf*8)
-        d5 = conv2d(d4, self.gf*8)
-        d6 = conv2d(d5, self.gf*8)
-        d7 = conv2d(d6, self.gf*8)
+        d2 = conv2d(d1, self.gf * 2)
+        d3 = conv2d(d2, self.gf * 4)
+        d4 = conv2d(d3, self.gf * 8)
+        d5 = conv2d(d4, self.gf * 8)
+        d6 = conv2d(d5, self.gf * 8)
+        d7 = conv2d(d6, self.gf * 8)
 
         # Upsampling
-        u1 = deconv2d(d7, d6, self.gf*8)
-        u2 = deconv2d(u1, d5, self.gf*8)
-        u3 = deconv2d(u2, d4, self.gf*8)
-        u4 = deconv2d(u3, d3, self.gf*4)
-        u5 = deconv2d(u4, d2, self.gf*2)
+        u1 = deconv2d(d7, d6, self.gf * 8)
+        u2 = deconv2d(u1, d5, self.gf * 8)
+        u3 = deconv2d(u2, d4, self.gf * 8)
+        u4 = deconv2d(u3, d3, self.gf * 4)
+        u5 = deconv2d(u4, d2, self.gf * 2)
         u6 = deconv2d(u5, d1, self.gf)
 
         u7 = UpSampling2D(size=2)(u6)
@@ -135,9 +134,9 @@ class Pix2Pix(GANBase):
         combined_imgs = Concatenate(axis=-1)([img_A, img_B])
 
         d1 = d_layer(combined_imgs, self.df, bn=False)
-        d2 = d_layer(d1, self.df*2)
-        d3 = d_layer(d2, self.df*4)
-        d4 = d_layer(d3, self.df*8)
+        d2 = d_layer(d1, self.df * 2)
+        d3 = d_layer(d2, self.df * 4)
+        d4 = d_layer(d3, self.df * 8)
 
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
@@ -175,11 +174,13 @@ class Pix2Pix(GANBase):
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] time: %s" % (epoch, epochs,
-                                                                        batch_i, self.data_loader.n_batches,
-                                                                        d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0],
-                                                                        elapsed_time))
+                print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] time: %s" % (epoch, epochs,
+                                                                                                      batch_i,
+                                                                                                      self.data_loader.n_batches,
+                                                                                                      d_loss[0],
+                                                                                                      100 * d_loss[1],
+                                                                                                      g_loss[0],
+                                                                                                      elapsed_time))
 
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
@@ -202,9 +203,9 @@ class Pix2Pix(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt])
+                axs[i, j].imshow(gen_imgs[cnt])
                 axs[i, j].set_title(titles[i])
-                axs[i,j].axis('off')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()

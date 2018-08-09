@@ -15,6 +15,7 @@ from .gan_base import GANBase
 
 class COGAN(GANBase):
     """Reference: https://wiseodd.github.io/techblog/2017/02/18/coupled_gan/"""
+
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
@@ -27,11 +28,11 @@ class COGAN(GANBase):
         # Build and compile the discriminator
         self.d1, self.d2 = self.build_discriminators()
         self.d1.compile(loss='binary_crossentropy',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                        optimizer=optimizer,
+                        metrics=['accuracy'])
         self.d2.compile(loss='binary_crossentropy',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                        optimizer=optimizer,
+                        metrics=['accuracy'])
 
         # Build the generator
         self.g1, self.g2 = self.build_generators()
@@ -53,7 +54,7 @@ class COGAN(GANBase):
         # Trains generators to fool discriminators
         self.combined = Model(z, [valid1, valid2])
         self.combined.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
-                                    optimizer=optimizer)
+                              optimizer=optimizer)
 
     def build_generators(self):
 
@@ -120,8 +121,8 @@ class COGAN(GANBase):
         X_train = np.expand_dims(X_train, axis=3)
 
         # Images in domain A and B (rotated)
-        X1 = X_train[:int(X_train.shape[0]/2)]
-        X2 = X_train[int(X_train.shape[0]/2):]
+        X1 = X_train[:int(X_train.shape[0] / 2)]
+        X2 = X_train[int(X_train.shape[0] / 2):]
         X2 = scipy.ndimage.interpolation.rotate(X2, 90, axes=(1, 2))
 
         # Adversarial ground truths
@@ -154,7 +155,6 @@ class COGAN(GANBase):
             d1_loss = 0.5 * np.add(d1_loss_real, d1_loss_fake)
             d2_loss = 0.5 * np.add(d2_loss_real, d2_loss_fake)
 
-
             # ------------------
             #  Train Generators
             # ------------------
@@ -162,8 +162,8 @@ class COGAN(GANBase):
             g_loss = self.combined.train_on_batch(noise, [valid, valid])
 
             # Plot the progress
-            print ("%d [D1 loss: %f, acc.: %.2f%%] [D2 loss: %f, acc.: %.2f%%] [G loss: %f]" \
-                % (epoch, d1_loss[0], 100*d1_loss[1], d2_loss[0], 100*d2_loss[1], g_loss[0]))
+            print("%d [D1 loss: %f, acc.: %.2f%%] [D2 loss: %f, acc.: %.2f%%] [G loss: %f]" \
+                  % (epoch, d1_loss[0], 100 * d1_loss[1], d2_loss[0], 100 * d2_loss[1], g_loss[0]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -171,7 +171,7 @@ class COGAN(GANBase):
 
     def sample_images(self, epoch):
         r, c = 4, 4
-        noise = np.random.normal(0, 1, (r * int(c/2), 100))
+        noise = np.random.normal(0, 1, (r * int(c / 2), 100))
         gen_imgs1 = self.g1.predict(noise)
         gen_imgs2 = self.g2.predict(noise)
 
@@ -184,8 +184,8 @@ class COGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()

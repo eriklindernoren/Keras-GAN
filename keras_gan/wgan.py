@@ -30,8 +30,8 @@ class WGAN(GANBase):
         # Build and compile the critic
         self.critic = self.build_critic()
         self.critic.compile(loss=self.wasserstein_loss,
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                            optimizer=optimizer,
+                            metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -49,8 +49,8 @@ class WGAN(GANBase):
         # The combined model  (stacked generator and critic)
         self.combined = Model(z, valid)
         self.combined.compile(loss=self.wasserstein_loss,
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                              optimizer=optimizer,
+                              metrics=['accuracy'])
 
     def wasserstein_loss(self, y_true, y_pred):
         return K.mean(y_true * y_pred)
@@ -87,7 +87,7 @@ class WGAN(GANBase):
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(32, kernel_size=3, strides=2, padding="same"))
-        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
         model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
@@ -133,7 +133,7 @@ class WGAN(GANBase):
                 # Select a random batch of images
                 idx = np.random.randint(0, X_train.shape[0], batch_size)
                 imgs = X_train[idx]
-                
+
                 # Sample noise as generator input
                 noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
 
@@ -151,7 +151,6 @@ class WGAN(GANBase):
                     weights = [np.clip(w, -self.clip_value, self.clip_value) for w in weights]
                     l.set_weights(weights)
 
-
             # ---------------------
             #  Train Generator
             # ---------------------
@@ -159,7 +158,7 @@ class WGAN(GANBase):
             g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
-            print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1 - d_loss[0], 1 - g_loss[0]))
+            print("%d [D loss: %f] [G loss: %f]" % (epoch, 1 - d_loss[0], 1 - g_loss[0]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -177,8 +176,8 @@ class WGAN(GANBase):
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()

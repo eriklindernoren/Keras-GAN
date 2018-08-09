@@ -24,7 +24,6 @@ class INFOGAN(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 72
 
-
         optimizer = Adam(0.0002, 0.5)
         losses = ['binary_crossentropy', self.mutual_info_loss]
 
@@ -32,13 +31,13 @@ class INFOGAN(GANBase):
         self.discriminator, self.auxilliary = self.build_disk_and_q_net()
 
         self.discriminator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         # Build and compile the recognition network Q
         self.auxilliary.compile(loss=[self.mutual_info_loss],
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                optimizer=optimizer,
+                                metrics=['accuracy'])
 
         # Build the generator
         self.generator = self.build_generator()
@@ -59,8 +58,7 @@ class INFOGAN(GANBase):
         # The combined model  (stacked generator and discriminator)
         self.combined = Model(gen_input, [valid, target_label])
         self.combined.compile(loss=losses,
-            optimizer=optimizer)
-
+                              optimizer=optimizer)
 
     def build_generator(self):
 
@@ -87,7 +85,6 @@ class INFOGAN(GANBase):
 
         return Model(gen_input, img)
 
-
     def build_disk_and_q_net(self):
 
         img = Input(shape=self.img_shape)
@@ -98,7 +95,7 @@ class INFOGAN(GANBase):
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
-        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
@@ -123,7 +120,6 @@ class INFOGAN(GANBase):
 
         # Return discriminator and recognition network
         return Model(img, validity), Model(img, label)
-
 
     def mutual_info_loss(self, c, c_given_x):
         """The mutual information metric we aim to minimize"""
@@ -186,7 +182,8 @@ class INFOGAN(GANBase):
             g_loss = self.combined.train_on_batch(gen_input, [valid, sampled_labels])
 
             # Plot the progress
-            print ("%d [D loss: %.2f, acc.: %.2f%%] [Q loss: %.2f] [G loss: %.2f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[1], g_loss[2]))
+            print("%d [D loss: %.2f, acc.: %.2f%%] [Q loss: %.2f] [G loss: %.2f]" % (
+            epoch, d_loss[0], 100 * d_loss[1], g_loss[1], g_loss[2]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -198,13 +195,13 @@ class INFOGAN(GANBase):
         fig, axs = plt.subplots(r, c)
         for i in range(c):
             sampled_noise, _ = self.sample_generator_input(c)
-            label = to_categorical(np.full(fill_value=i, shape=(r,1)), num_classes=self.num_classes)
+            label = to_categorical(np.full(fill_value=i, shape=(r, 1)), num_classes=self.num_classes)
             gen_input = np.concatenate((sampled_noise, label), axis=1)
             gen_imgs = self.generator.predict(gen_input)
             gen_imgs = 0.5 * gen_imgs + 0.5
             for j in range(r):
-                axs[j,i].imshow(gen_imgs[j,:,:,0], cmap='gray')
-                axs[j,i].axis('off')
+                axs[j, i].imshow(gen_imgs[j, :, :, 0], cmap='gray')
+                axs[j, i].axis('off')
         fig.savefig("images/%d.png" % epoch)
         plt.close()
 
@@ -214,7 +211,7 @@ class INFOGAN(GANBase):
             model_path = "saved_model/%s.json" % model_name
             weights_path = "saved_model/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
-                        "file_weight": weights_path}
+                       "file_weight": weights_path}
             json_string = model.to_json()
             open(options['file_arch'], 'w').write(json_string)
             model.save_weights(options['file_weight'])
