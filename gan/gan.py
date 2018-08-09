@@ -1,18 +1,14 @@
 from __future__ import print_function, division
 
+import matplotlib.pyplot as plt
+import numpy as np
 from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
+from keras.layers import BatchNormalization
+from keras.layers import Input, Dense, Reshape, Flatten
 from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
-import matplotlib.pyplot as plt
-
-import sys
-
-import numpy as np
 
 class GAN():
     def __init__(self):

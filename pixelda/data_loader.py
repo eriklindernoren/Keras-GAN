@@ -1,12 +1,12 @@
-import scipy
-from glob import glob
+import gzip
+import os
+import pickle
+import urllib
+
 import numpy as np
 from keras.datasets import mnist
 from skimage.transform import resize as imresize
-import pickle
-import os
-import urllib
-import gzip
+
 
 class DataLoader():
     """Loads images from MNIST (domain A) and MNIST-M (domain B)"""

@@ -1,21 +1,16 @@
 from __future__ import print_function, division
-import scipy
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import RMSprop, Adam
-from keras.utils import to_categorical
 import keras.backend as K
-
 import matplotlib.pyplot as plt
-
-import sys
-
 import numpy as np
+import scipy
+from keras.datasets import mnist
+from keras.layers import BatchNormalization
+from keras.layers import Input, Dense, Dropout
+from keras.layers.advanced_activations import LeakyReLU
+from keras.models import Sequential, Model
+from keras.optimizers import Adam
+
 
 class DUALGAN():
     def __init__(self):

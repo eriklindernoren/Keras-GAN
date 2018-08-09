@@ -1,6 +1,8 @@
-import scipy
 from glob import glob
+
 import numpy as np
+import scipy
+
 
 class DataLoader():
     def __init__(self, dataset_name, img_res=(128, 128)):

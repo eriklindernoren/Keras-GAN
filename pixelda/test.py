@@ -1,13 +1,7 @@
 from __future__ import print_function, division
-import scipy
 
-import datetime
 import matplotlib.pyplot as plt
-import sys
 from data_loader import DataLoader
-import numpy as np
-import os
-
 
 # Configure MNIST and MNIST-M data loader
 data_loader = DataLoader(img_res=(32, 32))
