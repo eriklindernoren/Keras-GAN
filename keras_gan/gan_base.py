@@ -1,7 +1,11 @@
 class GANBase(object):
 
-    def __init__(self):
+    def __init__(self, optimizer=None):
+        self.optimizer = optimizer
         pass
+
+    def get_optimizer(self):
+        return self.optimizer
 
     def build_generator(self):
         raise NotImplemented
