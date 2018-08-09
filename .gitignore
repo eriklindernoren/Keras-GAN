@@ -1,7 +1,5 @@
 */images/*.png
 */images/*.jpg
-*/*.jpg
-*/*.png
 *.json
 *.h5
 *.hdf5
