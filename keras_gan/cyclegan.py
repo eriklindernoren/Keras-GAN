@@ -42,16 +42,14 @@ class CycleGAN(GANBase):
         self.lambda_cycle = 10.0  # Cycle-consistency loss
         self.lambda_id = 0.1 * self.lambda_cycle  # Identity loss
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminators
         self.d_A = self.build_discriminator()
         self.d_B = self.build_discriminator()
         self.d_A.compile(loss='mse',
-                         optimizer=optimizer,
+                         optimizer=self.get_optimizer(),
                          metrics=['accuracy'])
         self.d_B.compile(loss='mse',
-                         optimizer=optimizer,
+                         optimizer=self.get_optimizer(),
                          metrics=['accuracy'])
 
         # -------------------------
@@ -96,7 +94,7 @@ class CycleGAN(GANBase):
                               loss_weights=[1, 1,
                                             self.lambda_cycle, self.lambda_cycle,
                                             self.lambda_id, self.lambda_id],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
         """U-Net Generator"""

@@ -38,16 +38,14 @@ class DiscoGAN(GANBase):
         self.gf = 64
         self.df = 64
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminators
         self.d_A = self.build_discriminator()
         self.d_B = self.build_discriminator()
         self.d_A.compile(loss='mse',
-                         optimizer=optimizer,
+                         optimizer=self.get_optimizer(),
                          metrics=['accuracy'])
         self.d_B.compile(loss='mse',
-                         optimizer=optimizer,
+                         optimizer=self.get_optimizer(),
                          metrics=['accuracy'])
 
         # -------------------------
@@ -89,7 +87,7 @@ class DiscoGAN(GANBase):
         self.combined.compile(loss=['mse', 'mse',
                                     'mae', 'mae',
                                     'mae', 'mae'],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
         """U-Net Generator"""

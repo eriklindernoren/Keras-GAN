@@ -32,13 +32,11 @@ class CCGAN(GANBase):
         self.gf = 32
         self.df = 32
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['mse', 'categorical_crossentropy'],
                                    loss_weights=[0.5, 0.5],
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -58,7 +56,7 @@ class CCGAN(GANBase):
         # Trains the generator to fool the discriminator
         self.combined = Model(masked_img, valid)
         self.combined.compile(loss=['mse'],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
         """U-Net Generator"""

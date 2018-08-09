@@ -24,15 +24,13 @@ class COGAN(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.d1, self.d2 = self.build_discriminators()
         self.d1.compile(loss='binary_crossentropy',
-                        optimizer=optimizer,
+                        optimizer=self.get_optimizer(),
                         metrics=['accuracy'])
         self.d2.compile(loss='binary_crossentropy',
-                        optimizer=optimizer,
+                        optimizer=self.get_optimizer(),
                         metrics=['accuracy'])
 
         # Build the generator
@@ -55,7 +53,7 @@ class COGAN(GANBase):
         # Trains generators to fool discriminators
         self.combined = Model(z, [valid1, valid2])
         self.combined.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generators(self):
 

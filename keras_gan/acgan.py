@@ -24,13 +24,12 @@ class ACGAN(GANBase):
         self.num_classes = 10
         self.latent_dim = 100
 
-        optimizer = self.get_optimizer()
         losses = ['binary_crossentropy', 'sparse_categorical_crossentropy']
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=losses,
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -53,7 +52,7 @@ class ACGAN(GANBase):
         # Trains the generator to fool the discriminator
         self.combined = Model([noise, label], [valid, target_label])
         self.combined.compile(loss=losses,
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
 

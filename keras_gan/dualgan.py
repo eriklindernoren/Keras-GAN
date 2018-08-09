@@ -22,16 +22,14 @@ class DUALGAN(GANBase):
         self.channels = 1
         self.img_dim = self.img_rows * self.img_cols
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminators
         self.D_A = self.build_discriminator()
         self.D_A.compile(loss=self.wasserstein_loss,
-                         optimizer=optimizer,
+                         optimizer=self.get_optimizer(),
                          metrics=['accuracy'])
         self.D_B = self.build_discriminator()
         self.D_B.compile(loss=self.wasserstein_loss,
-                         optimizer=optimizer,
+                         optimizer=self.get_optimizer(),
                          metrics=['accuracy'])
 
         # -------------------------
@@ -66,7 +64,7 @@ class DUALGAN(GANBase):
         # The combined model  (stacked generators and discriminators)
         self.combined = Model(inputs=[imgs_A, imgs_B], outputs=[valid_A, valid_B, recov_A, recov_B])
         self.combined.compile(loss=[self.wasserstein_loss, self.wasserstein_loss, 'mae', 'mae'],
-                              optimizer=optimizer,
+                              optimizer=self.get_optimizer(),
                               loss_weights=[1, 1, 100, 100])
 
     def build_generator(self):

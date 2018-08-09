@@ -43,14 +43,12 @@ class SRGAN(GANBase):
         # Number of residual blocks in the generator
         self.n_residual_blocks = 16
 
-        optimizer = self.get_optimizer()
-
         # We use a pre-trained VGG19 model to extract image features from the high resolution
         # and the generated high resolution images and minimize the mse between them
         self.vgg = self.build_vgg()
         self.vgg.trainable = False
         self.vgg.compile(loss='mse',
-                         optimizer=optimizer,
+                         optimizer=self.get_optimizer(),
                          metrics=['accuracy'])
 
         # Configure data loader
@@ -69,7 +67,7 @@ class SRGAN(GANBase):
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -94,7 +92,7 @@ class SRGAN(GANBase):
         self.combined = Model([img_lr, img_hr], [validity, fake_features])
         self.combined.compile(loss=['binary_crossentropy', 'mse'],
                               loss_weights=[1e-3, 1],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_vgg(self):
         """

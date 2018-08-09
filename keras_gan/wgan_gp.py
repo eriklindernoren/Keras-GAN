@@ -40,7 +40,6 @@ class WGANGP(GANBase):
 
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
-        optimizer = self.get_optimizer()
 
         # Build the generator and critic
         self.generator = self.build_generator()
@@ -82,7 +81,7 @@ class WGANGP(GANBase):
         self.critic_model.compile(loss=[self.wasserstein_loss,
                                         self.wasserstein_loss,
                                         partial_gp_loss],
-                                  optimizer=optimizer,
+                                  optimizer=self.get_optimizer(),
                                   loss_weights=[1, 1, 10])
         # -------------------------------
         # Construct Computational Graph
@@ -101,7 +100,7 @@ class WGANGP(GANBase):
         valid = self.critic(img)
         # Defines generator model
         self.generator_model = Model(z_gen, valid)
-        self.generator_model.compile(loss=self.wasserstein_loss, optimizer=optimizer)
+        self.generator_model.compile(loss=self.wasserstein_loss, optimizer=self.get_optimizer())
 
     def gradient_penalty_loss(self, y_true, y_pred, averaged_samples):
         """

@@ -38,12 +38,10 @@ class Pix2Pix(GANBase):
         self.gf = 64
         self.df = 64
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # -------------------------
@@ -70,7 +68,7 @@ class Pix2Pix(GANBase):
         self.combined = Model(inputs=[img_A, img_B], outputs=[valid, fake_A])
         self.combined.compile(loss=['mse', 'mae'],
                               loss_weights=[1, 100],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
         """U-Net Generator"""

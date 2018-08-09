@@ -21,12 +21,10 @@ class LSGAN(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -46,7 +44,7 @@ class LSGAN(GANBase):
         # Trains generator to fool discriminator
         self.combined = Model(z, valid)
         # (!!!) Optimize w.r.t. MSE loss instead of crossentropy
-        self.combined.compile(loss='mse', optimizer=optimizer)
+        self.combined.compile(loss='mse', optimizer=self.get_optimizer())
 
     def build_generator(self):
 

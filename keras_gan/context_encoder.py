@@ -25,12 +25,10 @@ class ContextEncoder(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.missing_shape = (self.mask_height, self.mask_width, self.channels)
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy',
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -53,7 +51,7 @@ class ContextEncoder(GANBase):
         self.combined = Model(masked_img, [gen_missing, valid])
         self.combined.compile(loss=['mse', 'binary_crossentropy'],
                               loss_weights=[0.999, 0.001],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
 

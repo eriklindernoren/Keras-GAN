@@ -39,8 +39,6 @@ class PixelDA(GANBase):
         # Number of residual blocks in the generator
         self.residual_blocks = 6
 
-        optimizer = self.get_optimizer()
-
         # Number of filters in first layer of discriminator and classifier
         self.df = 64
         self.cf = 64
@@ -48,7 +46,7 @@ class PixelDA(GANBase):
         # Build and compile the discriminators
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -76,7 +74,7 @@ class PixelDA(GANBase):
         self.combined = Model(img_A, [valid, class_pred])
         self.combined.compile(loss=['mse', 'categorical_crossentropy'],
                               loss_weights=[lambda_adv, lambda_clf],
-                              optimizer=optimizer,
+                              optimizer=self.get_optimizer(),
                               metrics=['accuracy'])
 
     def build_generator(self):

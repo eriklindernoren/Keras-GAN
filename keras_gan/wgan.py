@@ -26,12 +26,11 @@ class WGAN(GANBase):
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
         self.clip_value = 0.01
-        optimizer = self.get_optimizer()
 
         # Build and compile the critic
         self.critic = self.build_critic()
         self.critic.compile(loss=self.wasserstein_loss,
-                            optimizer=optimizer,
+                            optimizer=self.get_optimizer(),
                             metrics=['accuracy'])
 
         # Build the generator
@@ -50,7 +49,7 @@ class WGAN(GANBase):
         # The combined model  (stacked generator and critic)
         self.combined = Model(z, valid)
         self.combined.compile(loss=self.wasserstein_loss,
-                              optimizer=optimizer,
+                              optimizer=self.get_optimizer(),
                               metrics=['accuracy'])
 
     def wasserstein_loss(self, y_true, y_pred):

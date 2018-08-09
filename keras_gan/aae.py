@@ -22,12 +22,10 @@ class AdversarialAutoencoder(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 10
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy',
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the encoder / decoder
@@ -50,7 +48,7 @@ class AdversarialAutoencoder(GANBase):
         self.adversarial_autoencoder = Model(img, [reconstructed_img, validity])
         self.adversarial_autoencoder.compile(loss=['mse', 'binary_crossentropy'],
                                              loss_weights=[0.999, 0.001],
-                                             optimizer=optimizer)
+                                             optimizer=self.get_optimizer())
 
     def build_encoder(self):
         # Encoder

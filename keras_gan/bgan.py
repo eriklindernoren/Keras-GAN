@@ -24,8 +24,6 @@ class BGAN(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy',
@@ -48,7 +46,7 @@ class BGAN(GANBase):
         # The combined model  (stacked generator and discriminator)
         # Trains the generator to fool the discriminator
         self.combined = Model(z, valid)
-        self.combined.compile(loss=self.boundary_loss, optimizer=optimizer)
+        self.combined.compile(loss=self.boundary_loss, optimizer=self.get_optimizer())
 
     def build_generator(self):
 

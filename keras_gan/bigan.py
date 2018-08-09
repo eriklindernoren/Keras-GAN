@@ -22,12 +22,10 @@ class BIGAN(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['binary_crossentropy'],
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -55,7 +53,7 @@ class BIGAN(GANBase):
         # Trains generator to fool the discriminator
         self.bigan_generator = Model([z, img], [fake, valid])
         self.bigan_generator.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
-                                     optimizer=optimizer)
+                                     optimizer=self.get_optimizer())
 
     def build_encoder(self):
         model = Sequential()

@@ -23,13 +23,11 @@ class SGAN(GANBase):
         self.num_classes = 10
         self.latent_dim = 100
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['binary_crossentropy', 'categorical_crossentropy'],
                                    loss_weights=[0.5, 0.5],
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -49,7 +47,7 @@ class SGAN(GANBase):
         # Trains generator to fool discriminator
         self.combined = Model(noise, valid)
         self.combined.compile(loss=['binary_crossentropy'],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
 
@@ -122,6 +120,8 @@ class SGAN(GANBase):
         # 50% of labels that the discriminator trains on are 'fake'.
         # Weight = 1 / frequency
         cw1 = {0: 1, 1: 1}
+
+        half_batch = batch_size // 2
         cw2 = {i: self.num_classes / half_batch for i in range(self.num_classes)}
         cw2[self.num_classes] = 1 / half_batch
 

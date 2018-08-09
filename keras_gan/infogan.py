@@ -25,19 +25,18 @@ class INFOGAN(GANBase):
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 72
 
-        optimizer = self.get_optimizer()
         losses = ['binary_crossentropy', self.mutual_info_loss]
 
         # Build and the discriminator and recognition network
         self.discriminator, self.auxilliary = self.build_disk_and_q_net()
 
         self.discriminator.compile(loss=['binary_crossentropy'],
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build and compile the recognition network Q
         self.auxilliary.compile(loss=[self.mutual_info_loss],
-                                optimizer=optimizer,
+                                optimizer=self.get_optimizer(),
                                 metrics=['accuracy'])
 
         # Build the generator
@@ -59,7 +58,7 @@ class INFOGAN(GANBase):
         # The combined model  (stacked generator and discriminator)
         self.combined = Model(gen_input, [valid, target_label])
         self.combined.compile(loss=losses,
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
 

@@ -23,12 +23,10 @@ class CGAN(GANBase):
         self.num_classes = 10
         self.latent_dim = 100
 
-        optimizer = self.get_optimizer()
-
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss=['binary_crossentropy'],
-                                   optimizer=optimizer,
+                                   optimizer=self.get_optimizer(),
                                    metrics=['accuracy'])
 
         # Build the generator
@@ -51,7 +49,7 @@ class CGAN(GANBase):
         # Trains generator to fool discriminator
         self.combined = Model([noise, label], valid)
         self.combined.compile(loss=['binary_crossentropy'],
-                              optimizer=optimizer)
+                              optimizer=self.get_optimizer())
 
     def build_generator(self):
 
