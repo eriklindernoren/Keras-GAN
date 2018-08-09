@@ -14,7 +14,8 @@ from .gan_base import GANBase
 
 
 class ACGAN(GANBase):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(ACGAN, self).super(*args, **kwargs)
         # Input shape
         self.img_rows = 28
         self.img_cols = 28

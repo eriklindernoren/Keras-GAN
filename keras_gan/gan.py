@@ -13,7 +13,8 @@ from .gan_base import GANBase
 
 
 class GAN(GANBase):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(GAN, self).super(*args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

@@ -16,7 +16,8 @@ from .gan_base import GANBase
 class COGAN(GANBase):
     """Reference: https://wiseodd.github.io/techblog/2017/02/18/coupled_gan/"""
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(COGAN, self).super(*args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

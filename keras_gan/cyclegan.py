@@ -17,7 +17,8 @@ from .gan_base import GANBase
 
 
 class CycleGAN(GANBase):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(CycleGAN, self).super(*args, **kwargs)
         # Input shape
         self.img_rows = 128
         self.img_cols = 128

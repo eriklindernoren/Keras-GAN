@@ -14,7 +14,8 @@ from .gan_base import GANBase
 
 
 class ContextEncoder(GANBase):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(ContextEncoder, self).super(*args, **kwargs)
         self.img_rows = 32
         self.img_cols = 32
         self.mask_height = 8

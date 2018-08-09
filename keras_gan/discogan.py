@@ -17,7 +17,8 @@ from .gan_base import GANBase
 
 
 class DiscoGAN(GANBase):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(DiscoGAN, self).super(*args, **kwargs)
         # Input shape
         self.img_rows = 128
         self.img_cols = 128
