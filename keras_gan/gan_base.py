@@ -15,6 +15,9 @@ class GANBase(object):
     def build_critic(self):
         raise NotImplemented
 
+    def load_dataset(self):
+        raise NotImplemented
+
     def train(self):
         raise NotImplemented
 

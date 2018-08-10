@@ -102,6 +102,19 @@ class AdversarialAutoencoder(GANBase):
 
         return Model(encoded_repr, validity)
 
+    def load_data(self, batch_size):
+        # Load the dataset
+        (X_train, _), (_, _) = mnist.load_data()
+
+        # Rescale -1 to 1
+        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        X_train = np.expand_dims(X_train, axis=3)
+
+        # Adversarial ground truths
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
+        return X_train, valid, fake
+
     def train_discriminator(self, X_train, batch_size, imgs, valid, fake):
         latent_fake = self.encoder.predict(imgs)
         latent_real = np.random.normal(size=(batch_size, self.latent_dim))
@@ -117,16 +130,8 @@ class AdversarialAutoencoder(GANBase):
         return g_loss
 
     def train(self, epochs, batch_size=128, sample_interval=50):
-        # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
 
-        # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
-        X_train = np.expand_dims(X_train, axis=3)
-
-        # Adversarial ground truths
-        valid = np.ones((batch_size, 1))
-        fake = np.zeros((batch_size, 1))
+        X_train, valid, fake = self.load_data(batch_size)
 
         for epoch in range(epochs):
             # Select a random batch of images
