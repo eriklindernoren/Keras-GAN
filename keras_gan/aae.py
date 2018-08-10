@@ -102,8 +102,21 @@ class AdversarialAutoencoder(GANBase):
 
         return Model(encoded_repr, validity)
 
-    def train(self, epochs, batch_size=128, sample_interval=50):
+    def train_discriminator(self, X_train, batch_size, imgs, valid, fake):
+        latent_fake = self.encoder.predict(imgs)
+        latent_real = np.random.normal(size=(batch_size, self.latent_dim))
 
+        # Train the discriminator
+        d_loss_real = self.discriminator.train_on_batch(latent_real, valid)
+        d_loss_fake = self.discriminator.train_on_batch(latent_fake, fake)
+        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+        return d_loss
+
+    def train_generator(self, imgs, valid):
+        g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid])
+        return g_loss
+
+    def train(self, epochs, batch_size=128, sample_interval=50):
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
 
@@ -116,29 +129,21 @@ class AdversarialAutoencoder(GANBase):
         fake = np.zeros((batch_size, 1))
 
         for epoch in range(epochs):
-
-            # ---------------------
-            #  Train Discriminator
-            # ---------------------
-
             # Select a random batch of images
             idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            latent_fake = self.encoder.predict(imgs)
-            latent_real = np.random.normal(size=(batch_size, self.latent_dim))
-
-            # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch(latent_real, valid)
-            d_loss_fake = self.discriminator.train_on_batch(latent_fake, fake)
-            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
-
-            # ---------------------
-            #  Train Generator
-            # ---------------------
-
-            # Train the generator
-            g_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid])
+            d_loss = self.train_discriminator(
+                X_train,
+                batch_size,
+                imgs,
+                valid,
+                fake,
+            )
+            g_loss = self.train_generator(
+                imgs,
+                valid
+            )
 
             # Plot the progress
             print("%d [D loss: %f, acc: %.2f%%] [G loss: %f, mse: %f]" % (
