@@ -105,8 +105,29 @@ class CGAN(GANBase):
 
         return Model([img, label], validity)
 
-    def train(self, epochs, batch_size=128, sample_interval=50):
+    def train_discriminator(self, X_train, y_train, batch_size, noise, valid, fake):
+        # Select a random half batch of images
+        idx = np.random.randint(0, X_train.shape[0], batch_size)
+        imgs, labels = X_train[idx], y_train[idx]
 
+        # Generate a half batch of new images
+        gen_imgs = self.generator.predict([noise, labels])
+
+        # Train the discriminator
+        d_loss_real = self.discriminator.train_on_batch([imgs, labels], valid)
+        d_loss_fake = self.discriminator.train_on_batch([gen_imgs, labels], fake)
+        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+        return d_loss
+
+    def train_generator(self, noise, batch_size, valid):
+        # Condition on labels
+        sampled_labels = np.random.randint(0, 10, batch_size).reshape(-1, 1)
+
+        # Train the generator
+        g_loss = self.combined.train_on_batch([noise, sampled_labels], valid)
+        return g_loss
+
+    def train(self, epochs, batch_size=128, sample_interval=50):
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
 
@@ -121,34 +142,23 @@ class CGAN(GANBase):
 
         for epoch in range(epochs):
 
-            # ---------------------
-            #  Train Discriminator
-            # ---------------------
-
-            # Select a random half batch of images
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
-            imgs, labels = X_train[idx], y_train[idx]
-
             # Sample noise as generator input
             noise = np.random.normal(0, 1, (batch_size, 100))
 
-            # Generate a half batch of new images
-            gen_imgs = self.generator.predict([noise, labels])
+            d_loss = self.train_discriminator(
+                X_train,
+                y_train,
+                batch_size,
+                noise,
+                valid,
+                fake
+            )
 
-            # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch([imgs, labels], valid)
-            d_loss_fake = self.discriminator.train_on_batch([gen_imgs, labels], fake)
-            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
-
-            # ---------------------
-            #  Train Generator
-            # ---------------------
-
-            # Condition on labels
-            sampled_labels = np.random.randint(0, 10, batch_size).reshape(-1, 1)
-
-            # Train the generator
-            g_loss = self.combined.train_on_batch([noise, sampled_labels], valid)
+            g_loss = self.train_generator(
+                noise,
+                batch_size,
+                valid
+            )
 
             # Plot the progress
             print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100 * d_loss[1], g_loss))
