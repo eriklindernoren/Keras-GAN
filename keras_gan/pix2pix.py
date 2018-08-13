@@ -18,7 +18,7 @@ from .gan_base import GANBase
 
 class Pix2Pix(GANBase):
     def __init__(self, *args, **kwargs):
-        super(Pix2Pix, self).super(*args, **kwargs)
+        super(Pix2Pix, self).__init__(*args, **kwargs)
         # Input shape
         self.img_rows = 256
         self.img_cols = 256

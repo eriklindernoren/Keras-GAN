@@ -16,7 +16,7 @@ from .gan_base import GANBase
 
 class WGAN(GANBase):
     def __init__(self, optimizer=RMSprop(lr=0.00005), *args, **kwargs):
-        super(WGAN, self).super(optimizer=optimizer, *args, **kwargs)
+        super(WGAN, self).__init__(optimizer=optimizer, *args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

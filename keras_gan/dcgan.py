@@ -15,7 +15,7 @@ from .gan_base import GANBase
 
 class DCGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(DCGAN, self).super(*args, **kwargs)
+        super(DCGAN, self).__init__(*args, **kwargs)
         # Input shape
         self.img_rows = 28
         self.img_cols = 28

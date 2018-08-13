@@ -19,7 +19,7 @@ from keras.layers.merge import _Merge
 from keras.models import Sequential, Model
 from keras.optimizers import RMSprop
 
-from .gan_base import GANBase
+from keras_gan.gan_base import GANBase
 
 
 class RandomWeightedAverage(_Merge):
@@ -32,7 +32,7 @@ class RandomWeightedAverage(_Merge):
 
 class WGANGP(GANBase):
     def __init__(self, optimizer=RMSprop(lr=0.00005), dataset=mnist, *args, **kwargs):
-        super(WGANGP, self).super(optimizer=optimizer, *args, **kwargs)
+        super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

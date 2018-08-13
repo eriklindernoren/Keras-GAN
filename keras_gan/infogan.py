@@ -17,7 +17,7 @@ from .gan_base import GANBase
 
 class INFOGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(INFOGAN, self).super(*args, **kwargs)
+        super(INFOGAN, self).__init__(*args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

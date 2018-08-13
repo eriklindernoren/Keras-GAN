@@ -14,7 +14,7 @@ from .gan_base import GANBase
 
 class LSGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(LSGAN, self).super(*args, **kwargs)
+        super(LSGAN, self).__init__(*args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

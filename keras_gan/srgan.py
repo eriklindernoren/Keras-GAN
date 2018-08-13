@@ -30,7 +30,7 @@ from .gan_base import GANBase
 
 class SRGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(SRGAN, self).super(*args, **kwargs)
+        super(SRGAN, self).__init__(*args, **kwargs)
         # Input shape
         self.channels = 3
         self.lr_height = 64  # Low resolution height

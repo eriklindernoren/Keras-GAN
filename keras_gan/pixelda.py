@@ -17,7 +17,7 @@ from .gan_base import GANBase
 
 class PixelDA(GANBase):
     def __init__(self, *args, **kwargs):
-        super(PixelDA, self).super(*args, **kwargs)
+        super(PixelDA, self).__init__(*args, **kwargs)
         # Input shape
         self.img_rows = 32
         self.img_cols = 32

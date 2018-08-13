@@ -15,7 +15,7 @@ from .gan_base import GANBase
 
 class BIGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(BIGAN, self).super(*args, **kwargs)
+        super(BIGAN, self).__init__(*args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

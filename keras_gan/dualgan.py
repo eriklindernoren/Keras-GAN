@@ -16,7 +16,7 @@ from .gan_base import GANBase
 
 class DUALGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(DUALGAN, self).super(*args, **kwargs)
+        super(DUALGAN, self).__init__(*args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

@@ -17,7 +17,7 @@ class BGAN(GANBase):
     """Reference: https://wiseodd.github.io/techblog/2017/03/07/boundary-seeking-gan/"""
 
     def __init__(self, *args, **kwargs):
-        super(BGAN, self).super(*args, **kwargs)
+        super(BGAN, self).__init__(*args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1

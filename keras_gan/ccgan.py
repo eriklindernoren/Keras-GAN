@@ -19,7 +19,7 @@ from .gan_base import GANBase
 
 class CCGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(CCGAN, self).super(*args, **kwargs)
+        super(CCGAN, self).__init__(*args, **kwargs)
         self.img_rows = 32
         self.img_cols = 32
         self.channels = 1

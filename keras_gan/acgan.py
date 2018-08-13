@@ -15,7 +15,7 @@ from .gan_base import GANBase
 
 class ACGAN(GANBase):
     def __init__(self, *args, **kwargs):
-        super(ACGAN, self).super(*args, **kwargs)
+        super(ACGAN, self).__init__(*args, **kwargs)
         # Input shape
         self.img_rows = 28
         self.img_cols = 28
@@ -117,8 +117,7 @@ class ACGAN(GANBase):
 
         return Model(img, [validity, label])
 
-    def train(self, epochs, batch_size=128, sample_interval=50):
-
+    def load_dataset(self, batch_size):
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
 
@@ -130,13 +129,32 @@ class ACGAN(GANBase):
         # Adversarial ground truths
         valid = np.ones((batch_size, 1))
         fake = np.zeros((batch_size, 1))
+        return X_train, y_train, valid, fake
+
+    def train_discriminator(self, X_train, y_train, valid, fake, batch_size):
+
+        # The labels of the digits that the generator tries to create an
+        # image representation of
+        sampled_labels = np.random.randint(0, 10, (batch_size, 1))
+
+        # Generate a half batch of new images
+        gen_imgs = self.generator.predict([noise, sampled_labels])
+
+
+        # Train the discriminator
+        d_loss_real = self.discriminator.train_on_batch(imgs, [valid, img_labels])
+        d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels])
+        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+        return d_loss
+
+    def train_generator(self):
+        pass
+
+    def train(self, epochs, batch_size=128, sample_interval=50):
+
+        X_train, y_train, valid, fake = self.load_dataset(batch_size)
 
         for epoch in range(epochs):
-
-            # ---------------------
-            #  Train Discriminator
-            # ---------------------
-
             # Select a random batch of images
             idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
@@ -144,21 +162,11 @@ class ACGAN(GANBase):
             # Sample noise as generator input
             noise = np.random.normal(0, 1, (batch_size, 100))
 
-            # The labels of the digits that the generator tries to create an
-            # image representation of
-            sampled_labels = np.random.randint(0, 10, (batch_size, 1))
-
-            # Generate a half batch of new images
-            gen_imgs = self.generator.predict([noise, sampled_labels])
-
             # Image labels. 0-9 if image is valid or 10 if it is generated (fake)
             img_labels = y_train[idx]
             fake_labels = 10 * np.ones(img_labels.shape)
 
-            # Train the discriminator
-            d_loss_real = self.discriminator.train_on_batch(imgs, [valid, img_labels])
-            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels])
-            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+            d_loss = self.train_discriminator(X_train, y_train, valid, fake, batch_size)
 
             # ---------------------
             #  Train Generator
