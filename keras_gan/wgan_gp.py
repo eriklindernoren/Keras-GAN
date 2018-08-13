@@ -319,7 +319,6 @@ class WGANGP(GANBase):
             if sample_interval and self.epoch % sample_interval == 0:
                 self.sample_images()
 
-
     def sample_images(self, sample_image_filepath="./images"):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, self.latent_dim))
