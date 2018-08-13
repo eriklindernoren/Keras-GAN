@@ -139,7 +139,7 @@ class WGANGP(GANBase):
         valid = self.critic(img)
         # Defines generator model
         generator_graph = Model(z_gen, valid)
-        generator_graph.compile(loss=self.wasserstein_loss, optimizer=self.get_optimizer())
+        generator_graph.compile(loss=wasserstein_loss, optimizer=self.get_optimizer())
         return generator_graph
 
     def get_config(self):
@@ -147,8 +147,6 @@ class WGANGP(GANBase):
         critic_path = self.get_critic_path()
         config_path = self.get_config_path()
         config = {
-            "img_rows": self.img_rows,
-            "img_cols": self.img_cols,
             "channels": self.channels,
             "img_shape": self.img_shape,
             "latent_dim": self.latent_dim,
@@ -209,7 +207,7 @@ class WGANGP(GANBase):
         self.save_config()
         self.save_model()
 
-    def build_generator(self):
+    def build_generator(self, *args, **kwargs):
 
         model = Sequential()
 
@@ -233,7 +231,7 @@ class WGANGP(GANBase):
 
         return Model(noise, img)
 
-    def build_critic(self):
+    def build_critic(self, *args, **kwargs):
 
         model = Sequential()
 
@@ -263,7 +261,8 @@ class WGANGP(GANBase):
 
         return Model(img, validity)
 
-    def train_discriminator(self, X_train, valid, fake, dummy, n_critic, batch_size):
+    def train_discriminator(self, X_train, valid, fake, dummy, n_critic, batch_size, *args, **kwargs):
+
         d_losses = []
         for _ in range(n_critic):
             # ---------------------
@@ -276,13 +275,13 @@ class WGANGP(GANBase):
             # Sample generator input
             noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
             # Train the critic
-            d_loss = self.critic_model.train_on_batch([imgs, noise],
+            d_loss = self.critic_graph.train_on_batch([imgs, noise],
                                                       [valid, fake, dummy])
             d_losses.append(d_loss)
 
         return d_losses
 
-    def train_generator(self, valid, batch_size):
+    def train_generator(self, valid, batch_size, *args, **kwargs):
         """
         Train Generator
         :param valid:
@@ -291,10 +290,10 @@ class WGANGP(GANBase):
         """
 
         noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
-        g_loss = self.generator_model.train_on_batch(noise, valid)
+        g_loss = self.generator_graph.train_on_batch(noise, valid)
         return g_loss
 
-    def train(self, epochs, batch_size, sample_interval=50):
+    def train(self, epochs, batch_size, sample_interval=50, *args, **kwargs):
 
         # Load the dataset
         (_X_train, _), (_, _) = self.dataset.load_data()
