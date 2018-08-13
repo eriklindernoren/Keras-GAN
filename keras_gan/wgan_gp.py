@@ -5,6 +5,7 @@
 from __future__ import print_function, division
 
 from functools import partial
+import json
 import os
 
 import keras.backend as K
@@ -35,26 +36,45 @@ def wasserstein_loss(self, y_true, y_pred):
 
 
 class WGANGP(GANBase):
-    def __init__(self, optimizer=RMSprop(lr=0.00005), dataset=mnist, *args, **kwargs):
+    def __init__(
+            self,
+            img_shape=(28, 28, 1),
+            latent_dim=100,
+            n_critic=5,
+            optimizer=RMSprop(lr=0.00005),
+            dataset=mnist,
+            model_name='wgan_mnist',
+            model_dir="models",
+            *args,
+            **kwargs):
         super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
-        self.img_rows = 28
-        self.img_cols = 28
-        self.channels = 1
-        self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.latent_dim = 100
-        self.dataset = dataset
+
+        self.img_shape = img_shape,
+        self.channels = self.img_shape[-1]
+        self.latent_dim = latent_dim
 
         # Following parameter and optimizer set as recommended in paper
-        self.n_critic = 5
+        self.n_critic = n_critic
 
         # Build the generator and critic
         self.generator = self.build_generator()
         self.critic = self.build_critic()
 
-        # -------------------------------
-        # Construct Computational Graph
-        #       for the Critic
-        # -------------------------------
+        self.n_complete_epochs = 0
+
+        self.dataset = dataset
+        self.model_name = model_name
+        self.model_dir = model_dir
+        self.construct_computational_graph()
+
+    def construct_computational_graph(self):
+        self.construct_critic_graph()
+        self.construct_generator_graph()
+
+    def construct_critic_graph(self):
+        """
+        Construct Computational Graph for the Critic
+        """
 
         # Freeze generator's layers while training critic
         self.generator.trainable = False
@@ -89,11 +109,11 @@ class WGANGP(GANBase):
                                         partial_gp_loss],
                                   optimizer=self.get_optimizer(),
                                   loss_weights=[1, 1, 10])
-        # -------------------------------
-        # Construct Computational Graph
-        #         for Generator
-        # -------------------------------
 
+    def construct_generator_graph(self):
+        """
+        Construct Computational Graph for Generator
+        """
         # For the generator we freeze the critic's layers
         self.critic.trainable = False
         self.generator.trainable = True
@@ -107,6 +127,73 @@ class WGANGP(GANBase):
         # Defines generator model
         self.generator_model = Model(z_gen, valid)
         self.generator_model.compile(loss=self.wasserstein_loss, optimizer=self.get_optimizer())
+
+    def get_config(self):
+        generator_path = self.get_generator_path()
+        critic_path = self.get_critic_path()
+        config_path = self.get_config_path()
+        config = {
+            "img_rows": self.img_rows,
+            "img_cols": self.img_cols,
+            "channels": self.channels,
+            "img_shape": self.img_shape,
+            "latent_dim": self.latent_dim,
+            "n_critic": self.n_critic,
+            "n_completed_epochs": self.n_critic,
+            "generator_path": generator_path,
+            "critic_path": critic_path,
+            "config_path": config_path,
+        }
+        return config
+
+    def get_config_path(self, suffix=None):
+        if suffix:
+            file_name = "{}_config_{}.json".format(self.model_name, suffix)
+        else:
+            file_name = "{}_config.json".format(self.model_name)
+        file_path = os.path.join(self.model_dir, file_name)
+        return file_path
+
+    def get_generator_path(self, suffix=None):
+        if suffix:
+            file_name = "{}_generator_{}.hdf5".format(self.model_name, suffix)
+        else:
+            file_name = "{}_generator.hdf5".format(self.model_name)
+        file_path = os.path.join(self.model_dir, file_name)
+        return file_path
+
+    def get_critic_path(self, suffix=None):
+        if suffix:
+            file_name = "{}_critic_{}.hdf5".format(self.model_name, suffix)
+        else:
+            file_name = "{}_critic.hdf5".format(self.model_name)
+        file_path = os.path.join(self.model_dir, file_name)
+        return file_path
+
+    def save_generator(self, generator_path=None):
+        if generator_path is None:
+            generator_path = self.get_generator_path()
+        self.generator.save(generator_path)
+
+    def save_critic(self, critic_path=None):
+        if critic_path is None:
+            critic_path = self.get_critic_path()
+        self.critic.save(critic_path)
+
+    def save_config(self):
+        config_path = self.get_config_path()
+        config = self.get_config()
+        json.dump(config, config_path)
+
+    def save_model(self, generator_path=None, critic_path=None):
+        generator_path = generator_path or self.get_generator_path()
+        critic_path = critic_path or self.get_critic_path()
+        self.save_generator(generator_path)
+        self.save_critic(critic_path)
+
+    def save(self):
+        self.save_config()
+        self.save_model()
 
     def gradient_penalty_loss(self, y_true, y_pred, averaged_samples):
         """
@@ -220,6 +307,8 @@ class WGANGP(GANBase):
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
                 self.sample_images(epoch)
+
+            self.n_complete_epochs += 1
 
     def sample_images(self, epoch, sample_image_filepath="./images"):
         r, c = 5, 5
