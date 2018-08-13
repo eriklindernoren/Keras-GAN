@@ -5,6 +5,7 @@
 from __future__ import print_function, division
 
 from functools import partial
+import os
 
 import keras.backend as K
 import matplotlib.pyplot as plt
@@ -30,13 +31,14 @@ class RandomWeightedAverage(_Merge):
 
 
 class WGANGP(GANBase):
-    def __init__(self, optimizer=RMSprop(lr=0.00005), *args, **kwargs):
+    def __init__(self, optimizer=RMSprop(lr=0.00005), dataset=mnist, *args, **kwargs):
         super(WGANGP, self).super(optimizer=optimizer, *args, **kwargs)
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
+        self.dataset = dataset
 
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
@@ -179,7 +181,7 @@ class WGANGP(GANBase):
     def train(self, epochs, batch_size, sample_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
+        (X_train, _), (_, _) = self.dataset.load_data()
 
         # Rescale -1 to 1
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
@@ -218,7 +220,7 @@ class WGANGP(GANBase):
             if epoch % sample_interval == 0:
                 self.sample_images(epoch)
 
-    def sample_images(self, epoch):
+    def sample_images(self, epoch, sample_image_filepath="./images"):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
@@ -233,7 +235,12 @@ class WGANGP(GANBase):
                 axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
                 axs[i, j].axis('off')
                 cnt += 1
-        fig.savefig("images/mnist_%d.png" % epoch)
+        fig.savefig(
+            os.path.join(
+                sample_image_filepath,
+                "sample_{:02d}.png".format(epoch)
+            )
+        )
         plt.close()
 
 
