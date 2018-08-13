@@ -30,6 +30,10 @@ class RandomWeightedAverage(_Merge):
         return (alpha * inputs[0]) + ((1 - alpha) * inputs[1])
 
 
+def wasserstein_loss(self, y_true, y_pred):
+    return K.mean(y_true * y_pred)
+
+
 class WGANGP(GANBase):
     def __init__(self, optimizer=RMSprop(lr=0.00005), dataset=mnist, *args, **kwargs):
         super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
@@ -80,8 +84,8 @@ class WGANGP(GANBase):
 
         self.critic_model = Model(inputs=[real_img, z_disc],
                                   outputs=[valid, fake, validity_interpolated])
-        self.critic_model.compile(loss=[self.wasserstein_loss,
-                                        self.wasserstein_loss,
+        self.critic_model.compile(loss=[wasserstein_loss,
+                                        wasserstein_loss,
                                         partial_gp_loss],
                                   optimizer=self.get_optimizer(),
                                   loss_weights=[1, 1, 10])
@@ -120,9 +124,6 @@ class WGANGP(GANBase):
         gradient_penalty = K.square(1 - gradient_l2_norm)
         # return the mean as loss over all the batch samples
         return K.mean(gradient_penalty)
-
-    def wasserstein_loss(self, y_true, y_pred):
-        return K.mean(y_true * y_pred)
 
     def build_generator(self):
 
