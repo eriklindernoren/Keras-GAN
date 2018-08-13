@@ -25,7 +25,6 @@ from keras_gan.gan_base import GANBase
 
 class RandomWeightedAverage(_Merge):
     """Provides a (random) weighted average between real and generated image samples"""
-
     def _merge_function(self, inputs):
         alpha = K.random_uniform((32, 1, 1, 1))
         return (alpha * inputs[0]) + ((1 - alpha) * inputs[1])
@@ -74,15 +73,15 @@ class WGANGP(GANBase):
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = n_critic
 
-        # Build the generator and critic
-        self.generator = self.build_generator()
-        self.critic = self.build_critic()
-
-        self.n_complete_epochs = 0
-
         self.dataset = dataset
         self.model_name = model_name
         self.model_dir = model_dir
+
+        self.n_complete_epochs = 0
+
+        # Build the generator, critic, and computational graph
+        self.generator = self.build_generator()
+        self.critic = self.build_critic()
         self.critic_graph, self.generator_graph = self.build_computational_graphs()
 
     def build_computational_graphs(self):
@@ -115,8 +114,7 @@ class WGANGP(GANBase):
 
         # Use Python partial to provide loss function with additional
         # 'averaged_samples' argument
-        partial_gp_loss = partial(gradient_penalty_loss,
-                                  averaged_samples=interpolated_img)
+        partial_gp_loss = partial(gradient_penalty_loss, averaged_samples=interpolated_img)
         partial_gp_loss.__name__ = 'gradient_penalty'  # Keras requires function names
 
         critic_graph = Model(inputs=[real_img, z_disc], outputs=[valid, fake, validity_interpolated])
@@ -134,7 +132,7 @@ class WGANGP(GANBase):
         self.generator.trainable = True
 
         # Sampled noise for input to generator
-        z_gen = Input(shape=(100,))
+        z_gen = Input(shape=(self.latent_dim,))
         # Generate images based of noise
         img = self.generator(z_gen)
         # Discriminator determines validity
@@ -265,6 +263,37 @@ class WGANGP(GANBase):
 
         return Model(img, validity)
 
+    def train_discriminator(self, X_train, valid, fake, dummy, n_critic, batch_size):
+        d_losses = []
+        for _ in range(n_critic):
+            # ---------------------
+            #  Train Discriminator
+            # ---------------------
+
+            # Select a random batch of images
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
+            imgs = X_train[idx]
+            # Sample generator input
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+            # Train the critic
+            d_loss = self.critic_model.train_on_batch([imgs, noise],
+                                                      [valid, fake, dummy])
+            d_losses.append(d_loss)
+
+        return d_losses
+
+    def train_generator(self, valid, batch_size):
+        """
+        Train Generator
+        :param valid:
+        :param batch_size:
+        :return g_loss:
+        """
+
+        noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+        g_loss = self.generator_model.train_on_batch(noise, valid)
+        return g_loss
+
     def train(self, epochs, batch_size, sample_interval=50):
 
         # Load the dataset
@@ -280,31 +309,14 @@ class WGANGP(GANBase):
         dummy = np.zeros((batch_size, 1))  # Dummy gt for gradient penalty
         for epoch in range(epochs):
 
-            for _ in range(self.n_critic):
-                # ---------------------
-                #  Train Discriminator
-                # ---------------------
+            d_losses = self.train_discriminator(X_train, valid, fake, dummy, self.n_critic, batch_size)
+            g_loss = self.train_generator()
 
-                # Select a random batch of images
-                idx = np.random.randint(0, X_train.shape[0], batch_size)
-                imgs = X_train[idx]
-                # Sample generator input
-                noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
-                # Train the critic
-                d_loss = self.critic_model.train_on_batch([imgs, noise],
-                                                          [valid, fake, dummy])
+            if self.verbose:
+                # Plot the progress
+                print("%d [D loss: %f] [G loss: %f]" % (epoch, d_losses[0][0], g_loss))
 
-            # ---------------------
-            #  Train Generator
-            # ---------------------
-
-            g_loss = self.generator_model.train_on_batch(noise, valid)
-
-            # Plot the progress
-            print("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss))
-
-            # If at save interval => save generated image samples
-            if epoch % sample_interval == 0:
+            if sample_interval and epoch % sample_interval == 0:
                 self.sample_images(epoch)
 
             self.n_complete_epochs += 1
