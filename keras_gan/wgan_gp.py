@@ -31,7 +31,7 @@ class RandomWeightedAverage(_Merge):
         return (alpha * inputs[0]) + ((1 - alpha) * inputs[1])
 
 
-def wasserstein_loss(self, y_true, y_pred):
+def wasserstein_loss(y_true, y_pred):
     return K.mean(y_true * y_pred)
 
 
