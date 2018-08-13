@@ -224,7 +224,8 @@ class WGANGP(GANBase):
         model.add(Conv2D(self.channels, kernel_size=4, padding="same"))
         model.add(Activation("tanh"))
 
-        model.summary()
+        if self.verbose:
+            model.summary()
 
         noise = Input(shape=(self.latent_dim,))
         img = model(noise)
@@ -254,7 +255,8 @@ class WGANGP(GANBase):
         model.add(Flatten())
         model.add(Dense(1))
 
-        model.summary()
+        if self.verbose:
+            model.summary()
 
         img = Input(shape=self.img_shape)
         validity = model(img)
