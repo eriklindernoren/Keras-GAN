@@ -77,7 +77,7 @@ class WGANGP(GANBase):
         self.model_name = model_name
         self.model_dir = model_dir
 
-        self.n_complete_epochs = 0
+        self.epoch = 0
 
         # Build the generator, critic, and computational graph
         self.generator = self.build_generator()
@@ -297,31 +297,30 @@ class WGANGP(GANBase):
     def train(self, epochs, batch_size, sample_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = self.dataset.load_data()
+        (_X_train, _), (_, _) = self.dataset.load_data()
 
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
-        X_train = np.expand_dims(X_train, axis=3)
+        _X_train = (_X_train.astype(np.float32) - 127.5) / 127.5
+        _X_train = np.expand_dims(_X_train, axis=3)
 
         # Adversarial ground truths
         valid = -np.ones((batch_size, 1))
         fake = np.ones((batch_size, 1))
         dummy = np.zeros((batch_size, 1))  # Dummy gt for gradient penalty
-        for epoch in range(epochs):
+        for self.epoch in range(self.epoch, self.epoch + epochs):
 
-            d_losses = self.train_discriminator(X_train, valid, fake, dummy, self.n_critic, batch_size)
-            g_loss = self.train_generator()
+            d_losses = self.train_discriminator(_X_train, valid, fake, dummy, self.n_critic, batch_size)
+            g_loss = self.train_generator(valid, batch_size)
 
             if self.verbose:
                 # Plot the progress
-                print("%d [D loss: %f] [G loss: %f]" % (epoch, d_losses[0][0], g_loss))
+                print("%d [D loss: %f] [G loss: %f]" % (self.epoch, d_losses[0][0], g_loss))
 
-            if sample_interval and epoch % sample_interval == 0:
-                self.sample_images(epoch)
+            if sample_interval and self.epoch % sample_interval == 0:
+                self.sample_images()
 
-            self.n_complete_epochs += 1
 
-    def sample_images(self, epoch, sample_image_filepath="./images"):
+    def sample_images(self, sample_image_filepath="./images"):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
@@ -339,7 +338,7 @@ class WGANGP(GANBase):
         fig.savefig(
             os.path.join(
                 sample_image_filepath,
-                "sample_{:02d}.png".format(epoch)
+                "sample_{:02d}.png".format(self.epoch)
             )
         )
         plt.close()
