@@ -66,7 +66,7 @@ class WGANGP(GANBase):
             **kwargs):
         super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
 
-        self.img_shape = img_shape,
+        self.img_shape = img_shape
         self.channels = self.img_shape[-1]
         self.latent_dim = latent_dim
 
