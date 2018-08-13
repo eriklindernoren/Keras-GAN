@@ -65,13 +65,12 @@ class WGANGP(GANBase):
         self.dataset = dataset
         self.model_name = model_name
         self.model_dir = model_dir
-        self.construct_computational_graph()
+        self.critic_graph, self.generator_graph = self.build_computational_graphs()
 
-    def construct_computational_graph(self):
-        self.construct_critic_graph()
-        self.construct_generator_graph()
+    def build_computational_graphs(self):
+        return self.build_critic_graph(), self.build_generator_graph()
 
-    def construct_critic_graph(self):
+    def build_critic_graph(self):
         """
         Construct Computational Graph for the Critic
         """
@@ -102,15 +101,13 @@ class WGANGP(GANBase):
                                   averaged_samples=interpolated_img)
         partial_gp_loss.__name__ = 'gradient_penalty'  # Keras requires function names
 
-        self.critic_model = Model(inputs=[real_img, z_disc],
-                                  outputs=[valid, fake, validity_interpolated])
-        self.critic_model.compile(loss=[wasserstein_loss,
-                                        wasserstein_loss,
-                                        partial_gp_loss],
-                                  optimizer=self.get_optimizer(),
-                                  loss_weights=[1, 1, 10])
+        critic_graph = Model(inputs=[real_img, z_disc], outputs=[valid, fake, validity_interpolated])
+        critic_graph.compile(loss=[wasserstein_loss, wasserstein_loss, partial_gp_loss],
+                             optimizer=self.get_optimizer(),
+                             loss_weights=[1, 1, 10])
+        return critic_graph
 
-    def construct_generator_graph(self):
+    def build_generator_graph(self):
         """
         Construct Computational Graph for Generator
         """
@@ -125,8 +122,9 @@ class WGANGP(GANBase):
         # Discriminator determines validity
         valid = self.critic(img)
         # Defines generator model
-        self.generator_model = Model(z_gen, valid)
-        self.generator_model.compile(loss=self.wasserstein_loss, optimizer=self.get_optimizer())
+        generator_graph = Model(z_gen, valid)
+        generator_graph.compile(loss=self.wasserstein_loss, optimizer=self.get_optimizer())
+        return generator_graph
 
     def get_config(self):
         generator_path = self.get_generator_path()
