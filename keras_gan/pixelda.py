@@ -7,12 +7,11 @@ from keras.layers import Input, Dense, Flatten
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv2D
 from keras.models import Model
-from keras.optimizers import Adam
 from keras.utils import to_categorical
 from keras_contrib.layers.normalization import InstanceNormalization
 
-from .data_loaders.pixelda.data_loader import DataLoader
-from .gan_base import GANBase
+from keras_gan.data_loaders.pixelda.data_loader import DataLoader
+from keras_gan.gan_base import GANBase
 
 
 class PixelDA(GANBase):
