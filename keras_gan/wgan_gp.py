@@ -309,7 +309,7 @@ class WGANGP(GANBase):
         valid = -np.ones((batch_size, 1))
         fake = np.ones((batch_size, 1))
         dummy = np.zeros((batch_size, 1))  # Dummy gt for gradient penalty
-        for self.epoch in range(self.epoch, self.epoch + epochs):
+        for self.epoch in range(self.epoch + 1, self.epoch + epochs + 1):
 
             d_losses = self.train_discriminator(_X_train, valid, fake, dummy, self.n_critic, batch_size)
             g_loss = self.train_generator(valid, batch_size)
