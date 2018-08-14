@@ -151,7 +151,7 @@ class WGANGP(GANBase):
             "img_shape": self.img_shape,
             "latent_dim": self.latent_dim,
             "n_critic": self.n_critic,
-            "n_completed_epochs": self.n_critic,
+            "epoch": self.epoch,
             "generator_path": generator_path,
             "critic_path": critic_path,
             "config_path": config_path,
