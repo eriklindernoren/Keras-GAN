@@ -195,7 +195,8 @@ class WGANGP(GANBase):
     def save_config(self):
         config_path = self.get_config_path()
         config = self.get_config()
-        json.dump(config, config_path)
+        with open(config_path, "w") as f:
+            json.dump(config, f)
 
     def save_model(self, generator_path=None, critic_path=None):
         generator_path = generator_path or self.get_generator_path()
