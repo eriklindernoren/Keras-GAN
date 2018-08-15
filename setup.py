@@ -3,7 +3,7 @@ from setuptools import setup
 setup(name='keras_gan',
       version='0.1',
       description='Several GAN implementations',
-      author='Ramsey Barghouti',
-      license='GPL3',
+      author='Erik Lindernoren',
+      license='MIT',
       packages=['keras_gan'],
       zip_safe=False)
