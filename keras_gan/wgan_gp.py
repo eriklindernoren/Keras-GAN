@@ -237,14 +237,11 @@ class WGANGP(GANBase):
 
         return Model(noise, img)
 
-    def build_critic(self):
-        configs = [
-            (16, False, False),
-            (32, True, True),
-            (64, False, True),
-            (128, False, True),
-        ]
-
+    def build_critic(self,
+                     configs=[(16, False, False),
+                              (32, True, True),
+                              (64, False, True),
+                              (128, False, True)]):
         model = Sequential()
 
         for idx, (n_filters, z_pad, batch_normalize) in enumerate(configs):
