@@ -208,7 +208,7 @@ class WGANGP(GANBase):
         self.save_config()
         self.save_model()
 
-    def build_generator(self, *args, **kwargs):
+    def build_generator(self):
 
         model = Sequential()
 
@@ -233,7 +233,7 @@ class WGANGP(GANBase):
 
         return Model(noise, img)
 
-    def build_critic(self, *args, **kwargs):
+    def build_critic(self):
 
         model = Sequential()
 
@@ -264,17 +264,22 @@ class WGANGP(GANBase):
 
         return Model(img, validity)
 
-    def train_discriminator(self, X_train, valid, fake, dummy, n_critic, batch_size, *args, **kwargs):
+    def train_discriminator(self, x_train, batch_size):
 
+        # Adversarial ground truths
+        fake = np.ones((batch_size, 1))
+        dummy = np.zeros((batch_size, 1))  # Dummy gt for gradient penalty
+
+        valid = -np.ones((batch_size, 1))
         d_losses = []
-        for _ in range(n_critic):
+        for _ in range(self.n_critic):
             # ---------------------
             #  Train Discriminator
             # ---------------------
 
             # Select a random batch of images
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
-            imgs = X_train[idx]
+            idx = np.random.randint(0, x_train.shape[0], batch_size)
+            imgs = x_train[idx]
             # Sample generator input
             noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
             # Train the critic
@@ -284,19 +289,19 @@ class WGANGP(GANBase):
 
         return d_losses
 
-    def train_generator(self, valid, batch_size, *args, **kwargs):
+    def train_generator(self, batch_size):
         """
         Train Generator
-        :param valid:
         :param batch_size:
         :return g_loss:
         """
 
+        valid = -np.ones((batch_size, 1))
         noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
         g_loss = self.generator_graph.train_on_batch(noise, valid)
         return g_loss
 
-    def train(self, epochs, batch_size, sample_interval=50, *args, **kwargs):
+    def train(self, epochs, batch_size, sample_interval=50):
 
         # Load the dataset
         (_X_train, _), (_, _) = self.dataset.load_data()
@@ -305,14 +310,10 @@ class WGANGP(GANBase):
         _X_train = (_X_train.astype(np.float32) - 127.5) / 127.5
         _X_train = np.expand_dims(_X_train, axis=3)
 
-        # Adversarial ground truths
-        valid = -np.ones((batch_size, 1))
-        fake = np.ones((batch_size, 1))
-        dummy = np.zeros((batch_size, 1))  # Dummy gt for gradient penalty
         for self.epoch in range(self.epoch + 1, self.epoch + epochs + 1):
 
-            d_losses = self.train_discriminator(_X_train, valid, fake, dummy, self.n_critic, batch_size)
-            g_loss = self.train_generator(valid, batch_size)
+            d_losses = self.train_discriminator(_X_train, batch_size)
+            g_loss = self.train_generator(batch_size)
 
             if self.verbose:
                 # Plot the progress
