@@ -52,6 +52,89 @@ def gradient_penalty_loss(_, y_pred, averaged_samples):
     return K.mean(gradient_penalty)
 
 
+class ModelBuilder(object):
+    def build_layers(self):
+        raise NotImplemented
+
+    def build(self):
+        model = Sequential()
+        self.build_layers(model)
+        input_layer = Input(shape=(self.input_dim,))
+        output_layer = model(input_layer)
+        return Model(input_layer, output_layer)
+
+
+class WGANGPGeneratorBuilder(ModelBuilder):
+    def __init__(self,
+                 input_shape,
+                 initial_n_filters=128,
+                 initial_height=7,
+                 initial_width=7,
+                 n_layer_filters=(128, 64)):
+        self.input_shape = input_shape
+        self.initial_n_filters = initial_n_filters
+        self.initial_height = initial_height
+        self.initial_width = initial_width
+        self.n_layer_filters = n_layer_filters
+        self.initial_layer_shape = (self.initial_height, self.initial_width, self.initial_n_filters)
+
+    def build_first_layer(self, model):
+        model.add(Dense(np.prod(self.initial_layer_shape), activation="relu", input_dim=self.input_shape))
+        model.add(Reshape(self.initial_layer_shape))
+
+    def build_middle_layers(self, model):
+        for n_filters in self.n_layer_filters:
+            model.add(UpSampling2D())
+            model.add(Conv2D(n_filters, kernel_size=4, padding="same"))
+            model.add(BatchNormalization(momentum=0.8))
+            model.add(Activation("relu"))
+
+    def build_last_layer(self, model):
+        model.add(Conv2D(self.channels, kernel_size=4, padding="same"))
+        model.add(Activation("tanh"))
+
+    def build_layers(self, model):
+        self.build_first_layer(model)
+        self.build_middle_layers(model)
+        self.build_last_layer(model)
+
+
+class WGANGPCriticBuilder(object):
+    def __init__(self,
+                 input_shape,
+                 configs=[(16, False, False),
+                          (32, True, True),
+                          (64, False, True),
+                          (128, False, True)]):
+        self.input_shape = input_shape
+        self.configs = configs
+
+    def build_layers(self, model):
+        for idx, (n_filters, z_pad, batch_normalize) in enumerate(self.configs):
+            if idx == 0:
+                model.add(Conv2D(n_filters, kernel_size=3, strides=2, padding="same", input_shape=self.input_shape))
+            else:
+                model.add(Conv2D(n_filters, kernel_size=3, strides=2, padding="same"))
+            if z_pad:
+                model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
+            if batch_normalize:
+                model.add(BatchNormalization(momentum=0.8))
+            model.add(LeakyReLU(alpha=0.2))
+            model.add(Dropout(0.25))
+
+        model.add(Flatten())
+        model.add(Dense(1))
+
+    def build(self):
+        model = Sequential()
+        self.build_layers(model)
+
+        img = Input(shape=self.img_shape)
+        validity = model(img)
+
+        return Model(img, validity)
+
+
 class WGANGP(GANBase):
     def __init__(
             self,
@@ -208,12 +291,12 @@ class WGANGP(GANBase):
         self.save_config()
         self.save_model()
 
-    def build_generator(self):
-        initial_n_filters = 128
-        initial_height = 7
-        initial_width = 7
+    def build_generator(self,
+                        initial_n_filters=128,
+                        initial_height=7,
+                        initial_width=7,
+                        n_layer_filters=(128, 64)):
         initial_layer_shape = (initial_height, initial_width, initial_n_filters)
-        n_layer_filters = [128, 64]
 
         model = Sequential()
 
