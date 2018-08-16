@@ -59,7 +59,7 @@ class ModelBuilder(object):
     def build(self):
         model = Sequential()
         self.build_layers(model)
-        input_layer = Input(shape=(self.input_dim,))
+        input_layer = Input(shape=(self.input_shape,))
         output_layer = model(input_layer)
         return Model(input_layer, output_layer)
 
@@ -70,13 +70,15 @@ class WGANGPGeneratorBuilder(ModelBuilder):
                  initial_n_filters=128,
                  initial_height=7,
                  initial_width=7,
-                 n_layer_filters=(128, 64)):
+                 n_layer_filters=(128, 64),
+                 channels=1):
         self.input_shape = input_shape
         self.initial_n_filters = initial_n_filters
         self.initial_height = initial_height
         self.initial_width = initial_width
         self.n_layer_filters = n_layer_filters
         self.initial_layer_shape = (self.initial_height, self.initial_width, self.initial_n_filters)
+        self.channels = channels
 
     def build_first_layer(self, model):
         model.add(Dense(np.prod(self.initial_layer_shape), activation="relu", input_dim=self.input_shape))
@@ -145,9 +147,12 @@ class WGANGP(GANBase):
             dataset=mnist,
             model_name='wgan_mnist',
             model_dir="models",
+            generator_builder=WGANGPGeneratorBuilder(input_shape=100),
             *args,
             **kwargs):
         super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
+
+        assert(latent_dim == np.product(generator_builder.input_shape))
 
         self.img_shape = img_shape
         self.channels = self.img_shape[-1]
@@ -161,6 +166,8 @@ class WGANGP(GANBase):
         self.model_dir = model_dir
 
         self.epoch = 0
+
+        self.generator_builder = generator_builder
 
         # Build the generator, critic, and computational graph
         self.generator = self.build_generator()
@@ -296,29 +303,10 @@ class WGANGP(GANBase):
                         initial_height=7,
                         initial_width=7,
                         n_layer_filters=(128, 64)):
-        initial_layer_shape = (initial_height, initial_width, initial_n_filters)
-
-        model = Sequential()
-
-        model.add(Dense(np.prod(initial_layer_shape), activation="relu", input_dim=self.latent_dim))
-        model.add(Reshape(initial_layer_shape))
-
-        for n_filters in n_layer_filters:
-            model.add(UpSampling2D())
-            model.add(Conv2D(n_filters, kernel_size=4, padding="same"))
-            model.add(BatchNormalization(momentum=0.8))
-            model.add(Activation("relu"))
-
-        model.add(Conv2D(self.channels, kernel_size=4, padding="same"))
-        model.add(Activation("tanh"))
-
+        model = self.generator_builder.build()
         if self.verbose:
             model.summary()
-
-        noise = Input(shape=(self.latent_dim,))
-        img = model(noise)
-
-        return Model(noise, img)
+        return model
 
     def build_critic(self,
                      configs=[(16, False, False),
