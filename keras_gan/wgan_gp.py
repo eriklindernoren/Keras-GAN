@@ -209,19 +209,23 @@ class WGANGP(GANBase):
         self.save_model()
 
     def build_generator(self):
+        initial_n_filters = 128
+        initial_height = 7
+        initial_width = 7
+        initial_layer_shape = (initial_height, initial_width, initial_n_filters)
+        n_layer_filters = [128, 64]
 
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
-        model.add(Reshape((7, 7, 128)))
-        model.add(UpSampling2D())
-        model.add(Conv2D(128, kernel_size=4, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Activation("relu"))
-        model.add(UpSampling2D())
-        model.add(Conv2D(64, kernel_size=4, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Activation("relu"))
+        model.add(Dense(np.prod(initial_layer_shape), activation="relu", input_dim=self.latent_dim))
+        model.add(Reshape(initial_layer_shape))
+
+        for n_filters in n_layer_filters:
+            model.add(UpSampling2D())
+            model.add(Conv2D(n_filters, kernel_size=4, padding="same"))
+            model.add(BatchNormalization(momentum=0.8))
+            model.add(Activation("relu"))
+
         model.add(Conv2D(self.channels, kernel_size=4, padding="same"))
         model.add(Activation("tanh"))
 
@@ -234,25 +238,27 @@ class WGANGP(GANBase):
         return Model(noise, img)
 
     def build_critic(self):
+        configs = [
+            (16, False, False),
+            (32, True, True),
+            (64, False, True),
+            (128, False, True),
+        ]
 
         model = Sequential()
 
-        model.add(Conv2D(16, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.25))
-        model.add(Conv2D(32, kernel_size=3, strides=2, padding="same"))
-        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.25))
-        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.25))
-        model.add(Conv2D(128, kernel_size=3, strides=1, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.25))
+        for idx, (n_filters, z_pad, batch_normalize) in enumerate(configs):
+            if idx == 0:
+                model.add(Conv2D(n_filters, kernel_size=3, strides=2, padding="same", input_shape=self.img_shape))
+            else:
+                model.add(Conv2D(n_filters, kernel_size=3, strides=2, padding="same"))
+            if z_pad:
+                model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
+            if batch_normalize:
+                model.add(BatchNormalization(momentum=0.8))
+            model.add(LeakyReLU(alpha=0.2))
+            model.add(Dropout(0.25))
+
         model.add(Flatten())
         model.add(Dense(1))
 
