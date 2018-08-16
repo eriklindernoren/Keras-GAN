@@ -264,6 +264,14 @@ class WGANGP(GANBase):
 
         return Model(img, validity)
 
+    def generate_noise(self, batch_size):
+        noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+        return noise
+
+    def generate_batch(self, batch_size):
+        noise = self.generate_noise(batch_size)
+        return self.generator_graph.predict_on_batch(noise)
+
     def train_discriminator(self, x_train, batch_size):
 
         # Adversarial ground truths
@@ -281,7 +289,7 @@ class WGANGP(GANBase):
             idx = np.random.randint(0, x_train.shape[0], batch_size)
             imgs = x_train[idx]
             # Sample generator input
-            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+            noise = self.generate_noise(batch_size)
             # Train the critic
             d_loss = self.critic_graph.train_on_batch([imgs, noise],
                                                       [valid, fake, dummy])
@@ -297,7 +305,7 @@ class WGANGP(GANBase):
         """
 
         valid = -np.ones((batch_size, 1))
-        noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+        noise = self.generate_noise(batch_size)
         g_loss = self.generator_graph.train_on_batch(noise, valid)
         return g_loss
 
@@ -324,11 +332,10 @@ class WGANGP(GANBase):
 
     def sample_images(self, sample_image_filepath="./images"):
         r, c = 5, 5
-        noise = np.random.normal(0, 1, (r * c, self.latent_dim))
-        gen_imgs = self.generator.predict(noise)
-
-        # Rescale images 0 - 1
-        gen_imgs = 0.5 * gen_imgs + 1
+        batch_size = r * c
+        gen_imgs = self.generate_batch(batch_size)
+        gen_imgs += np.min(gen_imgs)
+        gen_imgs /= np.max(gen_imgs)
 
         fig, axs = plt.subplots(r, c)
         cnt = 0
