@@ -276,7 +276,7 @@ class WGANGP(GANBase):
 
     def generate_batch(self, batch_size):
         noise = self.generate_noise(batch_size)
-        return self.generator_graph.predict_on_batch(noise)
+        return self.generator.predict_on_batch(noise)
 
     def train_discriminator(self, x_train, batch_size):
 
