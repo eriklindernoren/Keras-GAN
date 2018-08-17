@@ -117,12 +117,12 @@ class SRGAN():
 
     def build_generator(self):
 
-        def residual_block(layer_input):
+        def residual_block(layer_input, filters):
             """Residual block described in paper"""
-            d = Conv2D(64, kernel_size=3, strides=1, padding='same')(layer_input)
+            d = Conv2D(filters, kernel_size=3, strides=1, padding='same')(layer_input)
             d = Activation('relu')(d)
             d = BatchNormalization(momentum=0.8)(d)
-            d = Conv2D(64, kernel_size=3, strides=1, padding='same')(d)
+            d = Conv2D(filters, kernel_size=3, strides=1, padding='same')(d)
             d = BatchNormalization(momentum=0.8)(d)
             d = Add()([d, layer_input])
             return d
@@ -144,7 +144,7 @@ class SRGAN():
         # Propogate through residual blocks
         r = residual_block(c1)
         for _ in range(self.n_residual_blocks - 1):
-            r = residual_block(r)
+            r = residual_block(r, self.gf)
 
         # Post-residual block
         c2 = Conv2D(64, kernel_size=3, strides=1, padding='same')(r)
