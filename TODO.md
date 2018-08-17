@@ -2,8 +2,8 @@
 
 ## WGANGP refactor
 
-- [ ] Parameterize the generator and critic.
-- [ ] Provide an interface for generating samples
+- [x] Parameterize the generator and critic.
+- [x] Provide an interface for generating samples
 - [ ] Add callback interface for between training epochs
 - [ ] Make `save` method keep files organized into some kind of package.
 - [ ] Add `load` method to load files that were saved with `save
