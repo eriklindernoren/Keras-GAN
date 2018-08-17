@@ -15,11 +15,12 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-class SGAN():
+class SGAN:
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
+        self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.num_classes = 10
         self.latent_dim = 100
 
@@ -27,16 +28,18 @@ class SGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=['binary_crossentropy', 'categorical_crossentropy'],
+        self.discriminator.compile(
+            loss=['binary_crossentropy', 'categorical_crossentropy'],
             loss_weights=[0.5, 0.5],
             optimizer=optimizer,
-            metrics=['accuracy'])
+            metrics=['accuracy']
+        )
 
         # Build the generator
         self.generator = self.build_generator()
 
         # The generator takes noise as input and generates imgs
-        noise = Input(shape=(self.latent_dim,))
+        noise = Input(shape=(100,))
         img = self.generator(noise)
 
         # For the combined model we will only train the generator
@@ -47,10 +50,8 @@ class SGAN():
 
         # The combined model  (stacked generator and discriminator)
         # Trains generator to fool discriminator
-        self.combined = Model(noise , valid)
-        self.combined.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
-
+        self.combined = Model(noise, valid)
+        self.combined.compile(loss=['binary_crossentropy'], optimizer=optimizer)
 
     def build_generator(self):
 
@@ -122,6 +123,7 @@ class SGAN():
         # To balance the difference in occurences of digit class labels.
         # 50% of labels that the discriminator trains on are 'fake'.
         # Weight = 1 / frequency
+        half_batch = batch_size // 2
         cw1 = {0: 1, 1: 1}
         cw2 = {i: self.num_classes / half_batch for i in range(self.num_classes)}
         cw2[self.num_classes] = 1 / half_batch
@@ -158,7 +160,7 @@ class SGAN():
             #  Train Generator
             # ---------------------
 
-            g_loss = self.combined.train_on_batch(noise, validity, class_weight=[cw1, cw2])
+            g_loss = self.combined.train_on_batch(noise, valid, class_weight=[cw1, cw2])
 
             # Plot the progress
             print ("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[3], 100*d_loss[4], g_loss))
@@ -204,3 +206,4 @@ class SGAN():
 if __name__ == '__main__':
     sgan = SGAN()
     sgan.train(epochs=20000, batch_size=32, sample_interval=50)
+
