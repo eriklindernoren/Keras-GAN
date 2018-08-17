@@ -35,7 +35,7 @@ class DCGAN():
         self.generator = self.build_generator()
 
         # The generator takes noise as input and generates imgs
-        z = Input(shape=(100,))
+        z = Input(shape=(self.latent_dim,))
         img = self.generator(z)
 
         # For the combined model we will only train the generator

@@ -36,7 +36,7 @@ class SGAN():
         self.generator = self.build_generator()
 
         # The generator takes noise as input and generates imgs
-        noise = Input(shape=(100,))
+        noise = Input(shape=(self.latent_dim,))
         img = self.generator(noise)
 
         # For the combined model we will only train the generator
