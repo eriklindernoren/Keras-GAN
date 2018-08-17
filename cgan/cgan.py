@@ -35,7 +35,7 @@ class CGAN():
 
         # The generator takes noise and the target label as input
         # and generates the corresponding digit of that label
-        noise = Input(shape=(100,))
+        noise = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,))
         img = self.generator([noise, label])
 

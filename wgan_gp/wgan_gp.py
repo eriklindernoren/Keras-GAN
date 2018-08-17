@@ -57,7 +57,7 @@ class WGANGP():
         real_img = Input(shape=self.img_shape)
 
         # Noise input
-        z_disc = Input(shape=(100,))
+        z_disc = Input(shape=(self.latent_dim,))
         # Generate image based of noise (fake sample)
         fake_img = self.generator(z_disc)
 

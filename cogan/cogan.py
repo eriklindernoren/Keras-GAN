@@ -39,7 +39,7 @@ class COGAN():
         self.g1, self.g2 = self.build_generators()
 
         # The generator takes noise as input and generated imgs
-        z = Input(shape=(100,))
+        z = Input(shape=(self.latent_dim,))
         img1 = self.g1(z)
         img2 = self.g2(z)
 
