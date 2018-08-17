@@ -1,7 +1,5 @@
 */images/*.png
 */images/*.jpg
-*/*.jpg
-*/*.png
 *.json
 *.h5
 *.hdf5
@@ -9,3 +7,10 @@
 */datasets
 
 __pycache__
+
+.ipynb_checkpoints/
+*.ipynb
+
+images
+
+.idea
