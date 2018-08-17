@@ -22,6 +22,7 @@ class SGAN():
         self.channels = 1
         self.num_classes = 10
         self.latent_dim = 100
+        self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -122,6 +123,7 @@ class SGAN():
         # To balance the difference in occurences of digit class labels.
         # 50% of labels that the discriminator trains on are 'fake'.
         # Weight = 1 / frequency
+        half_batch = batch_size // 2
         cw1 = {0: 1, 1: 1}
         cw2 = {i: self.num_classes / half_batch for i in range(self.num_classes)}
         cw2[self.num_classes] = 1 / half_batch
@@ -157,8 +159,7 @@ class SGAN():
             # ---------------------
             #  Train Generator
             # ---------------------
-
-            g_loss = self.combined.train_on_batch(noise, validity, class_weight=[cw1, cw2])
+            g_loss = self.combined.train_on_batch(noise, valid, class_weight=[cw1, cw2])
 
             # Plot the progress
             print ("%d [D loss: %f, acc: %.2f%%, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[3], 100*d_loss[4], g_loss))
