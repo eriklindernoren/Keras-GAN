@@ -298,11 +298,7 @@ class WGANGP(GANBase):
         self.save_config()
         self.save_model()
 
-    def build_generator(self,
-                        initial_n_filters=128,
-                        initial_height=7,
-                        initial_width=7,
-                        n_layer_filters=(128, 64)):
+    def build_generator(self):
         model = self.generator_builder.build()
         if self.verbose:
             model.summary()
