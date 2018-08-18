@@ -131,7 +131,7 @@ class WGANGPCriticBuilder(object):
         model = Sequential()
         self.build_layers(model)
 
-        img = Input(shape=self.img_shape)
+        img = Input(shape=self.input_shape)
         validity = model(img)
 
         return Model(img, validity)
@@ -148,11 +148,13 @@ class WGANGP(GANBase):
             model_name='wgan_mnist',
             model_dir="models",
             generator_builder=WGANGPGeneratorBuilder(input_shape=100),
+            critic_builder=WGANGPCriticBuilder(input_shape=(28, 28, 1)),
             *args,
             **kwargs):
         super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
 
         assert(latent_dim == np.product(generator_builder.input_shape))
+        assert(img_shape == critic_builder.input_shape)
 
         self.img_shape = img_shape
         self.channels = self.img_shape[-1]
@@ -168,6 +170,7 @@ class WGANGP(GANBase):
         self.epoch = 0
 
         self.generator_builder = generator_builder
+        self.critic_builder = critic_builder
 
         # Build the generator, critic, and computational graph
         self.generator = self.build_generator()
@@ -304,35 +307,11 @@ class WGANGP(GANBase):
             model.summary()
         return model
 
-    def build_critic(self,
-                     configs=[(16, False, False),
-                              (32, True, True),
-                              (64, False, True),
-                              (128, False, True)]):
-        model = Sequential()
-
-        for idx, (n_filters, z_pad, batch_normalize) in enumerate(configs):
-            if idx == 0:
-                model.add(Conv2D(n_filters, kernel_size=3, strides=2, padding="same", input_shape=self.img_shape))
-            else:
-                model.add(Conv2D(n_filters, kernel_size=3, strides=2, padding="same"))
-            if z_pad:
-                model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
-            if batch_normalize:
-                model.add(BatchNormalization(momentum=0.8))
-            model.add(LeakyReLU(alpha=0.2))
-            model.add(Dropout(0.25))
-
-        model.add(Flatten())
-        model.add(Dense(1))
-
+    def build_critic(self):
+        model = self.critic_builder.build()
         if self.verbose:
             model.summary()
-
-        img = Input(shape=self.img_shape)
-        validity = model(img)
-
-        return Model(img, validity)
+        return model
 
     def generate_noise(self, batch_size):
         noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
