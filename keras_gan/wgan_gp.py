@@ -237,7 +237,9 @@ class WGANGP(GANBase):
 
     def get_config(self):
         generator_path = self.get_generator_path()
+        generator_json_path = self.get_generator_path(file_format="json")
         critic_path = self.get_critic_path()
+        critic_json_path = self.get_critic_path(file_format="json")
         config_path = self.get_config_path()
         config = {
             "channels": self.channels,
@@ -246,13 +248,19 @@ class WGANGP(GANBase):
             "n_critic": self.n_critic,
             "epoch": self.epoch,
             "generator_path": generator_path,
+            "generator_json_path": generator_json_path,
             "critic_path": critic_path,
+            "critic_json_path": critic_json_path,
             "config_path": config_path,
         }
         return config
 
     def set_config(self, config):
-        raise NotImplemented
+        self.channels = config["channels"]
+        self.img_shape = config["img_shape"]
+        self.latent_dim = config["latent_dim"]
+        self.n_critic = config["n_critic"]
+        self.epoch = config["epoch"]
 
     def get_config_path(self, suffix=None):
         if suffix:
@@ -343,7 +351,7 @@ class WGANGP(GANBase):
 
     def load_model(self, generator_path=None, generator_json_path=None, critic_path=None, critic_json_path=None):
         self.load_generator(generator_path, generator_json_path)
-        self.laod_critic(critic_path, critic_json_path)
+        self.load_critic(critic_path, critic_json_path)
 
     @staticmethod
     def load(config_path,
