@@ -17,7 +17,7 @@ from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.layers.merge import _Merge
-from keras.models import Sequential, Model
+from keras.models import model_from_json, Sequential, Model
 from keras.optimizers import RMSprop
 
 from keras_gan.gan_base import GANBase
@@ -251,6 +251,9 @@ class WGANGP(GANBase):
         }
         return config
 
+    def set_config(self, config):
+        raise NotImplemented
+
     def get_config_path(self, suffix=None):
         if suffix:
             file_name = "{}_config_{}.json".format(self.model_name, suffix)
@@ -259,47 +262,99 @@ class WGANGP(GANBase):
         file_path = os.path.join(self.model_dir, file_name)
         return file_path
 
-    def get_generator_path(self, suffix=None):
+    def get_generator_path(self, suffix=None, file_format="hdf5"):
         if suffix:
-            file_name = "{}_generator_{}.hdf5".format(self.model_name, suffix)
+            file_name = "{}_generator_{}.{}".format(self.model_name, suffix, file_format)
         else:
-            file_name = "{}_generator.hdf5".format(self.model_name)
+            file_name = "{}_generator.{}".format(self.model_name, file_format)
         file_path = os.path.join(self.model_dir, file_name)
         return file_path
 
-    def get_critic_path(self, suffix=None):
+    def get_critic_path(self, suffix=None, file_format="hdf5"):
         if suffix:
-            file_name = "{}_critic_{}.hdf5".format(self.model_name, suffix)
+            file_name = "{}_critic_{}.{}".format(self.model_name, suffix, file_format)
         else:
-            file_name = "{}_critic.hdf5".format(self.model_name)
+            file_name = "{}_critic.{}".format(self.model_name, file_format)
         file_path = os.path.join(self.model_dir, file_name)
         return file_path
 
-    def save_generator(self, generator_path=None):
-        if generator_path is None:
-            generator_path = self.get_generator_path()
+    def save_generator(self, generator_path=None, generator_json_path=None):
+        generator_path = generator_path or self.get_generator_path()
         self.generator.save(generator_path)
+        generator_json_path = generator_json_path or self.get_generator_path(file_format="json")
+        with open(generator_json_path, "w") as json_file:
+            json_file.write(self.generator.to_json())
+        return {
+            "generator_path": generator_path,
+            "generator_json_path": generator_json_path
+        }
 
-    def save_critic(self, critic_path=None):
-        if critic_path is None:
-            critic_path = self.get_critic_path()
+    def save_critic(self, critic_path=None, critic_json_path=None):
+        critic_path = critic_path or self.get_critic_path()
         self.critic.save(critic_path)
+        critic_json_path = critic_json_path or self.get_critic_path(file_format="json")
+        with open(critic_json_path, "w") as json_file:
+            json_file.write(self.critic.to_json())
+        return {
+            "critic_path": critic_path,
+            "critic_json_path": critic_json_path
+        }
 
     def save_config(self):
         config_path = self.get_config_path()
         config = self.get_config()
         with open(config_path, "w") as f:
             json.dump(config, f)
+        return {
+            "config_path": config_path
+        }
 
     def save_model(self, generator_path=None, critic_path=None):
-        generator_path = generator_path or self.get_generator_path()
-        critic_path = critic_path or self.get_critic_path()
-        self.save_generator(generator_path)
-        self.save_critic(critic_path)
+        paths = {}
+        paths.update(**self.save_generator(generator_path))
+        paths.update(**self.save_critic(critic_path))
+        return paths
 
     def save(self):
-        self.save_config()
-        self.save_model()
+        paths = {}
+        paths.update(**self.save_config())
+        paths.update(**self.save_model())
+        return paths
+
+    def load_generator(self, generator_path=None, generator_json_path=None):
+        generator_json_path = generator_json_path or self.get_generator_path(file_format="json")
+        with open(generator_json_path, "r") as json_file:
+            self.generator = model_from_json(json_file.read())
+        generator_path = generator_path or self.get_generator_path()
+        self.generator.load_weights(generator_path)
+
+    def load_critic(self, critic_path=None, critic_json_path=None):
+        critic_json_path = critic_json_path or self.get_critic_path(file_format="json")
+        with open(critic_json_path, "r") as json_file:
+            self.critic = model_from_json(json_file.read())
+        critic_path = critic_path or self.get_critic_path()
+        self.critic.load_weights(critic_path)
+
+    def load_config(self, config_path=None):
+        config_path = config_path or self.get_config_path()
+        with open(config_path, "r") as f:
+            config = json.load(f)
+        self.set_config(config)
+
+    def load_model(self, generator_path=None, generator_json_path=None, critic_path=None, critic_json_path=None):
+        self.load_generator(generator_path, generator_json_path)
+        self.laod_critic(critic_path, critic_json_path)
+
+    @staticmethod
+    def load(config_path,
+             generator_path,
+             generator_json_path,
+             critic_path,
+             critic_json_path):
+        gan = WGANGP()
+        gan.load_config(config_path)
+        gan.load_model(generator_path, generator_json_path, critic_path, critic_json_path)
+        return gan
 
     def build_generator(self):
         model = self.generator_builder.build()

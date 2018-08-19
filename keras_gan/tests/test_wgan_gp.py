@@ -18,6 +18,22 @@ class TestWGANGPBasicUse(TestCase):
         shutil.rmtree("./images", ignore_errors=True)
         shutil.rmtree("./models", ignore_errors=True)
 
+    def test_wgan_save(self):
+        gan = WGANGP()
+
+        # save model
+        path_dict = gan.save()
+
+        # There should be 2 hdf5 files in the models folder
+        hdf5_fns = [fn for fn in os.listdir("./models") if fn.endswith("hdf5")]
+        self.assertEqual(len(hdf5_fns), 2)
+
+        # There should be one json file in the models folder
+        json_fns = [fn for fn in os.listdir("./models") if fn.endswith("json")]
+        self.assertEqual(len(json_fns), 3)
+
+        gan2 = WGANGP.load(**path_dict)
+
     def test_basic_workflow(self):
         # Construct WGANGP
         gan = WGANGP()
@@ -28,17 +44,6 @@ class TestWGANGPBasicUse(TestCase):
         # There should be 2 images in the images folder
         image_fns = [fn for fn in os.listdir("./images") if fn.endswith("png")]
         self.assertEqual(len(image_fns), 2)
-
-        # save model
-        gan.save()
-
-        # There should be 2 hdf5 files in the models folder
-        hdf5_fns = [fn for fn in os.listdir("./models") if fn.endswith("hdf5")]
-        self.assertEqual(len(hdf5_fns), 2)
-
-        # There should be one json file in the models folder
-        json_fns = [fn for fn in os.listdir("./models") if fn.endswith("json")]
-        self.assertEqual(len(json_fns), 1)
 
 
 if __name__ == "__main__":
