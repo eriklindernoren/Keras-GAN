@@ -142,7 +142,7 @@ class SRGAN():
         c1 = Activation('relu')(c1)
 
         # Propogate through residual blocks
-        r = residual_block(c1)
+        r = residual_block(c1, self.gf)
         for _ in range(self.n_residual_blocks - 1):
             r = residual_block(r, self.gf)
 
