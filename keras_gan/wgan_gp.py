@@ -72,6 +72,17 @@ class WGANGPGeneratorBuilder(ModelBuilder):
                  initial_width=7,
                  n_layer_filters=(128, 64),
                  channels=1):
+        """Example usage:
+            builder = WGANGPGeneratorBuilder()
+            generator_model = builder.build()
+
+        :param input_shape:
+        :param initial_n_filters:
+        :param initial_height:
+        :param initial_width:
+        :param n_layer_filters:
+        :param channels:
+        """
         self.input_shape = input_shape
         self.initial_n_filters = initial_n_filters
         self.initial_height = initial_height
@@ -104,15 +115,25 @@ class WGANGPGeneratorBuilder(ModelBuilder):
 class WGANGPCriticBuilder(object):
     def __init__(self,
                  input_shape,
-                 configs=[(16, False, False),
-                          (32, True, True),
-                          (64, False, True),
-                          (128, False, True)]):
+                 layer_configs=[(16, False, False),
+                                (32, True, True),
+                                (64, False, True),
+                                (128, False, True)]):
+        """Example usage:
+            builder = WGANGPCriticBuilder()
+            critic_model = builder.build()
+
+        Note that configs take the form of a list of tuples, one for each layer.  The tuples
+        are a tripple of (n_filters, use_zero_padding, use_batch_normalization)
+
+        :param input_shape:
+        :param configs a list of 3-tuples of (n_filters, use_zero_padding, use_batchnormaliation):
+        """
         self.input_shape = input_shape
-        self.configs = configs
+        self.layer_configs = layer_configs
 
     def build_layers(self, model):
-        for idx, (n_filters, z_pad, batch_normalize) in enumerate(self.configs):
+        for idx, (n_filters, z_pad, batch_normalize) in enumerate(self.layer_configs):
             if idx == 0:
                 model.add(Conv2D(n_filters, kernel_size=3, strides=2, padding="same", input_shape=self.input_shape))
             else:
@@ -151,6 +172,25 @@ class WGANGP(GANBase):
             critic_builder=WGANGPCriticBuilder(input_shape=(28, 28, 1)),
             *args,
             **kwargs):
+        """
+        Construct WGANGP GANBase.
+
+        Simple MNIST Example:
+            gan = WGANGP(...)
+            gan.train(...)
+            gan.generate()
+
+        :param img_shape:
+        :param latent_dim:
+        :param n_critic:
+        :param optimizer:
+        :param dataset:
+        :param model_name:
+        :param model_dir:
+        :param generator_builder:
+        :param args:
+        :param kwargs:
+        """
         super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
 
         assert(latent_dim == np.product(generator_builder.input_shape))
@@ -385,7 +425,6 @@ class WGANGP(GANBase):
         return self.generator.predict_on_batch(noise)
 
     def train_discriminator(self, x_train, batch_size):
-
         # Adversarial ground truths
         fake = np.ones((batch_size, 1))
         dummy = np.zeros((batch_size, 1))  # Dummy gt for gradient penalty
