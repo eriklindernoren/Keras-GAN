@@ -498,6 +498,13 @@ class WGANGP(GANBase):
         )
         plt.close()
 
+    def __eq__(self, other):
+        return all([
+            self.get_config() == other.get_config(),
+            self.generator.get_weights() == other.generator.get_weights(),
+            self.critic.get_weights() == other.critic.get_weights()
+        ])
+
 
 if __name__ == '__main__':
     wgan = WGANGP()
