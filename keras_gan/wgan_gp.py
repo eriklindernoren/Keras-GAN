@@ -168,8 +168,6 @@ class WGANGP(GANBase):
             dataset=mnist,
             model_name='wgan_mnist',
             model_dir="models",
-            generator_builder=WGANGPGeneratorBuilder(input_shape=100),
-            critic_builder=WGANGPCriticBuilder(input_shape=(28, 28, 1)),
             *args,
             **kwargs):
         """
@@ -193,9 +191,6 @@ class WGANGP(GANBase):
         """
         super(WGANGP, self).__init__(optimizer=optimizer, *args, **kwargs)
 
-        assert(latent_dim == np.product(generator_builder.input_shape))
-        assert(img_shape == critic_builder.input_shape)
-
         self.img_shape = img_shape
         self.channels = self.img_shape[-1]
         self.latent_dim = latent_dim
@@ -209,8 +204,8 @@ class WGANGP(GANBase):
 
         self.epoch = 0
 
-        self.generator_builder = generator_builder
-        self.critic_builder = critic_builder
+        self.generator_builder=WGANGPGeneratorBuilder(input_shape=latent_dim)
+        self.critic_builder=WGANGPCriticBuilder(input_shape=img_shape)
 
         # Build the generator, critic, and computational graph
         self.generator = self.build_generator()
