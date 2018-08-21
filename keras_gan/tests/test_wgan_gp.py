@@ -5,6 +5,8 @@ from unittest import main, TestCase
 
 from keras_gan.wgan_gp import WGANGP
 
+import numpy as np
+
 
 class TestWGANGPBasicUse(TestCase):
 
@@ -33,6 +35,14 @@ class TestWGANGPBasicUse(TestCase):
         self.assertEqual(len(json_fns), 3)
 
         gan2 = WGANGP.load(**path_dict)
+
+        self.assertEqual(gan.get_config(), gan2.get_config())
+
+        for (a, b) in zip(gan.generator.get_weights(), gan2.generator.get_weights()):
+            self.assertTrue(np.all(a == b))
+
+        for (a, b) in zip(gan.critic.get_weights(), gan2.critic.get_weights()):
+            self.assertTrue(np.all(a == b))
 
     def test_basic_workflow(self):
         # Construct WGANGP

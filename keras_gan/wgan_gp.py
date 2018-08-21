@@ -161,7 +161,7 @@ class WGANGPCriticBuilder(object):
 class WGANGP(GANBase):
     def __init__(
             self,
-            img_shape=(28, 28, 1),
+            img_shape=[28, 28, 1],
             latent_dim=100,
             n_critic=5,
             optimizer=RMSprop(lr=0.00005),
@@ -497,13 +497,6 @@ class WGANGP(GANBase):
             )
         )
         plt.close()
-
-    def __eq__(self, other):
-        return all([
-            self.get_config() == other.get_config(),
-            self.generator.get_weights() == other.generator.get_weights(),
-            self.critic.get_weights() == other.critic.get_weights()
-        ])
 
 
 if __name__ == '__main__':
