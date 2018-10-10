@@ -112,7 +112,7 @@ class ACGAN():
 
         # Determine validity and label of the image
         validity = Dense(1, activation="sigmoid")(features)
-        label = Dense(self.num_classes+1, activation="softmax")(features)
+        label = Dense(self.num_classes, activation="softmax")(features)
 
         return Model(img, [validity, label])
 
@@ -150,13 +150,12 @@ class ACGAN():
             # Generate a half batch of new images
             gen_imgs = self.generator.predict([noise, sampled_labels])
 
-            # Image labels. 0-9 if image is valid or 10 if it is generated (fake)
+            # Image labels. 0-9 
             img_labels = y_train[idx]
-            fake_labels = 10 * np.ones(img_labels.shape)
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(imgs, [valid, img_labels])
-            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels])
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, sampled_labels])
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
             # ---------------------
