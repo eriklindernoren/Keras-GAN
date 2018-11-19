@@ -148,7 +148,7 @@ class ContextEncoder():
         X_train = np.vstack((X_cats, X_dogs))
 
         # Rescale -1 to 1
-        X_train = X_train / 175.5 - 1.
+        X_train = X_train / 127.5 - 1.
         y_train = y_train.reshape(-1, 1)
 
         # Adversarial ground truths
