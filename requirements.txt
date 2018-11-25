@@ -9,3 +9,4 @@ pillow
 scikit-image
 #gzip
 #pickle
+tensorflow
