@@ -1,4 +1,4 @@
-import scipy
+import cv2
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,8 +23,8 @@ class DataLoader():
             h, w = self.img_res
             low_h, low_w = int(h / 4), int(w / 4)
 
-            img_hr = scipy.misc.imresize(img, self.img_res)
-            img_lr = scipy.misc.imresize(img, (low_h, low_w))
+            img_hr = cv2.resize(img, self.img_res)
+            img_lr = cv2.resize(img, (low_h, low_w))
 
             # If training => do random flip
             if not is_testing and np.random.random() < 0.5:
@@ -41,4 +41,4 @@ class DataLoader():
 
 
     def imread(self, path):
-        return scipy.misc.imread(path, mode='RGB').astype(np.float)
+        return cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float)
