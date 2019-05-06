@@ -130,8 +130,8 @@ class AdversarialAutoencoder():
             idx = np.random.randint(0, X_train.shape[0], batch_size)
             imgs = X_train[idx]
 
-            latent_fake = self.encoder.predict(imgs)
-            latent_real = np.random.normal(size=(batch_size, self.latent_dim))
+            latent_real = self.encoder.predict(imgs)
+            latent_fake = np.random.normal(size=(batch_size, self.latent_dim))
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(latent_real, valid)
