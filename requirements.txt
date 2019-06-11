@@ -2,7 +2,7 @@ keras
 git+https://www.github.com/keras-team/keras-contrib.git
 matplotlib
 numpy
-scipy
+scipy==1.1.0
 pillow
 #urllib
 #skimage
