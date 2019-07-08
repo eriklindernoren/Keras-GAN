@@ -1,25 +1,41 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
+import tensorflow as tf
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
+#from tensorflow.keras.layers.advanced_activations import tf.nn.leaky_relu
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
+def load_data():
+        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+    
+        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+    
+        x = tracks.reshape((-1, 17,24))
+        
+        x = x[:,0:16,:]
+        
+#        x = tracks
+    
+        y = np.repeat(infosets[:, 0], 6)
+        return (x,y)
+
 class ACGAN():
     def __init__(self):
         # Input shape
-        self.img_rows = 28
-        self.img_cols = 28
+        self.img_rows = 16
+        self.img_cols = 24
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.num_classes = 10
+        self.num_classes = 2
         self.latent_dim = 100
 
         optimizer = Adam(0.0002, 0.5)
@@ -53,29 +69,31 @@ class ACGAN():
         self.combined.compile(loss=losses,
             optimizer=optimizer)
 
+
+
     def build_generator(self):
 
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
-        model.add(Reshape((7, 7, 128)))
+        model.add(Dense(128 * 4 * 6, activation="relu", input_dim=100))#self.latent_dim))
+        model.add(Reshape((4, 6, 128)))
         model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
-        model.add(Conv2D(128, kernel_size=3, padding="same"))
+        model.add(Conv2D(128, kernel_size=(3,2), padding="same"))
         model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
         model.add(Conv2D(64, kernel_size=3, padding="same"))
         model.add(Activation("relu"))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(self.channels, kernel_size=3, padding='same'))
+        model.add(Conv2D(1, kernel_size=3, padding='same'))#self.channels
         model.add(Activation("tanh"))
 
         model.summary()
 
         noise = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,), dtype='int32')
-        label_embedding = Flatten()(Embedding(self.num_classes, 100)(label))
+        label_embedding = Flatten()(Embedding(2, 100)(label))#self.num_classes
 
         model_input = multiply([noise, label_embedding])
         img = model(model_input)
@@ -86,20 +104,19 @@ class ACGAN():
 
         model = Sequential()
 
-        model.add(Conv2D(16, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(16, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same",activation=tf.nn.leaky_relu))
         model.add(Dropout(0.25))
-        model.add(Conv2D(32, kernel_size=3, strides=2, padding="same"))
+        model.add(Conv2D(32, kernel_size=3, strides=2, padding="same",activation=tf.nn.leaky_relu))
         model.add(ZeroPadding2D(padding=((0,1),(0,1))))
-        model.add(LeakyReLU(alpha=0.2))
+#        model.add(tf.nn.leaky_relu(features=float32,alpha=0.2))
         model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(tf.nn.leaky_relu(features=float32,alpha=0.2))
         model.add(Dropout(0.25))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(128, kernel_size=3, strides=1, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(128, kernel_size=3, strides=1, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(tf.nn.leaky_relu(features=float32,alpha=0.2))
         model.add(Dropout(0.25))
 
         model.add(Flatten())
@@ -115,16 +132,25 @@ class ACGAN():
         label = Dense(self.num_classes, activation="softmax")(features)
 
         return Model(img, [validity, label])
+    
+
 
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, y_train), (_, _) = mnist.load_data()
+        
+        
+        (X_train, y_train)= load_data()
 
         # Configure inputs
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        
+        mu = np.mean(X_train)
+        sd = np.std(X_train)
+        
+        X_train = (X_train.astype(np.float32) - mu) / sd
         X_train = np.expand_dims(X_train, axis=3)
-        y_train = y_train.reshape(-1, 1)
+#        y_train = y_train.reshape(-1, 1)
+#        y_train = tf.keras.utils.to_categorical(y_train)
 
         # Adversarial ground truths
         valid = np.ones((batch_size, 1))
@@ -145,7 +171,7 @@ class ACGAN():
 
             # The labels of the digits that the generator tries to create an
             # image representation of
-            sampled_labels = np.random.randint(0, 10, (batch_size, 1))
+            sampled_labels = np.random.randint(0, 1, (batch_size, 1))
 
             # Generate a half batch of new images
             gen_imgs = self.generator.predict([noise, sampled_labels])
@@ -174,7 +200,7 @@ class ACGAN():
                 self.sample_images(epoch)
 
     def sample_images(self, epoch):
-        r, c = 10, 10
+        r, c = 1, 1
         noise = np.random.normal(0, 1, (r * c, 100))
         sampled_labels = np.array([num for _ in range(r) for num in range(c)])
         gen_imgs = self.generator.predict([noise, sampled_labels])
@@ -185,8 +211,8 @@ class ACGAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt,:,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs.imshow(gen_imgs[cnt,:,:,0], cmap='gray')
+                axs.axis('off')
                 cnt += 1
         fig.savefig("images/%d.png" % epoch)
         plt.close()
