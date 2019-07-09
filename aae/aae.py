@@ -1,25 +1,41 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers import MaxPooling2D, merge
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-from keras import losses
-from keras.utils import to_categorical
-import keras.backend as K
+import tensorflow as tf
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
+from tensorflow.keras.layers import MaxPooling2D, Lambda
+#from keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import losses
+from tensorflow.keras.utils import to_categorical
+import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
+def load_data():
+        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+    
+        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+    
+        x = tracks.reshape((-1, 17,24))
+        
+#        x = x[:,0:16,:]
+        
+#        x = tracks
+    
+        y = np.repeat(infosets[:, 0], 6)
+        return (x,y)
+
 class AdversarialAutoencoder():
     def __init__(self):
-        self.img_rows = 28
-        self.img_cols = 28
+        self.img_rows = 17
+        self.img_cols = 24
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 10
@@ -61,15 +77,13 @@ class AdversarialAutoencoder():
         img = Input(shape=self.img_shape)
 
         h = Flatten()(img)
-        h = Dense(512)(h)
-        h = LeakyReLU(alpha=0.2)(h)
-        h = Dense(512)(h)
-        h = LeakyReLU(alpha=0.2)(h)
+        h = Dense(512,activation=tf.nn.leaky_relu)(h)
+        h = Dense(512,activation=tf.nn.leaky_relu)(h)
         mu = Dense(self.latent_dim)(h)
         log_var = Dense(self.latent_dim)(h)
-        latent_repr = merge([mu, log_var],
-                mode=lambda p: p[0] + K.random_normal(K.shape(p[0])) * K.exp(p[1] / 2),
-                output_shape=lambda p: p[0])
+        latent_repr = Lambda(
+                lambda p: p[0] + K.random_normal(K.shape(p[0])) * K.exp(p[1] / 2),
+                output_shape=lambda p: p[0])([mu, log_var])
 
         return Model(img, latent_repr)
 
@@ -77,10 +91,10 @@ class AdversarialAutoencoder():
 
         model = Sequential()
 
-        model.add(Dense(512, input_dim=self.latent_dim))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
+
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+
         model.add(Dense(np.prod(self.img_shape), activation='tanh'))
         model.add(Reshape(self.img_shape))
 
@@ -95,10 +109,8 @@ class AdversarialAutoencoder():
 
         model = Sequential()
 
-        model.add(Dense(512, input_dim=self.latent_dim))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(256))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
         model.add(Dense(1, activation="sigmoid"))
         model.summary()
 
@@ -110,10 +122,14 @@ class AdversarialAutoencoder():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
+        (X_train, _) = load_data()
 
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        
+        mu = np.mean(X_train)
+        sd = np.std(X_train)
+        
+        X_train = (X_train.astype(np.float32) - mu) / sd
         X_train = np.expand_dims(X_train, axis=3)
 
         # Adversarial ground truths
@@ -188,3 +204,12 @@ class AdversarialAutoencoder():
 if __name__ == '__main__':
     aae = AdversarialAutoencoder()
     aae.train(epochs=20000, batch_size=32, sample_interval=200)
+        
+        
+        
+        
+        
+        
+        
+        
+        
