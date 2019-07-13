@@ -1,13 +1,15 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-import keras.backend as K
+import tensorflow as tf
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout
+from tensorflow.keras.layers import BatchNormalization, Activation, ZeroPadding2D
+#from tensorflow.keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt
 
@@ -15,16 +17,26 @@ import sys
 
 import numpy as np
 
+def load_data():
+    tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+
+    infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+
+    x = tracks.reshape((-1, 17,24))
+
+    y = np.repeat(infosets[:, 0], 6)
+    return (x,y)
+
 class BGAN():
     """Reference: https://wiseodd.github.io/techblog/2017/03/07/boundary-seeking-gan/"""
     def __init__(self):
-        self.img_rows = 28
-        self.img_cols = 28
+        self.img_rows = 17
+        self.img_cols = 24
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = Adam(0.00002)
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
@@ -54,15 +66,20 @@ class BGAN():
 
         model = Sequential()
 
-        model.add(Dense(256, input_dim=self.latent_dim))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(1024))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(BatchNormalization(momentum=0.8))
+        model.add(Dense(128, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
+#        model.add(BatchNormalization(momentum=0.8))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
+#        model.add(BatchNormalization(momentum=0.8))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(BatchNormalization(momentum=0.8))
+        model.add(Dense(1024,activation=tf.nn.leaky_relu))
+#        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(np.prod(self.img_shape), activation='tanh'))
         model.add(Reshape(self.img_shape))
 
@@ -78,10 +95,13 @@ class BGAN():
         model = Sequential()
 
         model.add(Flatten(input_shape=self.img_shape))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(256))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(1024,activation=tf.nn.leaky_relu))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
+        model.add(Dense(128,activation=tf.nn.leaky_relu))
+        model.add(Dense(64,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(1, activation='sigmoid'))
         model.summary()
 
@@ -100,10 +120,17 @@ class BGAN():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
+        (X_train, _) = load_data()
 
         # Rescale -1 to 1
-        X_train = X_train / 127.5 - 1.
+        
+#        for i in range(0,X_train.shape[0]):
+#            ma = np.max(X_train[i,:,:])
+#            X_train[i,:,:] = X_train[i,:,:]/ma
+        
+        X_train = X_train/np.max(X_train)
+        
+#        X_train = X_train / 127.5 - 1.
         X_train = np.expand_dims(X_train, axis=3)
 
         # Adversarial ground truths

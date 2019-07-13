@@ -1,28 +1,40 @@
 from __future__ import print_function, division
 
-from keras.datasets import cifar10
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers import MaxPooling2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-from keras import losses
-from keras.utils import to_categorical
-import keras.backend as K
+import tensorflow as tf
+
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
+from tensorflow.keras.layers import MaxPooling2D
+#from tensorflow.keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import losses
+from tensorflow.keras.utils import to_categorical
+import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
+def load_data():
+    tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+
+    infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+
+    x = tracks.reshape((-1, 17,24,1))
+
+    y = np.repeat(infosets[:, 0], 6)
+    return (x,y)
+
 class ContextEncoder():
     def __init__(self):
-        self.img_rows = 32
-        self.img_cols = 32
+        self.img_rows = 17
+        self.img_cols = 24
         self.mask_height = 8
         self.mask_width = 8
-        self.channels = 3
+        self.channels = 1
         self.num_classes = 2
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.missing_shape = (self.mask_height, self.mask_width, self.channels)
@@ -63,18 +75,18 @@ class ContextEncoder():
         model = Sequential()
 
         # Encoder
-        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
 
-        model.add(Conv2D(512, kernel_size=1, strides=2, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(512, kernel_size=1, strides=2, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.5))
 
         # Decoder
@@ -100,14 +112,14 @@ class ContextEncoder():
 
         model = Sequential()
 
-        model.add(Conv2D(64, kernel_size=3, strides=2, input_shape=self.missing_shape, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(64, kernel_size=3, strides=2, input_shape=self.missing_shape, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Conv2D(256, kernel_size=3, padding="same"))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Conv2D(256, kernel_size=3, padding="same",activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Flatten())
         model.add(Dense(1, activation='sigmoid'))
@@ -129,7 +141,7 @@ class ContextEncoder():
         for i, img in enumerate(imgs):
             masked_img = img.copy()
             _y1, _y2, _x1, _x2 = y1[i], y2[i], x1[i], x2[i]
-            missing_parts[i] = masked_img[_y1:_y2, _x1:_x2, :].copy()
+            missing_parts[i] = masked_img[_y1:_y2, _x1:_x2,:].copy()
             masked_img[_y1:_y2, _x1:_x2, :] = 0
             masked_imgs[i] = masked_img
 
@@ -140,15 +152,15 @@ class ContextEncoder():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, y_train), (_, _) = cifar10.load_data()
+        (X_train, y_train) = load_data()
 
         # Extract dogs and cats
-        X_cats = X_train[(y_train == 3).flatten()]
-        X_dogs = X_train[(y_train == 5).flatten()]
-        X_train = np.vstack((X_cats, X_dogs))
+#        X_cats = X_train[(y_train == 3).flatten()]
+#        X_dogs = X_train[(y_train == 5).flatten()]
+#        X_train = np.vstack((X_cats, X_dogs))
 
         # Rescale -1 to 1
-        X_train = X_train / 127.5 - 1.
+        X_train = X_train.astype('float32') / np.max(X_train)
         y_train = y_train.reshape(-1, 1)
 
         # Adversarial ground truths
@@ -202,9 +214,9 @@ class ContextEncoder():
 
         fig, axs = plt.subplots(r, c)
         for i in range(c):
-            axs[0,i].imshow(imgs[i, :,:])
+            axs[0,i].imshow(imgs[i])
             axs[0,i].axis('off')
-            axs[1,i].imshow(masked_imgs[i, :,:])
+            axs[1,i].imshow(masked_imgs[i])
             axs[1,i].axis('off')
             filled_in = imgs[i].copy()
             filled_in[y1[i]:y2[i], x1[i]:x2[i], :] = gen_missing[i]

@@ -1,27 +1,39 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
+import tensorflow as tf
+
+from tensorflow.keras.datasets import mnist
 from keras_contrib.layers.normalization.instancenormalization import InstanceNormalization
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers import Concatenate
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-from keras import losses
-from keras.utils import to_categorical
-import keras.backend as K
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
+from tensorflow.keras.layers import Concatenate
+#from tf.keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import losses
+from tensorflow.keras.utils import to_categorical
+import tensorflow.keras.backend as K
 import scipy
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
+def load_data():
+    tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+
+    infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+
+    x = tracks.reshape((-1, 17,24))
+
+    y = np.repeat(infosets[:, 0], 6)
+    return (x,y)
+
 class CCGAN():
     def __init__(self):
-        self.img_rows = 32
-        self.img_cols = 32
+        self.img_rows = 17
+        self.img_cols = 24
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.mask_height = 10
@@ -66,8 +78,8 @@ class CCGAN():
 
         def conv2d(layer_input, filters, f_size=4, bn=True):
             """Layers used during downsampling"""
-            d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
-            d = LeakyReLU(alpha=0.2)(d)
+            d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same',activation=tf.nn.leaky_relu)(layer_input)
+#            d = LeakyReLU(alpha=0.2)(d)
             if bn:
                 d = BatchNormalization(momentum=0.8)(d)
             return d
@@ -87,11 +99,11 @@ class CCGAN():
         # Downsampling
         d1 = conv2d(img, self.gf, bn=False)
         d2 = conv2d(d1, self.gf*2)
-        d3 = conv2d(d2, self.gf*4)
+        d3 = conv2d(d2, self.gf*3)
         d4 = conv2d(d3, self.gf*8)
 
         # Upsampling
-        u1 = deconv2d(d4, d3, self.gf*4)
+        u1 = deconv2d(d4, d3, self.gf*3)
         u2 = deconv2d(u1, d2, self.gf*2)
         u3 = deconv2d(u2, d1, self.gf)
 
@@ -105,14 +117,14 @@ class CCGAN():
         img = Input(shape=self.img_shape)
 
         model = Sequential()
-        model.add(Conv2D(64, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape))
-        model.add(LeakyReLU(alpha=0.8))
-        model.add(Conv2D(128, kernel_size=4, strides=2, padding='same'))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(InstanceNormalization())
-        model.add(Conv2D(256, kernel_size=4, strides=2, padding='same'))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(InstanceNormalization())
+        model.add(Conv2D(64, kernel_size=4, strides=2, padding='same', input_shape=self.img_shape,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.8))
+        model.add(Conv2D(128, kernel_size=4, strides=2, padding='same',activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(Conv2D(256, kernel_size=4, strides=2, padding='same',activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
+        model.add(BatchNormalization(momentum=0.8))
 
         model.summary()
 
@@ -145,7 +157,7 @@ class CCGAN():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, y_train), (_, _) = mnist.load_data()
+        (X_train, y_train) = load_data()
 
         # Rescale MNIST to 32x32
         X_train = np.array([scipy.misc.imresize(x, [self.img_rows, self.img_cols]) for x in X_train])

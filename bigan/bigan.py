@@ -1,25 +1,39 @@
 from __future__ import print_function, division
-
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers import MaxPooling2D, concatenate
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-from keras import losses
-from keras.utils import to_categorical
-import keras.backend as K
+import tensorflow as tf
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
+from tensorflow.keras.layers import MaxPooling2D, concatenate
+#from tensorflow.keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import losses
+from tensorflow.keras.utils import to_categorical
+import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
+def load_data():
+        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+    
+        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+    
+        x = tracks.reshape((-1, 17,24))
+        
+#        x = x[:,0:16,:]
+        
+#        x = tracks
+    
+        y = np.repeat(infosets[:, 0], 6)
+        return (x,y)
+
 class BIGAN():
     def __init__(self):
-        self.img_rows = 28
-        self.img_cols = 28
+        self.img_rows = 17
+        self.img_cols = 24
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
@@ -64,11 +78,11 @@ class BIGAN():
         model = Sequential()
 
         model.add(Flatten(input_shape=self.img_shape))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(self.latent_dim))
 
@@ -82,11 +96,11 @@ class BIGAN():
     def build_generator(self):
         model = Sequential()
 
-        model.add(Dense(512, input_dim=self.latent_dim))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(np.prod(self.img_shape), activation='tanh'))
         model.add(Reshape(self.img_shape))
@@ -104,14 +118,14 @@ class BIGAN():
         img = Input(shape=self.img_shape)
         d_in = concatenate([z, Flatten()(img)])
 
-        model = Dense(1024)(d_in)
-        model = LeakyReLU(alpha=0.2)(model)
+        model = Dense(1024,activation=tf.nn.leaky_relu)(d_in)
+#        model = LeakyReLU(alpha=0.2)(model)
         model = Dropout(0.5)(model)
-        model = Dense(1024)(model)
-        model = LeakyReLU(alpha=0.2)(model)
+        model = Dense(1024,activation=tf.nn.leaky_relu)(model)
+#        model = LeakyReLU(alpha=0.2)(model)
         model = Dropout(0.5)(model)
-        model = Dense(1024)(model)
-        model = LeakyReLU(alpha=0.2)(model)
+        model = Dense(1024,activation=tf.nn.leaky_relu)(model)
+#        model = LeakyReLU(alpha=0.2)(model)
         model = Dropout(0.5)(model)
         validity = Dense(1, activation="sigmoid")(model)
 
@@ -120,10 +134,14 @@ class BIGAN():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
+        (X_train, _) = load_data()
 
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        
+        mu = np.mean(X_train)
+        sd = np.std(X_train)
+        
+        X_train = (X_train.astype(np.float32) - mu) / sd
         X_train = np.expand_dims(X_train, axis=3)
 
         # Adversarial ground truths
