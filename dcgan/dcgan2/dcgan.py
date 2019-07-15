@@ -37,9 +37,9 @@ class DCGAN():
         self.img_cols = 24
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.latent_dim = 100
+        self.latent_dim = 50
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = Adam(0.000002, 0.5)
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
@@ -186,4 +186,4 @@ class DCGAN():
 
 if __name__ == '__main__':
     dcgan = DCGAN()
-    dcgan.train(epochs=40000000000000000000000, batch_size=32, save_interval=500)
+    dcgan.train(epochs=400000000, batch_size=32, save_interval=200)

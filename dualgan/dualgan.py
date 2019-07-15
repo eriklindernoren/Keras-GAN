@@ -1,15 +1,17 @@
 from __future__ import print_function, division
 import scipy
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import RMSprop, Adam
-from keras.utils import to_categorical
-import keras.backend as K
+import tensorflow as tf
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
+from tensorflow.keras.layers import BatchNormalization, Activation, ZeroPadding2D
+#from tensorflow.keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import RMSprop, Adam
+from tensorflow.keras.utils import to_categorical
+import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt
 
@@ -17,10 +19,22 @@ import sys
 
 import numpy as np
 
+def load_data():
+        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+    
+        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+    
+        x = tracks.reshape((-1, 17,24))
+        
+#        x = tracks
+    
+        y = np.repeat(infosets[:, 0], 6)
+        return (x,y)
+
 class DUALGAN():
     def __init__(self):
-        self.img_rows = 28
-        self.img_cols = 28
+        self.img_rows = 17
+        self.img_cols = 24
         self.channels = 1
         self.img_dim = self.img_rows*self.img_cols
 
@@ -76,16 +90,16 @@ class DUALGAN():
         X = Input(shape=(self.img_dim,))
 
         model = Sequential()
-        model.add(Dense(256, input_dim=self.img_dim))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(256, input_dim=self.img_dim,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dropout(0.4))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dropout(0.4))
-        model.add(Dense(1024))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(1024,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dropout(0.4))
         model.add(Dense(self.img_dim, activation='tanh'))
@@ -99,10 +113,10 @@ class DUALGAN():
         img = Input(shape=(self.img_dim,))
 
         model = Sequential()
-        model.add(Dense(512, input_dim=self.img_dim))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(256))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512, input_dim=self.img_dim,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(1))
 
@@ -121,14 +135,14 @@ class DUALGAN():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
+        (X_train, _) = load_data()
 
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        X_train = (X_train.astype(np.float32) - np.mean(X_train)) / np.std(X_train)
 
         # Domain A and B (rotated)
         X_A = X_train[:int(X_train.shape[0]/2)]
-        X_B = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 90, axes=(1, 2))
+        X_B = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 180, axes=(1, 2))
 
         X_A = X_A.reshape(X_A.shape[0], self.img_dim)
         X_B = X_B.reshape(X_B.shape[0], self.img_dim)
