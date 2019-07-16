@@ -19,12 +19,28 @@ import sys
 
 import numpy as np
 
+import glob
+
+import pickle
+
 def load_data():
+        x_files = glob.glob("C:\\Users\\gerhard\\Documents\\msc-thesis-data\\cnn\\x_*.pkl")
         tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
     
         infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
-    
         x = tracks.reshape((-1, 17,24))
+        
+        for i in x_files[1:5]:
+            print(i)
+            with open(i,'rb') as x_file:
+                print(i)
+                xi = pickle.load(x_file)
+                x = np.concatenate((x,xi),axis=0)
+                print(x.shape)
+    
+            
+        
+        
         
 #        x = tracks
     
@@ -38,7 +54,7 @@ class DUALGAN():
         self.channels = 1
         self.img_dim = self.img_rows*self.img_cols
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = Adam(0.00002, 0.5)
 
         # Build and compile the discriminators
         self.D_A = self.build_discriminator()
@@ -141,9 +157,9 @@ class DUALGAN():
         X_train = (X_train.astype(np.float32) - np.mean(X_train)) / np.std(X_train)
 
         # Domain A and B (rotated)
-        X_A = X_train[:int(X_train.shape[0]/2)]
-        X_B = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 180, axes=(1, 2))
-
+        X_A = X_train
+#        X_B = scipy.ndimage.interpolation.rotate(X_train[int(X_train.shape[0]/2):], 180, axes=(1, 2))
+        X_B = X_train
         X_A = X_A.reshape(X_A.shape[0], self.img_dim)
         X_B = X_B.reshape(X_B.shape[0], self.img_dim)
 
@@ -233,4 +249,4 @@ class DUALGAN():
 
 if __name__ == '__main__':
     gan = DUALGAN()
-    gan.train(epochs=30000, batch_size=32, sample_interval=200)
+    gan.train(epochs=30000000000000000000000000, batch_size=32, sample_interval=200)
