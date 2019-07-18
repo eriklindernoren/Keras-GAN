@@ -83,28 +83,17 @@ class GAN():
 
         model = Sequential()
 
-        model.add(Dense(408, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
+        model.add(Dense(256, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(408,activation=tf.nn.leaky_relu))
+        model.add(Dense(1024,activation=tf.nn.leaky_relu))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dropout(rate=0.5))
+        model.add(Dense(1024,activation=tf.nn.leaky_relu))
+        model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(np.prod(self.img_shape), activation='tanh'))
         model.add(Reshape(self.img_shape))
 
@@ -126,9 +115,7 @@ class GAN():
         model.add(Flatten(input_shape=self.img_shape))
         model.add(Dense(1024,activation=tf.nn.leaky_relu))
         model.add(Dense(512,activation=tf.nn.leaky_relu))
-#        model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(256,activation=tf.nn.leaky_relu))
-#        model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(1, activation='sigmoid'))
         model.summary()
 
@@ -203,8 +190,17 @@ class GAN():
                 cnt += 1
         fig.savefig("images/%d.png" % epoch)
         plt.close()
+        
+    def simulate(self,images):
+        noise = np.random.normal(0, 1, (images, self.latent_dim))
+        gen_imgs = self.generator.predict(noise)
+        gen_imgs = 0.5 * gen_imgs + 0.5
+        np.save(file='images/sim/gan5_sim.npy',arr=gen_imgs)
+            
+
 
 
 if __name__ == '__main__':
     gan = GAN()
-    gan.train(epochs=30000000000000000000000000000000000000000000000, batch_size=32, sample_interval=200)
+    gan.train(epochs=500000, batch_size=32, sample_interval=200)
+    gan.simulate(images=1000000)
