@@ -34,11 +34,7 @@ def load_data():
                 xi = pickle.load(x_file)
                 x = np.concatenate((x,xi),axis=0)
                 print(x.shape)
-    
-            
-        
-        
-        
+
 #        x = tracks
     
         y = np.repeat(infosets[:, 0], 6)
