@@ -93,7 +93,7 @@ class WGANGP():
         self.generator.trainable = True
 
         # Sampled noise for input to generator
-        z_gen = Input(shape=(100,))
+        z_gen = Input(shape=(self.latent_dim,))
         # Generate images based of noise
         img = self.generator(z_gen)
         # Discriminator determines validity
