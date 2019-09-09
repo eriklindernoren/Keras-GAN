@@ -1,25 +1,41 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, concatenate
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D, Lambda
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-from keras.utils import to_categorical
-import keras.backend as K
+import tensorflow as tf
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, concatenate
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D, Lambda
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import to_categorical
+import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
+def load_data():
+        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+
+        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+
+        x = tracks.reshape((-1, 17,24))
+
+        x = x[:,0:16,:]
+
+#        x = tracks
+
+        y = np.repeat(infosets[:, 0], 6)
+        return (x,y)
+
 class INFOGAN():
     def __init__(self):
-        self.img_rows = 28
-        self.img_cols = 28
+        self.img_rows = 16
+        self.img_cols = 24
         self.channels = 1
-        self.num_classes = 10
+        self.num_classes = 2
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 72
 
@@ -65,8 +81,8 @@ class INFOGAN():
 
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
-        model.add(Reshape((7, 7, 128)))
+        model.add(Dense(128 * 4 * 6, activation="relu", input_dim=self.latent_dim))
+        model.add(Reshape((4, 6, 128)))
         model.add(BatchNormalization(momentum=0.8))
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=3, padding="same"))
@@ -134,7 +150,7 @@ class INFOGAN():
 
     def sample_generator_input(self, batch_size):
         # Generator inputs
-        sampled_noise = np.random.normal(0, 1, (batch_size, 62))
+        sampled_noise = np.random.normal(0, 1, (batch_size, 70))
         sampled_labels = np.random.randint(0, self.num_classes, batch_size).reshape(-1, 1)
         sampled_labels = to_categorical(sampled_labels, num_classes=self.num_classes)
 
@@ -143,10 +159,10 @@ class INFOGAN():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, y_train), (_, _) = mnist.load_data()
+        (X_train, y_train) = load_data()
 
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        X_train = (X_train.astype(np.float32) - np.max(X_train)) / np.max(X_train)
         X_train = np.expand_dims(X_train, axis=3)
         y_train = y_train.reshape(-1, 1)
 
@@ -192,7 +208,7 @@ class INFOGAN():
                 self.sample_images(epoch)
 
     def sample_images(self, epoch):
-        r, c = 10, 10
+        r, c = 1, 1
 
         fig, axs = plt.subplots(r, c)
         for i in range(c):
@@ -202,10 +218,10 @@ class INFOGAN():
             gen_imgs = self.generator.predict(gen_input)
             gen_imgs = 0.5 * gen_imgs + 0.5
             for j in range(r):
-                axs[j,i].imshow(gen_imgs[j,:,:,0], cmap='gray')
-                axs[j,i].axis('off')
-        fig.savefig("images/%d.png" % epoch)
-        plt.close()
+                plt.imshow(gen_imgs[j,:,:,0], cmap='gray')
+                plt.axis('off')
+                fig.savefig("images/%d.png" % epoch)
+                plt.close()
 
     def save_model(self):
 

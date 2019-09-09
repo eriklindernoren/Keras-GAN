@@ -1,12 +1,14 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
+import tensorflow as tf
+
+#from keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout
+from tensorflow.keras.layers import BatchNormalization, Activation, ZeroPadding2D
+#from keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
 
 import matplotlib.pyplot as plt
 
@@ -14,10 +16,34 @@ import sys
 
 import numpy as np
 
+import glob
+
+import pickle
+
+def load_data():
+        x_files = glob.glob("C:\\Users\\gerhard\\Documents\\msc-thesis-data\\cnn\\x_*.pkl")
+        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+    
+        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+        x = tracks.reshape((-1, 17,24))
+        
+        for i in x_files[0:6]:
+            print(i)
+            with open(i,'rb') as x_file:
+                print(i)
+                xi = pickle.load(x_file)
+                x = np.concatenate((x,xi),axis=0)
+                print(x.shape)
+
+#        x = tracks
+    
+        y = np.repeat(infosets[:, 0], 6)
+        return (x,y)
+
 class LSGAN():
     def __init__(self):
-        self.img_rows = 28
-        self.img_cols = 28
+        self.img_rows = 17
+        self.img_cols = 24
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
@@ -53,14 +79,14 @@ class LSGAN():
 
         model = Sequential()
 
-        model.add(Dense(256, input_dim=self.latent_dim))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(256, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(1024))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(1024,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(np.prod(self.img_shape), activation='tanh'))
         model.add(Reshape(self.img_shape))
@@ -77,10 +103,10 @@ class LSGAN():
         model = Sequential()
 
         model.add(Flatten(input_shape=self.img_shape))
-        model.add(Dense(512))
-        model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(256))
-        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(512,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(256,activation=tf.nn.leaky_relu))
+#        model.add(LeakyReLU(alpha=0.2))
         # (!!!) No softmax
         model.add(Dense(1))
         model.summary()
@@ -93,10 +119,10 @@ class LSGAN():
     def train(self, epochs, batch_size=128, sample_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
+        (X_train, _) = load_data()
 
         # Rescale -1 to 1
-        X_train = (X_train.astype(np.float32) - 127.5) / 127.5
+        X_train = (X_train.astype(np.float32) - np.max(X_train)) / np.max(X_train)
         X_train = np.expand_dims(X_train, axis=3)
 
         # Adversarial ground truths
@@ -159,4 +185,4 @@ class LSGAN():
 
 if __name__ == '__main__':
     gan = LSGAN()
-    gan.train(epochs=30000, batch_size=32, sample_interval=200)
+    gan.train(epochs=3000000000, batch_size=32, sample_interval=200)
