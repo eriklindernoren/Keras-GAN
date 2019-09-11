@@ -24,12 +24,15 @@ import glob
 
 def load_data():
         x_files = glob.glob("C:\\Users\\gerhard\\Documents\\msc-thesis-data\\cnn\\x_*.pkl")
-        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
-    
-        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
-        x = tracks.reshape((-1, 17,24))
+#        tracks = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_tracks.npy")
+#    
+#        infosets = np.load("C:/Users/Gerhard/Documents/6_tracklets_large_calib_train/0_info_set.npy")
+#        x = tracks.reshape((-1, 17,24))
         
-        for i in x_files:
+        with open(x_files[0],'rb') as x_file:
+            x = pickle.load(x_file)
+        
+        for i in x_files[1:]:
             print(i)
             with open(i,'rb') as x_file:
                 print(i)
@@ -41,7 +44,8 @@ def load_data():
 
 #        x = tracks
     
-        y = np.repeat(infosets[:, 0], 6)
+#        y = np.repeat(infosets[:, 0], 6)
+        y = None
         return (x,y)
 
 class AdversarialAutoencoder():
@@ -52,7 +56,7 @@ class AdversarialAutoencoder():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 3
 
-        optimizer = Adam(0.00001)
+        optimizer = Adam(0.000002,0.5)
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
@@ -90,9 +94,9 @@ class AdversarialAutoencoder():
 
         h = Flatten()(img)
         h = Dense(256,activation=tf.nn.leaky_relu)(h)
-        h = BatchNormalization()(h)
+#        h = BatchNormalization()(h)
         h = Dense(128,activation=tf.nn.leaky_relu)(h)
-        h = BatchNormalization()(h)
+#        h = BatchNormalization()(h)
         mu = Dense(self.latent_dim)(h)
         log_var = Dense(self.latent_dim)(h)
         latent_repr = Lambda(
@@ -106,9 +110,9 @@ class AdversarialAutoencoder():
         model = Sequential()
 
         model.add(Dense(128, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization())
+#        model.add(BatchNormalization())
         model.add(Dense(256,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization())
+#        model.add(BatchNormalization())
 
         model.add(Dense(np.prod(self.img_shape),activation='tanh'))
         model.add(Reshape(self.img_shape))
@@ -125,7 +129,7 @@ class AdversarialAutoencoder():
         model = Sequential()
 
         model.add(Dense(256, input_dim=self.latent_dim,activation=tf.nn.leaky_relu))
-        model.add(BatchNormalization())
+#        model.add(BatchNormalization())
         model.add(Dense(128,activation=tf.nn.leaky_relu))
         model.add(Dense(1, activation="sigmoid"))
         model.summary()
@@ -228,7 +232,7 @@ class AdversarialAutoencoder():
 
 if __name__ == '__main__':
     aae = AdversarialAutoencoder()
-    aae.train(epochs=10000000000000000000000, batch_size=1000, sample_interval=1)
+    aae.train(epochs=10000000000000000000000, batch_size=1000, sample_interval=1000)
         
         
         
