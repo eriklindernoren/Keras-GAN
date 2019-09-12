@@ -213,4 +213,4 @@ class GAN():
 
 if __name__ == '__main__':
     gan = GAN()
-    gan.train(epochs=3000000000000000000000000000000000000000000000000000000000000000000000000000000000000, batch_size=32, sample_interval=10)
+    gan.train(epochs=30000, batch_size=32, sample_interval=10)
