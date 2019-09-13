@@ -1,0 +1,1 @@
+Reduced Latent dimensions from 10 to 3

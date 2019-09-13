@@ -1,0 +1,13 @@
+Architecture:
+
+Encoder: 512:256:128 -> 512:512:512:512
+Decoder: 128:256:512 -> 512:512:512:512
+Discriminator: 512:256:128 -> 1024:512:256:128
+
+Learning Rate:
+
+D: 0.00001 -> 0.00003
+
+Latent Dim:
+
+3 -> 4

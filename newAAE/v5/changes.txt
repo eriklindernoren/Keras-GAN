@@ -1,0 +1,2 @@
+Optimizer: Generator reduced from 0.00002 to 0.000001
+Discriminator reduced from 0.00002 to 0.000002

@@ -1,0 +1,5 @@
+Latent Dim: 2 -> 3
+
+Learning Rate:
+D: 0.00003 -> 0.00001; Adam -> SGD
+G: 0.00001 == 0.0001 Adam == Adam

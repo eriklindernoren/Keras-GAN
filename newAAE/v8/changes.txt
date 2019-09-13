@@ -1,0 +1,4 @@
+Make encoder and decoder networks more bottlenecked
+
+512:512:512 -> 512:256:128
+512:512:512 -> 128:256:512

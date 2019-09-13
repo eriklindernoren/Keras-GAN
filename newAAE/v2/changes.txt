@@ -1,0 +1,1 @@
+Reduced Learning Rate from 0.000002 to 0.00002
