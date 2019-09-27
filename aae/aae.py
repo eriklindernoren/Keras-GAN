@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+from wandb import magic
+
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
 from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D

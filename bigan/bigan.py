@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import wandb
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
 from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
@@ -23,6 +24,15 @@ class BIGAN():
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
+        
+        # Log project run
+        wandb.init(anonymous='allow',
+                   project="Keras-BiGAN",
+                   config={"img_rows": self.img_rows,
+                           "img_cols": self.img_cols,
+                           "channels": self.channels,
+                           "img_shape": self.img_shape,
+                           "latent_dim": self.latent_dim})
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -119,6 +129,9 @@ class BIGAN():
 
     def train(self, epochs, batch_size=128, sample_interval=50):
 
+        # add extra parameters to log
+        wandb.config.update({"epochs": epochs, "batch_size": batch_size})
+        
         # Load the dataset
         (X_train, _), (_, _) = mnist.load_data()
 
@@ -160,6 +173,9 @@ class BIGAN():
 
             # Plot the progress
             print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
+            
+            # Log progress
+            wandb.log({'D loss': d_loss[0], 'acc': d_loss[1], 'G loss': g_loss[0]}, step=epoch)
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -179,6 +195,7 @@ class BIGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
+        wandb.log({"images": fig}, step=epoch)
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 

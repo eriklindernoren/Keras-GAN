@@ -4,6 +4,7 @@ matplotlib
 numpy
 scipy
 pillow
+wandb
 #urllib
 #skimage
 scikit-image
