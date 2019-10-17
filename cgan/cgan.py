@@ -131,7 +131,7 @@ class CGAN():
             imgs, labels = X_train[idx], y_train[idx]
 
             # Sample noise as generator input
-            noise = np.random.normal(0, 1, (batch_size, 100))
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
 
             # Generate a half batch of new images
             gen_imgs = self.generator.predict([noise, labels])
