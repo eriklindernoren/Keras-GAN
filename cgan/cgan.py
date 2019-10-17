@@ -160,7 +160,7 @@ class CGAN():
 
     def sample_images(self, epoch):
         r, c = 2, 5
-        noise = np.random.normal(0, 1, (r * c, 100))
+        noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         sampled_labels = np.arange(0, 10).reshape(-1, 1)
 
         gen_imgs = self.generator.predict([noise, sampled_labels])
