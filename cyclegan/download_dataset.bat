@@ -27,7 +27,6 @@ for %%x in ( ae_photos
 				echo Available datasets are: apple2orange, summer2winter_yosemite, horse2zebra, monet2photo, cezanne2photo, ukiyoe2photo, vangogh2photo, maps, cityscapes, facades, iphone2dslr_flower, ae_photos
 				)
 				) 
-
 goto exit
 
 :download
