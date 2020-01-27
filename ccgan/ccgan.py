@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 from keras.datasets import mnist
-from keras_contrib.layers.normalization import InstanceNormalization
+from keras_contrib.layers.normalization.instancenormalization import InstanceNormalization
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
 from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
 from keras.layers import Concatenate

@@ -75,7 +75,7 @@ class ACGAN():
 
         noise = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,), dtype='int32')
-        label_embedding = Flatten()(Embedding(self.num_classes, 100)(label))
+        label_embedding = Flatten()(Embedding(self.num_classes, self.latent_dim)(label))
 
         model_input = multiply([noise, label_embedding])
         img = model(model_input)
@@ -112,7 +112,7 @@ class ACGAN():
 
         # Determine validity and label of the image
         validity = Dense(1, activation="sigmoid")(features)
-        label = Dense(self.num_classes+1, activation="softmax")(features)
+        label = Dense(self.num_classes, activation="softmax")(features)
 
         return Model(img, [validity, label])
 
@@ -141,7 +141,7 @@ class ACGAN():
             imgs = X_train[idx]
 
             # Sample noise as generator input
-            noise = np.random.normal(0, 1, (batch_size, 100))
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
 
             # The labels of the digits that the generator tries to create an
             # image representation of
@@ -150,13 +150,12 @@ class ACGAN():
             # Generate a half batch of new images
             gen_imgs = self.generator.predict([noise, sampled_labels])
 
-            # Image labels. 0-9 if image is valid or 10 if it is generated (fake)
+            # Image labels. 0-9 
             img_labels = y_train[idx]
-            fake_labels = 10 * np.ones(img_labels.shape)
 
             # Train the discriminator
             d_loss_real = self.discriminator.train_on_batch(imgs, [valid, img_labels])
-            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels])
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, sampled_labels])
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
             # ---------------------
@@ -176,7 +175,7 @@ class ACGAN():
 
     def sample_images(self, epoch):
         r, c = 10, 10
-        noise = np.random.normal(0, 1, (r * c, 100))
+        noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         sampled_labels = np.array([num for _ in range(r) for num in range(c)])
         gen_imgs = self.generator.predict([noise, sampled_labels])
         # Rescale images 0 - 1
