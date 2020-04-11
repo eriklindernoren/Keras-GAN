@@ -185,7 +185,7 @@ class DCGAN():
                 axs[i,j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
-        wandb.log('gan_generated_imgs': plt)
+        wandb.log({'gan_generated_imgs': plt})
         plt.close()
 
 
