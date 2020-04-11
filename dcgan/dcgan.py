@@ -15,13 +15,14 @@ from tensorflow.keras.optimizers import Adam
 
 import wandb
 from wandb.keras import WandbCallback
+from wandb_utils.predictionloggers import GeneratorLogger
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--entity', type=str, 
     help="provide wandb entity")
 parser.add_argument('--project', type=str, 
     help="provide wandb project name")
-parser.add_argument("--epoch", type=int, default=2000,
+parser.add_argument("--epochs", type=int, default=2000,
     help="number of epochs")
 parser.add_argument("--batch", type=int, default=32,
     help="batch size to be used")
@@ -131,6 +132,8 @@ class DCGAN():
         valid = np.ones((batch_size, 1))
         fake = np.zeros((batch_size, 1))
 
+        genlog = GeneratorLogger(self.generator, self.latent_dim)
+
         for epoch in range(epochs):
 
             # ---------------------
@@ -165,6 +168,9 @@ class DCGAN():
             if epoch % save_interval == 0:
                 self.save_imgs(epoch)
 
+            if epoch % save_interval == 0:
+                genlog.logGeneratedImages()
+
     def save_imgs(self, epoch):
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, self.latent_dim))
@@ -188,9 +194,9 @@ if __name__ == '__main__':
 
     wandb.init(entity=args.entity, project=args.project)
     config = wandb.config
-    config.epochs = 4000
-    config.batch_size = 64
-    config.save_interval = 50
+    config.epochs = args.epochs
+    config.batch_size = args.batch
+    config.save_interval = args.gen_interval
 
     config.latent_dim = 100
 
