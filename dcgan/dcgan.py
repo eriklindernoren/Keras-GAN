@@ -21,7 +21,7 @@ parser.add_argument('--entity', type=str,
     help="provide wandb entity")
 parser.add_argument('--project', type=str, 
     help="provide wandb project name")
-parser.add_argument('--latentdim', type=int, 
+parser.add_argument('--latentdim', type=int, default=100,
     help="specify the latent dimentions")
 parser.add_argument("--epochs", type=int, default=2000,
     help="number of epochs")
@@ -133,8 +133,6 @@ class DCGAN():
         valid = np.ones((batch_size, 1))
         fake = np.zeros((batch_size, 1))
 
-        genlog = GeneratorLogger(self.generator, self.latent_dim)
-
         for epoch in range(epochs):
 
             # ---------------------
@@ -184,7 +182,7 @@ class DCGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/mnist_%d.png" % epoch)
+        # fig.savefig("images/mnist_%d.png" % epoch)
         wandb.log({'gan_generated_imgs': plt})
         plt.close()
 
