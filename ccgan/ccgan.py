@@ -1,20 +1,24 @@
+## USAGE: python 'ccgan.py' --entity your-wandb-id --project your-project --epochs 20000
+
+
 from __future__ import print_function, division
 
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-import scipy
+from PIL import Image
 
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
 from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from tensorflow.keras.layers import MaxPooling2D, concatenate
+from tensorflow.keras.layers import MaxPooling2D, Concatenate
 from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import UpSampling2D, Conv2D
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.optimizers import Adam
 import tensorflow.keras.backend as K
+from tensorflow.keras.utils import to_categorical
 
 from tensorflow_addons.layers import InstanceNormalization
 
@@ -96,7 +100,7 @@ class CCGAN():
             if dropout_rate:
                 u = Dropout(dropout_rate)(u)
             u = BatchNormalization(momentum=0.8)(u)
-            u = concatenate()([u, skip_input])
+            u = Concatenate()([u, skip_input])
             return u
 
         img = Input(shape=self.img_shape)
@@ -165,7 +169,7 @@ class CCGAN():
         (X_train, y_train), (_, _) = mnist.load_data()
 
         # Rescale MNIST to 32x32
-        X_train = np.array([scipy.misc.imresize(x, [self.img_rows, self.img_cols]) for x in X_train])
+        X_train = np.array([np.array(Image.fromarray(x).resize((self.img_rows, self.img_cols),Image.BICUBIC)) for x in X_train])
 
         # Rescale -1 to 1
         X_train = (X_train.astype(np.float32) - 127.5) / 127.5
