@@ -1,3 +1,5 @@
+## USAGE: python 'acgan.py' --entity your-wandb-id --project your-project --latentdim 10 --epochs 14000
+
 from __future__ import print_function, division
 
 import argparse
@@ -25,7 +27,7 @@ parser.add_argument('--project', type=str,
     help="provide wandb project name")
 parser.add_argument('--latentdim', type=int, default=10,
     help="specify the latent dimentions")
-parser.add_argument("--epochs", type=int, default=20000,
+parser.add_argument("--epochs", type=int, default=14000,
     help="number of epochs")
 parser.add_argument("--batch", type=int, default=32,
     help="batch size to be used")
