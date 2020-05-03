@@ -197,7 +197,7 @@ if __name__ == '__main__':
     config.batch_size = args.batch
     config.save_interval = args.gen_interval
 
-    config.latent_dim = args.latent_dim
+    config.latent_dim = args.latentdim
 
     dcgan = DCGAN(latent_dim=config.latent_dim)
     dcgan.train(epochs=config.epochs, batch_size=config.batch_size, save_interval=config.save_interval)

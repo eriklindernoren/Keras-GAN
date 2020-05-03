@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, Lambda
 from tensorflow.keras.layers import Activation
-from tensorflow.keras.layers import MaxPooling2D, concatenate
+from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import UpSampling2D, Conv2D
 from tensorflow.keras.models import Sequential, Model
