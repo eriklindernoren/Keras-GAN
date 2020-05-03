@@ -7,15 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from tensorflow.keras.datasets import mnist
-from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
-from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, Lambda
+from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import MaxPooling2D, concatenate
 from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layersimport UpSampling2D, Conv2D
+from tensorflow.keras.layers import UpSampling2D, Conv2D
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import losses
-from tensorflow.keras.utils import to_categorical
 import tensorflow.keras.backend as K
 
 
@@ -88,11 +86,14 @@ class AdversarialAutoencoder():
         h = LeakyReLU(alpha=0.2)(h)
         mu = Dense(self.latent_dim)(h)
         log_var = Dense(self.latent_dim)(h)
-        latent_repr = concatenate([mu, log_var],
-                mode=lambda p: p[0] + K.random_normal(K.shape(p[0])) * K.exp(p[1] / 2),
-                output_shape=lambda p: p[0])
+        latent_repr = Lambda(self.latent, output_shape=(self.latent_dim, ))([mu, log_var])
 
         return Model(img, latent_repr)
+
+    def latent(self, p):
+        """Sample based on `mu` and `log_var`"""
+        mu, log_var = p
+        return mu + K.random_normal(K.shape(mu)) * K.exp(log_var / 2)  
 
     def build_decoder(self):
 
@@ -210,13 +211,13 @@ class AdversarialAutoencoder():
 
 if __name__ == '__main__':
 
-	wandb.init(entity=args.entity, project=args.project)
-    config = wandb.config
-    config.epochs = args.epochs
-    config.batch_size = args.batch
-    config.save_interval = args.gen_interval
+  wandb.init(entity=args.entity, project=args.project)
+  config = wandb.config
+  config.epochs = args.epochs
+  config.batch_size = args.batch
+  config.save_interval = args.gen_interval
 
-    config.latent_dim = args.latent_dim
+  config.latent_dim = args.latentdim
 
-    aae = AdversarialAutoencoder()
-    aae.train(epochs=wandb.epochs, batch_size=config.batch_size, sample_interval=config.save_interval)
+  aae = AdversarialAutoencoder(config.latent_dim)
+  aae.train(epochs=config.epochs, batch_size=config.batch_size, sample_interval=config.save_interval)
