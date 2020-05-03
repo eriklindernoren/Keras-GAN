@@ -23,7 +23,7 @@ parser.add_argument('--entity', type=str,
     help="provide wandb entity")
 parser.add_argument('--project', type=str, 
     help="provide wandb project name")
-parser.add_argument('--latentdim', type=int, default=10,
+parser.add_argument('--latentdim', type=int, default=100,
     help="specify the latent dimentions")
 parser.add_argument("--epochs", type=int, default=20000,
     help="number of epochs")
