@@ -1,3 +1,5 @@
+## USAGE: python 'dcgan.py' --entity your-wandb-id --project your-project --latentdim 10 --epochs 4000 
+
 from __future__ import print_function, division
 
 import sys
@@ -21,13 +23,13 @@ parser.add_argument('--entity', type=str,
     help="provide wandb entity")
 parser.add_argument('--project', type=str, 
     help="provide wandb project name")
-parser.add_argument('--latentdim', type=int, default=100,
+parser.add_argument('--latentdim', type=int, default=10,
     help="specify the latent dimentions")
-parser.add_argument("--epochs", type=int, default=2000,
+parser.add_argument("--epochs", type=int, default=4000,
     help="number of epochs")
 parser.add_argument("--batch", type=int, default=32,
     help="batch size to be used")
-parser.add_argument("--gen_interval", type=int, default=10,
+parser.add_argument("--gen_interval", type=int, default=50,
     help="log generated images after interval")
 args = parser.parse_args()
 
