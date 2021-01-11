@@ -1,28 +1,48 @@
+## USAGE: python 'bigan.py' --entity your-wandb-id --project your-project --latentdim 100 --epochs 40000
+
 from __future__ import print_function, division
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers import MaxPooling2D, concatenate
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-from keras import losses
-from keras.utils import to_categorical
-import keras.backend as K
-
+import argparse
+import numpy as np
 import matplotlib.pyplot as plt
 
-import numpy as np
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
+from tensorflow.keras.layers import MaxPooling2D, concatenate
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+import tensorflow.keras.backend as K
+
+
+import wandb
+from wandb.keras import WandbCallback
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--entity', type=str, 
+    help="provide wandb entity")
+parser.add_argument('--project', type=str, 
+    help="provide wandb project name")
+parser.add_argument('--latentdim', type=int, default=100,
+    help="specify the latent dimentions")
+parser.add_argument("--epochs", type=int, default=40000,
+    help="number of epochs")
+parser.add_argument("--batch", type=int, default=32,
+    help="batch size to be used")
+parser.add_argument("--gen_interval", type=int, default=10,
+    help="log generated images after interval")
+args = parser.parse_args()
+
 
 class BIGAN():
-    def __init__(self):
+    def __init__(self, latent_dim):
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.latent_dim = 100
+        self.latent_dim = latent_dim
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -160,6 +180,8 @@ class BIGAN():
 
             # Plot the progress
             print ("%d [D loss: %f, acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
+            wandb.log({'epoch': epoch, 'discriminator_loss': d_loss[0], 'accuracy': 100*d_loss[1], 'generator_loss': g_loss[0]})
+
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -180,9 +202,20 @@ class BIGAN():
                 axs[i,j].axis('off')
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
+        wandb.log({'bigan_generated_imgs': plt})
         plt.close()
 
 
 if __name__ == '__main__':
-    bigan = BIGAN()
-    bigan.train(epochs=40000, batch_size=32, sample_interval=400)
+
+    wandb.init(entity=args.entity, project=args.project)
+    config = wandb.config
+    
+    config.epochs = args.epochs
+    config.batch_size = args.batch
+    config.save_interval = args.gen_interval
+    
+    config.latent_dim = args.latentdim
+
+    bigan = BIGAN(config.latent_dim)
+    bigan.train(epochs=config.epochs, batch_size=config.batch_size, sample_interval=config.save_interval)

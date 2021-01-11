@@ -1,27 +1,46 @@
+## USAGE: python 'dcgan.py' --entity your-wandb-id --project your-project --latentdim 10 --epochs 4000 
+
 from __future__ import print_function, division
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-
-import matplotlib.pyplot as plt
-
 import sys
-
 import numpy as np
+import matplotlib.pyplot as plt
+import argparse
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout
+from tensorflow.keras.layers import BatchNormalization, Activation, ZeroPadding2D
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
+
+import wandb
+from wandb.keras import WandbCallback
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--entity', type=str, 
+    help="provide wandb entity")
+parser.add_argument('--project', type=str, 
+    help="provide wandb project name")
+parser.add_argument('--latentdim', type=int, default=10,
+    help="specify the latent dimentions")
+parser.add_argument("--epochs", type=int, default=4000,
+    help="number of epochs")
+parser.add_argument("--batch", type=int, default=32,
+    help="batch size to be used")
+parser.add_argument("--gen_interval", type=int, default=50,
+    help="log generated images after interval")
+args = parser.parse_args()
 
 class DCGAN():
-    def __init__(self):
+    def __init__(self, latent_dim):
         # Input shape
         self.img_rows = 28
         self.img_cols = 28
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.latent_dim = 100
+        self.latent_dim = latent_dim
 
         optimizer = Adam(0.0002, 0.5)
 
@@ -144,6 +163,7 @@ class DCGAN():
 
             # Plot the progress
             print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
+            wandb.log({'epoch': epoch, 'discriminator_loss': d_loss[0], 'accuracy': 100*d_loss[1], 'generator_loss': g_loss})
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
@@ -164,10 +184,20 @@ class DCGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/mnist_%d.png" % epoch)
+        # fig.savefig("images/mnist_%d.png" % epoch)
+        wandb.log({'gan_generated_imgs': plt})
         plt.close()
 
 
 if __name__ == '__main__':
-    dcgan = DCGAN()
-    dcgan.train(epochs=4000, batch_size=32, save_interval=50)
+
+    wandb.init(entity=args.entity, project=args.project)
+    config = wandb.config
+    config.epochs = args.epochs
+    config.batch_size = args.batch
+    config.save_interval = args.gen_interval
+
+    config.latent_dim = args.latentdim
+
+    dcgan = DCGAN(latent_dim=config.latent_dim)
+    dcgan.train(epochs=config.epochs, batch_size=config.batch_size, save_interval=config.save_interval)
