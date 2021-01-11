@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import wandb
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply
 from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
@@ -21,6 +22,16 @@ class ACGAN():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.num_classes = 10
         self.latent_dim = 100
+        
+        # Log project run
+        wandb.init(anonymous='allow',
+                   project="Keras-GAN_AC-GAN",
+                   config={"img_rows": self.img_rows,
+                           "img_cols": self.img_cols,
+                           "channels": self.channels,
+                           "img_shape": self.img_shape,
+                           "num_classes": self.num_classes,
+                           "latent_dim": self.latent_dim})
 
         optimizer = Adam(0.0002, 0.5)
         losses = ['binary_crossentropy', 'sparse_categorical_crossentropy']
@@ -117,6 +128,9 @@ class ACGAN():
         return Model(img, [validity, label])
 
     def train(self, epochs, batch_size=128, sample_interval=50):
+        
+        # add extra parameters to log
+        wandb.config.update({"epochs": epochs, "batch_size": batch_size})
 
         # Load the dataset
         (X_train, y_train), (_, _) = mnist.load_data()
@@ -167,6 +181,9 @@ class ACGAN():
 
             # Plot the progress
             print ("%d [D loss: %f, acc.: %.2f%%, op_acc: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[3], 100*d_loss[4], g_loss[0]))
+            
+            # Log progress
+            wandb.log({'D loss': d_loss[0], 'acc': d_loss[3], 'op_acc': d_loss[4], 'G loss': g_loss[0]}, step=epoch)
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -188,6 +205,7 @@ class ACGAN():
                 axs[i,j].imshow(gen_imgs[cnt,:,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
+        wandb.log({"images": fig}, step=epoch)
         fig.savefig("images/%d.png" % epoch)
         plt.close()
 

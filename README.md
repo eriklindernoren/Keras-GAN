@@ -47,6 +47,8 @@ Implementation of _Auxiliary Classifier Generative Adversarial Network_.
 
 Paper: https://arxiv.org/abs/1610.09585
 
+[Trained Model](https://app.wandb.ai/borisd13/Keras-GAN_AC-GAN/runs/tz46c8ow?workspace=user-borisd13)
+
 #### Example
 ```
 $ cd acgan/
@@ -81,6 +83,8 @@ Implementation of _Bidirectional Generative Adversarial Network_.
 
 Paper: https://arxiv.org/abs/1605.09782
 
+[Trained Model](https://app.wandb.ai/borisd13/Keras-BiGAN/runs/2b88b5vv?workspace=user-borisd13)
+
 #### Example
 ```
 $ cd bigan/
@@ -93,6 +97,8 @@ Implementation of _Boundary-Seeking Generative Adversarial Networks_.
 [Code](bgan/bgan.py)
 
 Paper: https://arxiv.org/abs/1702.08431
+
+[Trained Model](https://app.wandb.ai/borisd13/Keras-BGAN/runs/360cv3g4?workspace=user-borisd13)
 
 #### Example
 ```
