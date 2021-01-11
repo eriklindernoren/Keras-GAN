@@ -15,6 +15,12 @@ import sys
 from data_loader import DataLoader
 import numpy as np
 import os
+import argparse
+
+parser = argparse.ArgumentParser(description='')
+parser.add_argument("--dataset_name", default='apple2orange', help='name of the dataset')
+
+args = parser.parse_args()
 
 class CycleGAN():
     def __init__(self):
@@ -25,7 +31,7 @@ class CycleGAN():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
-        self.dataset_name = 'apple2orange'
+        self.dataset_name = args.dataset_name
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
