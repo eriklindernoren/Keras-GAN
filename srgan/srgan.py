@@ -1,7 +1,11 @@
 """
 Super-resolution of CelebA using Generative Adversarial Networks.
 
-The dataset can be downloaded from: https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADIKlz8PR9zr6Y20qbkunrba/Img/img_align_celeba.zip?dl=0
+The dataset can be downloaded from: http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+Instructions to download dataset:
+1. Click on the above link, followed by the Google Drive link
+2. Click on the Img folder and save the img_align_celeba.zip
+3. Create a folder 'datasets/' and unizp the above file to this dataset folder.
 
 Instrustion on running the script:
 1. Download the dataset from the provided link
@@ -106,14 +110,9 @@ class SRGAN():
         vgg = VGG19(weights="imagenet")
         # Set outputs to outputs of last conv. layer in block 3
         # See architecture at: https://github.com/keras-team/keras/blob/master/keras/applications/vgg19.py
-        vgg.outputs = [vgg.layers[9].output]
+        outputs = vgg.layers[9].output
 
-        img = Input(shape=self.hr_shape)
-
-        # Extract image features
-        img_features = vgg(img)
-
-        return Model(img, img_features)
+        return Model(vgg.input, outputs)
 
     def build_generator(self):
 
