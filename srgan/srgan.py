@@ -107,7 +107,7 @@ class SRGAN():
         Builds a pre-trained VGG19 model that outputs image features extracted at the
         third block of the model
         """
-        vgg = VGG19(weights="imagenet")
+        vgg = VGG19(weights="imagenet", input_shape=self.hr_shape, include_top=False)
         # Set outputs to outputs of last conv. layer in block 3
         # See architecture at: https://github.com/keras-team/keras/blob/master/keras/applications/vgg19.py
         outputs = vgg.layers[9].output
