@@ -6,7 +6,9 @@
 from __future__ import print_function, division
 
 from keras.datasets import mnist
-from keras.layers.merge import _Merge
+from keras.layers.merge import _Merge # this don't work with tensorflow 2.7 or keras 2.9
+# from tensorflow.keras.layers.merging.base_merge import _Merge # tensorflow 2.9
+# from keras.layers.merge import _Merge # tensorflow 2.7
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
@@ -22,6 +24,10 @@ import matplotlib.pyplot as plt
 import sys
 
 import numpy as np
+
+# running tf 2.7/2.9, to avoid error, disable eager execution 
+# from tensorflow.python.framework.ops import disable_eager_execution
+# disable_eager_execution()
 
 class RandomWeightedAverage(_Merge):
     """Provides a (random) weighted average between real and generated image samples"""
