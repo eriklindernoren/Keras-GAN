@@ -1,9 +1,8 @@
 from __future__ import print_function, division
 
-from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
+from keras.layers import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import RMSprop
@@ -16,11 +15,33 @@ import sys
 
 import numpy as np
 
+# For mnist dataset
+from keras.datasets import mnist
+
+# For custom dataset
+from pathlib import Path
+import cv2
+import glob
+
+'''
+For custom dataset, Put the image dataset inside Keras-GAN/wgan/dataset/ folder. This load_image() function will load the images
+'''
+def load_image(dirName='dataset'):
+  path = str(Path().absolute()) + "/" + dirName + "/*.jpg" 
+  
+  images = []
+  for file in glob.glob(path):
+    img = cv2.imread(file)
+    img = cv2.resize(img, (228, 228))
+    images.append(img)
+
+  return np.array(images)
+
 class WGAN():
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
-        self.channels = 1
+        self.channels = 1 # For RGB image, channel = 3
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = 100
 
