@@ -3,12 +3,11 @@ from __future__ import print_function, division
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
+from keras.layers import LeakyReLU
+from keras.layers import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import RMSprop
-
-import keras.backend as K
+import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt
 
@@ -27,7 +26,7 @@ class WGAN():
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
         self.clip_value = 0.01
-        optimizer = RMSprop(lr=0.00005)
+        optimizer = RMSprop(learning_rate=0.00005)
 
         # Build and compile the critic
         self.critic = self.build_critic()
@@ -51,8 +50,7 @@ class WGAN():
         # The combined model  (stacked generator and critic)
         self.combined = Model(z, valid)
         self.combined.compile(loss=self.wasserstein_loss,
-            optimizer=optimizer,
-            metrics=['accuracy'])
+            optimizer=optimizer)
 
     def wasserstein_loss(self, y_true, y_pred):
         return K.mean(y_true * y_pred)
