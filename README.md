@@ -32,14 +32,14 @@ Collection of Keras implementations of Generative Adversarial Networks (GANs) su
     + [Semi-Supervised GAN](#sgan)
     + [Super-Resolution GAN](#srgan)
     + [Wasserstein GAN](#wgan)
-    + [Wasserstein GAN GP](#wgan-gp)     
+    + [Wasserstein GAN GP](#wgan-gp)
 
 ## Installation
     $ git clone https://github.com/eriklindernoren/Keras-GAN
     $ cd Keras-GAN/
     $ sudo pip3 install -r requirements.txt
 
-## Implementations   
+## Implementations
 ### AC-GAN
 Implementation of _Auxiliary Classifier Generative Adversarial Network_.
 
@@ -180,7 +180,7 @@ Paper: https://arxiv.org/abs/1703.10593
 $ cd cyclegan/
 $ bash download_dataset.sh apple2orange
 $ python3 cyclegan.py
-```   
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/cyclegan_gif.gif" width="640"\>
@@ -220,7 +220,7 @@ Paper: https://arxiv.org/abs/1703.05192
 $ cd discogan/
 $ bash download_dataset.sh edges2shoes
 $ python3 discogan.py
-```   
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/discogan.png" width="640"\>
@@ -302,7 +302,7 @@ Paper: https://arxiv.org/abs/1611.07004
 $ cd pix2pix/
 $ bash download_dataset.sh facades
 $ python3 pix2pix.py
-```   
+```
 
 <p align="center">
     <img src="http://eriklindernoren.se/images/pix2pix2.png" width="640"\>
